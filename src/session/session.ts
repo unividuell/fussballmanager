@@ -49,6 +49,7 @@ export class Session {
     return this.snap;
   }
 
+  /** Listener dürfen nicht synchron aus dem Callback heraus dispatch/advance aufrufen (Re-Entrancy). */
   subscribe(fn: (s: Snapshot) => void): () => void {
     this.listeners.add(fn);
     fn(this.snap);

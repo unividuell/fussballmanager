@@ -24,6 +24,11 @@ describe("startNewGame", () => {
     expect(leagueOf(s, l2.clubs[0])).toBe(COMP.second);
   });
 
+  it("lehnt Prototyp-Namen als Verein ab", () => {
+    const r = startNewGame(world, [{ name: "X", clubId: "constructor" }]);
+    expect(r).toEqual({ ok: false, error: "Diesen Verein gibt es nicht." });
+  });
+
   it("legt die Manager an und verknüpft sie mit ihren Vereinen", () => {
     const r = startNewGame(world, [{ name: "Anna", clubId: ids[3] }, { name: "Ben", clubId: ids[30] }]);
     if (!r.ok) throw new Error(r.error);

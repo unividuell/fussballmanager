@@ -73,9 +73,11 @@ export function applyCommand(state: GameState, cmd: StateCommand): Result {
       if (tacticsError) return { ok: false, error: tacticsError };
       const formationChanged = cmd.tactics.formation !== club.tactics.formation;
       club.tactics = { ...cmd.tactics };
-      if (formationChanged) club.lineup = reslot(draft, club, club.lineup, club.tactics);
-      const lineupError = validateLineup(draft, club.id, club.lineup);
-      if (lineupError) return { ok: false, error: lineupError };
+      if (formationChanged) {
+        club.lineup = reslot(draft, club, club.lineup, club.tactics);
+        const lineupError = validateLineup(draft, club.id, club.lineup);
+        if (lineupError) return { ok: false, error: lineupError };
+      }
       return { ok: true, state: draft };
     }
     case "autoLineup":

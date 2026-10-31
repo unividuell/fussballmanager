@@ -66,6 +66,21 @@ describe("applyCommand", () => {
     expect(r).toEqual({ ok: false, error: "Unbekannte Spielweise." });
   });
 
+  it("setTactics mit unbekannter Härte wird abgelehnt", () => {
+    const { s, mid } = game();
+    const r = applyCommand(s, { type: "setTactics", managerId: mid, tactics: { formation: "4-4-2", style: "normal", hardness: "x" as never } });
+    expect(r).toEqual({ ok: false, error: "Unbekannte Härte." });
+  });
+
+  it("setTactics nur mit geänderter Spielweise klappt auch bei ungültiger gespeicherter Aufstellung", () => {
+    const { s, mid, clubId } = game();
+    const club = s.clubs[clubId];
+    s.players[club.lineup.starters[4]].injury = { matchesLeft: 2 };
+    const r = applyCommand(s, { type: "setTactics", managerId: mid, tactics: { ...club.tactics, style: "offensive" } });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.clubs[clubId].tactics.style).toBe("offensive");
+  });
+
   it("autoLineup setzt die beste gültige Elf", () => {
     const { s, mid, clubId } = game();
     s.clubs[clubId].lineup = { starters: [], bench: [] };

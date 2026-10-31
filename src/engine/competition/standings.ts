@@ -63,6 +63,6 @@ export function computeStandings(c: Competition): StandingRow[] {
       y.goalDiff - x.goalDiff ||
       y.goalsFor - x.goalsFor ||
       headToHead(c, x.club, y.club) ||
-      x.club.localeCompare(y.club),
+      (x.club < y.club ? -1 : x.club > y.club ? 1 : 0),
   );
 }

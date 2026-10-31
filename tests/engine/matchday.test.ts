@@ -51,6 +51,20 @@ describe("prepareMatchday", () => {
 });
 
 describe("kompletter Spieltag", () => {
+  it("finishMatchday speichert eine Kopie der Ereignisse", () => {
+    let s = prepareMatchday(newGame()).state;
+    let lives = kickOff(s);
+    ({ state: s, lives } = playHalf(s, lives, 1));
+    lives = aiHalftimeAll(s, lives);
+    ({ state: s, lives } = playHalf(s, lives, 2));
+    const after = finishMatchday(s, lives);
+    const clubs = [lives[0].home.club, lives[0].away.club];
+    const m = Object.values(after.competitions).flatMap((c) => c.matches).find((x) => x.home === clubs[0] && x.away === clubs[1] && x.result)!;
+    const n = m.events!.length;
+    lives[0].events.push({ minute: 99, type: "injury", club: clubs[0], player: "x" });
+    expect(m.events).toHaveLength(n);
+  });
+
   it("setzt alle 18 Ergebnisse, zählt Einsätze und schaltet den Kalender weiter", () => {
     let s = prepareMatchday(newGame()).state;
     let lives = kickOff(s);

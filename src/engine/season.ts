@@ -52,7 +52,7 @@ export function startSeason(state: GameState, firstClubs: ClubId[], secondClubs:
 export function startNewGame(world: GameState, managers: { name: string; clubId: ClubId }[]): Result {
   if (managers.length < 1 || managers.length > 4) return { ok: false, error: "Es können 1 bis 4 Manager mitspielen." };
   if (managers.some((m) => m.name.trim() === "")) return { ok: false, error: "Jeder Manager braucht einen Namen." };
-  if (managers.some((m) => !world.clubs[m.clubId])) return { ok: false, error: "Diesen Verein gibt es nicht." };
+  if (managers.some((m) => !Object.hasOwn(world.clubs, m.clubId))) return { ok: false, error: "Diesen Verein gibt es nicht." };
   if (new Set(managers.map((m) => m.clubId)).size !== managers.length)
     return { ok: false, error: "Zwei Manager können nicht denselben Verein übernehmen." };
 
@@ -63,7 +63,7 @@ export function startNewGame(world: GameState, managers: { name: string; clubId:
     state.clubs[m.clubId].managerId = id;
   }
   const byReputation = Object.values(state.clubs)
-    .sort((a, b) => b.reputation - a.reputation || a.id.localeCompare(b.id))
+    .sort((a, b) => b.reputation - a.reputation || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
     .map((c) => c.id);
   startSeason(state, byReputation.slice(0, LEAGUE_SIZE), byReputation.slice(LEAGUE_SIZE, 2 * LEAGUE_SIZE));
   return { ok: true, state };
@@ -242,7 +242,7 @@ export function finishMatchday(state: GameState, lives: LiveMatch[]): GameState 
       const match = findMatch(draft, live);
       const score = finalScore(live);
       match.result = score;
-      match.events = live.events;
+      match.events = [...live.events];
       applySide(draft, live, live.home, score.home, score.away, rng);
       applySide(draft, live, live.away, score.away, score.home, rng);
       if (match.competitionId === COMP.relegation && match.round === 2) {
@@ -284,7 +284,7 @@ export function topScorer(c: Competition): { player: PlayerId; goals: number } |
   const goals = new Map<PlayerId, number>();
   for (const m of c.matches) for (const e of m.events) if (e.type === "goal") goals.set(e.player, (goals.get(e.player) ?? 0) + 1);
   let best: { player: PlayerId; goals: number } | null = null;
-  for (const [player, n] of [...goals.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+  for (const [player, n] of [...goals.entries()].sort((a, b) => (a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0))) {
     if (!best || n > best.goals) best = { player, goals: n };
   }
   return best;
