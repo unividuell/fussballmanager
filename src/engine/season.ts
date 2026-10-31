@@ -15,6 +15,8 @@ import {
   type ManagerId,
   type Match,
   type Player,
+  type PlayerId,
+  type SeasonRecord,
 } from "./model";
 import { Rng } from "./rng";
 import { ensureMinimumSquad } from "./squad";
@@ -276,4 +278,44 @@ export function relegationWinner(state: GameState): ClubId | null {
 
 export function isSeasonOver(state: GameState): boolean {
   return state.competitions[COMP.relegation] !== undefined && state.calendarIndex >= state.calendar.length;
+}
+
+export function topScorer(c: Competition): { player: PlayerId; goals: number } | null {
+  const goals = new Map<PlayerId, number>();
+  for (const m of c.matches) for (const e of m.events) if (e.type === "goal") goals.set(e.player, (goals.get(e.player) ?? 0) + 1);
+  let best: { player: PlayerId; goals: number } | null = null;
+  for (const [player, n] of [...goals.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
+    if (!best || n > best.goals) best = { player, goals: n };
+  }
+  return best;
+}
+
+export function finishSeason(state: GameState): { state: GameState; record: SeasonRecord } {
+  if (!isSeasonOver(state)) throw new Error("Die Saison ist noch nicht vorbei.");
+  const draft = structuredClone(state);
+  const l1 = draft.competitions[COMP.first];
+  const l2 = draft.competitions[COMP.second];
+  const t1 = computeStandings(l1).map((r) => r.club);
+  const t2 = computeStandings(l2).map((r) => r.club);
+  const relegated = [t1[16], t1[17]];
+  const promoted = [t2[0], t2[1]];
+  if (relegationWinner(draft) === t2[2]) {
+    relegated.push(t1[15]);
+    promoted.push(t2[2]);
+  }
+  const record: SeasonRecord = {
+    season: draft.season,
+    champions: { [COMP.first]: t1[0], [COMP.second]: t2[0] },
+    promoted,
+    relegated,
+    topScorers: { [COMP.first]: topScorer(l1), [COMP.second]: topScorer(l2) },
+  };
+  draft.history.push(record);
+  draft.season++;
+  startSeason(
+    draft,
+    t1.filter((c) => !relegated.includes(c)).concat(promoted),
+    t2.filter((c) => !promoted.includes(c)).concat(relegated),
+  );
+  return { state: draft, record };
 }
