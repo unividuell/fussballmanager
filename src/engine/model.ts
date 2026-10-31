@@ -48,6 +48,119 @@ export const BENCH_SIZE = 9;
 export const MAX_SUBS = 5;
 export const YELLOW_LIMIT = 5;
 
+export interface Contract {
+  /** Gehalt pro Spieltag in € */
+  salary: number;
+  /** letzte Saison, für die der Vertrag gilt */
+  endsSeason: number;
+}
+
+export type Intensity = "light" | "normal" | "hard";
+export type TrainingFocus = "fitness" | "tactics" | "technique";
+export interface TrainingPlan {
+  intensity: Intensity;
+  focus: TrainingFocus;
+  /** bis zu 3 Spieler mit Extratraining */
+  individual: PlayerId[];
+}
+
+export type Expectation = "title" | "upper" | "mid" | "survival";
+export interface Board {
+  expectation: Expectation;
+  /** 0–100 */
+  confidence: number;
+  warned: boolean;
+}
+
+export interface Sponsor {
+  id: string;
+  name: string;
+  perMatchday: number;
+  /** wird am Saisonende gezahlt, wenn das Saisonziel erreicht ist */
+  bonus: number;
+}
+
+export type LedgerCategory =
+  | "tickets"
+  | "tv"
+  | "sponsor"
+  | "salaries"
+  | "upkeep"
+  | "interest"
+  | "transfers"
+  | "prizes"
+  | "stadium"
+  | "severance"
+  | "bonus";
+
+export interface LedgerEntry {
+  calendarIndex: number;
+  category: LedgerCategory;
+  amount: number;
+}
+
+export interface Finance {
+  balance: number;
+  ticketPrice: number;
+  /** 0–4, siehe STADIUM in economy/stadium.ts */
+  stadiumStage: number;
+  building: { stage: number; matchdaysLeft: number } | null;
+  sponsor: Sponsor | null;
+  sponsorOffers: Sponsor[];
+  /** Buchungen der laufenden Saison */
+  ledger: LedgerEntry[];
+  /** Spieltage in Folge über dem Dispo-Limit */
+  overdraftStreak: number;
+  lastAttendance: number;
+}
+
+export interface Negotiation {
+  id: string;
+  managerId: ManagerId;
+  playerId: PlayerId;
+  /** fee = Ablöse mit dem Verein, salary = Gehalt mit dem Spieler */
+  stage: "fee" | "salary";
+  /** vereinbarte Ablöse (nur bei Transfers, sobald die Ablöse steht) */
+  fee: number | null;
+  /** aktuelle Forderung der Gegenseite */
+  ask: number;
+  /** 1–3 */
+  round: number;
+  desiredYears: number;
+  status: "open" | "accepted" | "aborted";
+  /** letzte Rückmeldung der Gegenseite, für die Anzeige */
+  note: string;
+  season: number;
+  createdAt: number;
+}
+
+export interface TransferOffer {
+  id: string;
+  managerId: ManagerId;
+  fromClub: ClubId;
+  playerId: PlayerId;
+  fee: number;
+  /** verdeckt: so viel würde der KI-Verein höchstens zahlen */
+  maxFee: number;
+  round: number;
+  status: "open" | "accepted" | "rejected" | "withdrawn";
+  season: number;
+  /** letzter Kalenderindex, an dem das Angebot gilt */
+  expiresAfter: number;
+}
+
+export interface Message {
+  id: string;
+  managerId: ManagerId;
+  season: number;
+  calendarIndex: number;
+  text: string;
+  ref: { type: "transferOffer" | "jobOffer" | "sponsor" | "negotiation"; id: string } | null;
+}
+
+export const MAX_SQUAD = 32;
+export const LEAGUE_MATCHDAYS = 34;
+
 export interface Player {
   id: PlayerId;
   firstName: string;
@@ -67,6 +180,14 @@ export interface Player {
   clubId: ClubId | null;
   /** Statistik der laufenden Saison */
   stats: { apps: number; goals: number };
+  /** null = vereinslos */
+  contract: Contract | null;
+  /** 0–100 */
+  morale: number;
+  transferListed: { askingPrice: number | null } | null;
+  /** Spieltage, bis wieder verhandelt werden kann */
+  talkCooldown: number;
+  retired: boolean;
 }
 
 export type CrestPattern = "plain" | "stripes" | "sash" | "split" | "hoops";
@@ -83,12 +204,20 @@ export interface Club {
   squad: PlayerId[];
   lineup: Lineup;
   tactics: Tactics;
+  finance: Finance;
+  board: Board;
+  training: TrainingPlan;
+  /** Multiplikator fürs nächste Spiel (Taktiktraining) */
+  tacticsBonus: number;
 }
 
 export interface Manager {
   id: ManagerId;
   name: string;
   clubId: ClubId | null;
+  jobOffers: ClubId[];
+  /** Spieltage ohne Verein */
+  unemployedFor: number;
 }
 
 export interface Score {
@@ -149,6 +278,9 @@ export interface GameState {
   players: Record<PlayerId, Player>;
   competitions: Record<CompetitionId, Competition>;
   history: SeasonRecord[];
+  negotiations: Negotiation[];
+  transferOffers: TransferOffer[];
+  messages: Message[];
   nextId: number;
 }
 

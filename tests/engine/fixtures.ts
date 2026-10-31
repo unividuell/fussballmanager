@@ -17,6 +17,11 @@ export function makePlayer(id: string, position: Position, strength: number, ext
     yellowCards: 0,
     clubId: null,
     stats: { apps: 0, goals: 0 },
+    contract: { salary: 5_000, endsSeason: 3 },
+    morale: 60,
+    transferListed: null,
+    talkCooldown: 0,
+    retired: false,
     ...extra,
   };
 }
@@ -43,6 +48,20 @@ export function makeClub(id: string, squad: Player[], extra: Partial<Club> = {})
     squad: squad.map((p) => p.id),
     lineup: { starters: [], bench: [] },
     tactics: { formation: "4-4-2", style: "normal", hardness: "normal" },
+    finance: {
+      balance: 2_000_000,
+      ticketPrice: 20,
+      stadiumStage: 2,
+      building: null,
+      sponsor: null,
+      sponsorOffers: [],
+      ledger: [],
+      overdraftStreak: 0,
+      lastAttendance: 0,
+    },
+    board: { expectation: "mid", confidence: 60, warned: false },
+    training: { intensity: "normal", focus: "technique", individual: [] },
+    tacticsBonus: 1,
     ...extra,
   };
 }
@@ -60,6 +79,9 @@ export function makeState(clubs: { id: string; strength: number }[], seed = 1): 
     players: {},
     competitions: {},
     history: [],
+    negotiations: [],
+    transferOffers: [],
+    messages: [],
     nextId: 1,
   };
   for (const c of clubs) {

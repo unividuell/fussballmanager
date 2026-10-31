@@ -60,4 +60,34 @@ describe("generateWorld", () => {
   it("ist reines JSON", () => {
     expect(JSON.parse(JSON.stringify(w))).toEqual(w);
   });
+
+  it("Vereinsspieler haben Verträge, 30 Spieler sind vereinslos", () => {
+    for (const c of clubs) {
+      for (const id of c.squad) {
+        const p = w.players[id];
+        expect(p.contract).not.toBeNull();
+        expect(p.contract!.salary).toBeGreaterThan(0);
+        expect(p.contract!.endsSeason).toBeGreaterThanOrEqual(1);
+        expect(p.contract!.endsSeason).toBeLessThanOrEqual(4);
+        expect(p.retired).toBe(false);
+      }
+    }
+    const free = Object.values(w.players).filter((p) => p.clubId === null);
+    expect(free).toHaveLength(30);
+    expect(free.every((p) => p.contract === null)).toBe(true);
+  });
+
+  it("Vereine starten mit Kapital, Stadion, Vorstand und Training", () => {
+    for (const c of clubs) {
+      expect(c.finance.balance).toBeGreaterThan(0);
+      expect(c.finance.stadiumStage).toBeGreaterThanOrEqual(0);
+      expect(c.finance.stadiumStage).toBeLessThanOrEqual(4);
+      expect(c.board.confidence).toBe(60);
+      expect(c.training).toEqual({ intensity: "normal", focus: "technique", individual: [] });
+      expect(c.tacticsBonus).toBe(1);
+    }
+    expect(w.negotiations).toEqual([]);
+    expect(w.transferOffers).toEqual([]);
+    expect(w.messages).toEqual([]);
+  });
 });

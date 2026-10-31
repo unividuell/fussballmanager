@@ -1,3 +1,5 @@
+import { salaryFor, startBalance } from "./economy/money";
+import { initialStage, optimalPrice } from "./economy/stadium";
 import { autoLineup } from "./lineup";
 import {
   newId,
@@ -14,6 +16,9 @@ import { Rng } from "./rng";
 export const CLUB_COUNT = 36;
 const SQUAD_PLAN: [Position, number][] = [["GK", 3], ["DF", 8], ["MF", 8], ["FW", 6]];
 const CRESTS: CrestPattern[] = ["plain", "stripes", "sash", "split", "hoops"];
+
+const FREE_AGENTS_START = 30;
+const FREE_AGENT_POSITIONS: Position[] = ["GK", "DF", "DF", "MF", "MF", "FW"];
 
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
 
@@ -52,6 +57,11 @@ export function generatePlayer(
     yellowCards: 0,
     clubId,
     stats: { apps: 0, goals: 0 },
+    contract: clubId ? { salary: salaryFor(strength), endsSeason: state.season + rng.int(0, 3) } : null,
+    morale: 60,
+    transferListed: null,
+    talkCooldown: 0,
+    retired: false,
   };
   state.players[p.id] = p;
   return p;
@@ -76,6 +86,9 @@ export function generateWorld(seed: number): GameState {
     players: {},
     competitions: {},
     history: [],
+    negotiations: [],
+    transferOffers: [],
+    messages: [],
     nextId: 1,
   };
   const towns = rng.shuffle(TOWNS).slice(0, CLUB_COUNT);
@@ -93,6 +106,20 @@ export function generateWorld(seed: number): GameState {
       squad: [],
       lineup: { starters: [], bench: [] },
       tactics: { formation: "4-4-2", style: "normal", hardness: "normal" },
+      finance: {
+        balance: startBalance(reputation),
+        ticketPrice: optimalPrice(reputation),
+        stadiumStage: initialStage(reputation),
+        building: null,
+        sponsor: null,
+        sponsorOffers: [],
+        ledger: [],
+        overdraftStreak: 0,
+        lastAttendance: 0,
+      },
+      board: { expectation: "mid", confidence: 60, warned: false },
+      training: { intensity: "normal", focus: "technique", individual: [] },
+      tacticsBonus: 1,
     };
     state.clubs[club.id] = club;
     const base = baseStrengthFor(reputation);
@@ -100,6 +127,9 @@ export function generateWorld(seed: number): GameState {
       for (let k = 0; k < n; k++) club.squad.push(generatePlayer(state, rng, club.id, pos, base).id);
     }
     club.lineup = autoLineup(state, club.id, club.tactics.formation);
+  }
+  for (let i = 0; i < FREE_AGENTS_START; i++) {
+    generatePlayer(state, rng, null, rng.pick(FREE_AGENT_POSITIONS), rng.int(45, 65), rng.int(22, 32));
   }
   state.rngState = rng.state();
   return state;
