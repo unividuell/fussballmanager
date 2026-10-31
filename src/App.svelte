@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { GameController } from "./ui/controller.svelte";
+  import Conference from "./ui/screens/Conference.svelte";
   import MainMenu from "./ui/screens/MainMenu.svelte";
   import NewGame from "./ui/screens/NewGame.svelte";
   import Squad from "./ui/screens/Squad.svelte";
@@ -24,6 +25,8 @@
     <Tables {controller} managerId={view.managerId} onBack={() => controller.open("menu")} />
   {:else if view.kind === "resultsTables"}
     <Tables {controller} managerId={null} onBack={() => controller.setResultsTables(false)} />
+  {:else if view.kind === "conference"}
+    {#key view.half}<Conference {controller} half={view.half} />{/key}
   {:else}
     <p class="placeholder">Bildschirm „{view.kind}“ folgt.</p>
   {/if}
