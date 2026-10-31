@@ -18,6 +18,7 @@
   ];
 
   function onKey(e: KeyboardEvent): void {
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     const key = e.key === "Enter" ? "8" : e.key;
     const tile = tiles.find((t) => t.key === key);
     if (tile?.action) {

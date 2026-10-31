@@ -9,6 +9,7 @@
   const club = $derived(clubOf(controller.snapshot!.state, managerId));
 
   function onKey(e: KeyboardEvent): void {
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === "Enter") {
       e.preventDefault();
       controller.open("menu");

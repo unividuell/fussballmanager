@@ -25,6 +25,12 @@ describe("„ist dran“", () => {
     await fireEvent.keyDown(window, { key: "Enter" });
     expect(c.view.kind).toBe("menu");
   });
+
+  it("ignoriert Tastenwiederholung", async () => {
+    const c = game();
+    await fireEvent.keyDown(window, { key: "Enter", repeat: true });
+    expect(c.view.kind).toBe("turnStart");
+  });
 });
 
 describe("Hauptmenü", () => {
@@ -47,6 +53,14 @@ describe("Hauptmenü", () => {
     await tick();
     await fireEvent.keyDown(window, { key: "6" });
     expect(c.view.kind).toBe("tables");
+  });
+
+  it("ignoriert Tasten mit Modifier", async () => {
+    const c = game();
+    c.open("menu");
+    await tick();
+    await fireEvent.keyDown(window, { key: "1", ctrlKey: true });
+    expect(c.view.kind).toBe("menu");
   });
 
   it("gesperrte Kacheln reagieren nicht auf ihre Taste", async () => {
