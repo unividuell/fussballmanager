@@ -52,6 +52,20 @@ describe("applyCommand", () => {
     expect(onNatural).toBe(11);
   });
 
+  it("setTactics mit unbekannter Formation wird abgelehnt und lässt den Zustand unverändert", () => {
+    const { s, mid } = game();
+    const before = JSON.stringify(s);
+    const r = applyCommand(s, { type: "setTactics", managerId: mid, tactics: { formation: "9-9-9" as never, style: "normal", hardness: "normal" } });
+    expect(r).toEqual({ ok: false, error: "Unbekannte Formation." });
+    expect(JSON.stringify(s)).toBe(before);
+  });
+
+  it("setTactics mit unbekannter Spielweise wird abgelehnt", () => {
+    const { s, mid } = game();
+    const r = applyCommand(s, { type: "setTactics", managerId: mid, tactics: { formation: "4-4-2", style: "x" as never, hardness: "normal" } });
+    expect(r).toEqual({ ok: false, error: "Unbekannte Spielweise." });
+  });
+
   it("autoLineup setzt die beste gültige Elf", () => {
     const { s, mid, clubId } = game();
     s.clubs[clubId].lineup = { starters: [], bench: [] };
@@ -82,8 +96,17 @@ describe("applyHalftime", () => {
     expect(lives[loc.index][loc.side].pitch.map((pp) => pp.id)).toContain(out);
   });
 
+  it("ungültige Taktik bei Halbzeit wird abgelehnt und lässt lives unverändert", () => {
+    const { s, mid, lives } = atHalftime();
+    const before = JSON.stringify(lives);
+    const r = applyHalftime(s, lives, { type: "halftimeChanges", managerId: mid, substitutions: [], tactics: { formation: "9-9-9" as never } });
+    expect(r).toEqual({ ok: false, error: "Unbekannte Formation." });
+    expect(JSON.stringify(lives)).toBe(before);
+  });
+
   it("ist alles oder nichts: ein ungültiger Wechsel verwirft auch die gültigen", () => {
     const { s, mid, lives } = atHalftime();
+    const before = JSON.stringify(lives);
     const loc = findLiveFor(s, lives, mid)!;
     const side = lives[loc.index][loc.side];
     const r = applyHalftime(s, lives, {
@@ -96,6 +119,7 @@ describe("applyHalftime", () => {
       tactics: null,
     });
     expect(r).toEqual({ ok: false, error: "Der Spieler steht nicht auf dem Platz." });
+    expect(JSON.stringify(lives)).toBe(before);
   });
 
   it("lehnt Wechsel von Spielern des Gegners ab", () => {
@@ -103,7 +127,7 @@ describe("applyHalftime", () => {
     const loc = findLiveFor(s, lives, mid)!;
     const other = lives[loc.index][loc.side === "home" ? "away" : "home"];
     const r = applyHalftime(s, lives, { type: "halftimeChanges", managerId: mid, substitutions: [{ out: other.pitch[3].id, in: other.bench[0] }], tactics: null });
-    expect(r.ok).toBe(false);
+    expect(r).toEqual({ ok: false, error: "Der Spieler steht nicht auf dem Platz." });
   });
 
   it("findet kein Spiel für einen Manager ohne Verein", () => {

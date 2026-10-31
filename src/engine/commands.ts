@@ -1,13 +1,17 @@
 import { autoLineup, repairLineup, validateLineup } from "./lineup";
 import { changeTactics, substitute, type LiveMatch, type Side } from "./match/simulate";
 import {
+  FORMATION_LIST,
   isAvailable,
   slotPositions,
   type Club,
+  type Formation,
   type GameState,
+  type Hardness,
   type Lineup,
   type ManagerId,
   type PlayerId,
+  type Style,
   type Tactics,
 } from "./model";
 import type { Result } from "./season";
@@ -22,6 +26,17 @@ export interface HalftimeCommand {
   managerId: ManagerId;
   substitutions: { out: PlayerId; in: PlayerId }[];
   tactics: Partial<Tactics> | null;
+}
+
+const STYLES: Style[] = ["defensive", "normal", "offensive"];
+const HARDNESSES: Hardness[] = ["fair", "normal", "hard"];
+
+/** Prüft Taktik-Eingaben. Mit requireAll fehlen Felder als Fehler, sonst werden nur vorhandene geprüft. */
+function validateTactics(t: Partial<Tactics>, requireAll: boolean): string | null {
+  if ((requireAll || t.formation !== undefined) && !FORMATION_LIST.includes(t.formation as Formation)) return "Unbekannte Formation.";
+  if ((requireAll || t.style !== undefined) && !STYLES.includes(t.style as Style)) return "Unbekannte Spielweise.";
+  if ((requireAll || t.hardness !== undefined) && !HARDNESSES.includes(t.hardness as Hardness)) return "Unbekannte Härte.";
+  return null;
 }
 
 function managedClub(state: GameState, managerId: ManagerId): Club | string {
@@ -54,9 +69,13 @@ export function applyCommand(state: GameState, cmd: StateCommand): Result {
       return { ok: true, state: draft };
     }
     case "setTactics": {
+      const tacticsError = validateTactics(cmd.tactics, true);
+      if (tacticsError) return { ok: false, error: tacticsError };
       const formationChanged = cmd.tactics.formation !== club.tactics.formation;
       club.tactics = { ...cmd.tactics };
       if (formationChanged) club.lineup = reslot(draft, club, club.lineup, club.tactics);
+      const lineupError = validateLineup(draft, club.id, club.lineup);
+      if (lineupError) return { ok: false, error: lineupError };
       return { ok: true, state: draft };
     }
     case "autoLineup":
@@ -82,6 +101,10 @@ export function applyHalftime(
   if (typeof found === "string") return { ok: false, error: found };
   const loc = findLiveFor(state, lives, cmd.managerId);
   if (!loc) return { ok: false, error: "Dein Verein spielt heute nicht." };
+  if (cmd.tactics) {
+    const tacticsError = validateTactics(cmd.tactics, false);
+    if (tacticsError) return { ok: false, error: tacticsError };
+  }
   const out = structuredClone(lives);
   const live = out[loc.index];
   for (const s of cmd.substitutions) {
