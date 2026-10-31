@@ -1,1 +1,7 @@
-<main>Fussballmanager – die Oberfläche folgt in Plan 2.</main>
+<script lang="ts">
+  import Screen from "./ui/theme/Screen.svelte";
+</script>
+
+<Screen>
+  <p style="padding: 16px">Fussballmanager</p>
+</Screen>

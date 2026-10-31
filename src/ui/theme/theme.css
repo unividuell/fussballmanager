@@ -1,0 +1,84 @@
+/* Look „Rasen & Holztafel“: gestreifter Rasen, dunkle Holztafeln, cremefarbene Pixel-Schrift. Bewusst nur ein Look. */
+:root {
+  --grass-1: #1f5c22;
+  --grass-2: #246a27;
+  --wood: #3b2614;
+  --wood-light: #5a3a1c;
+  --wood-edge: #7a5230;
+  --wood-dark: #1a1009;
+  --cream: #f3e7c9;
+  --gold: #ffcc33;
+  --leaf: #a8d08d;
+  --rust: #b8401f;
+  --ink: #0b0d0a;
+  --font-display: "Press Start 2P", "Courier New", monospace;
+  --font-body: "VT323", "Courier New", monospace;
+  color-scheme: dark;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-body);
+  font-size: 16px;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: normal;
+  color: var(--gold);
+  margin: 0;
+  line-height: 1.4;
+}
+h1 { font-size: 16px; }
+h2 { font-size: 8px; letter-spacing: 0.04em; }
+
+.btn {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1;
+  color: var(--cream);
+  background: var(--wood-light);
+  border: 2px solid var(--wood-edge);
+  padding: 3px 8px;
+  cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--gold); }
+.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.btn:disabled { opacity: 0.45; cursor: default; }
+.btn.primary { color: var(--wood-dark); background: var(--gold); border-color: var(--cream); }
+.btn.selected { border-color: var(--gold); color: var(--gold); }
+
+.board-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.board-table th {
+  text-align: left;
+  color: var(--leaf);
+  font-weight: normal;
+  border-bottom: 1px solid var(--wood-edge);
+  cursor: default;
+}
+.board-table td,
+.board-table th { padding: 0 4px; white-space: nowrap; }
+.board-table td.num,
+.board-table th.num { text-align: right; }
+.board-table tr.mine td { color: var(--gold); }
+.board-table tr.clickable { cursor: pointer; }
+.board-table tr.clickable:hover td { background: var(--wood-light); }
+.board-table tr.picked td { background: var(--rust); color: var(--cream); }
+
+.msg {
+  color: var(--cream);
+  background: var(--rust);
+  border: 2px solid var(--cream);
+  padding: 2px 6px;
+}
