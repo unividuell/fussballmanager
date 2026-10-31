@@ -63,6 +63,17 @@ describe("Konferenz", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it("startet auf der Liga des ersten menschlichen Managers (2. Liga)", async () => {
+    const controller = new GameController();
+    const world = generateWorld(3);
+    const ranked = Object.values(world.clubs).sort((a, b) => b.reputation - a.reputation || (a.id < b.id ? -1 : 1));
+    controller.startGame(world, [{ name: "Anna", clubId: ranked[25].id }]);
+    await controller.endTurn(controller.snapshot!.state.managers[0].id);
+    render(App, { controller });
+    await tick();
+    expect(screen.getByText(/KONFERENZ · 2\. Liga/)).toBeTruthy();
+  });
+
   it("TAB wechselt zur 2. Liga, + beschleunigt", async () => {
     await atConference();
     await fireEvent.keyDown(window, { key: "Tab" });

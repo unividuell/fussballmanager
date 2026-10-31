@@ -27,5 +27,5 @@
       </g>
     {/if}
   </g>
-  <path d={SHIELD} fill="none" stroke="var(--cream)" stroke-width="1" />
+  <path d={SHIELD} fill="none" style="stroke: var(--cream)" stroke-width="1" />
 </svg>

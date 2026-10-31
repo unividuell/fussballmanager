@@ -46,6 +46,16 @@ describe("ticker", () => {
     expect(at.last).toContain("TOR!");
   });
 
+  it("flashMinutes verlängert das Tor-Aufleuchten über mehrere Minuten", () => {
+    const { state, lives } = firstHalf();
+    const l = structuredClone(lives[0]);
+    l.events = [{ minute: 10, type: "goal", club: l.home.club, player: l.home.pitch[2].id }];
+    expect(tickerRows(state, [l], 11)[0].goalNow).toBe(false);
+    expect(tickerRows(state, [l], 11, 2)[0].goalNow).toBe(true);
+    expect(tickerRows(state, [l], 12, 2)[0].goalNow).toBe(false);
+    expect(tickerRows(state, [l], 9, 2)[0].goalNow).toBe(false);
+  });
+
   it("gelbe Karten und Wechsel erscheinen nicht als letztes Ereignis", () => {
     const { state, lives } = firstHalf();
     const l = structuredClone(lives[0]);

@@ -27,7 +27,7 @@
   {:else if view.kind === "tables"}
     <Tables {controller} managerId={view.managerId} onBack={() => controller.open("menu")} />
   {:else if view.kind === "resultsTables"}
-    <Tables {controller} managerId={null} onBack={() => controller.setResultsTables(false)} />
+    <Tables {controller} managerId={controller.snapshot!.state.managers[0]?.id ?? null} onBack={() => controller.setResultsTables(false)} />
   {:else if view.kind === "conference"}
     {#key view.half}<Conference {controller} half={view.half} />{/key}
   {:else if view.kind === "halftime"}

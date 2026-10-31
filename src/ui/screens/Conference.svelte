@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { leagueOf } from "../../engine/season";
   import type { GameController } from "../controller.svelte";
   import { DEFAULT_TEMPO, TEMPOS, competitionName, competitionsOf, halfBounds, tickerRows } from "../logic/ticker";
   import Panel from "../theme/Panel.svelte";
@@ -9,17 +10,27 @@
     return halfBounds(half).from;
   }
 
+  function initialCompIndex(): number {
+    const snap = controller.snapshot!;
+    for (const m of snap.state.managers) {
+      if (!m.clubId) continue;
+      const i = competitionsOf(snap.lives).indexOf(leagueOf(snap.state, m.clubId) ?? "");
+      if (i >= 0) return i;
+    }
+    return 0;
+  }
+
   const bounds = $derived(halfBounds(half));
   let minute = $state(startMinute());
   let tempo = $state(DEFAULT_TEMPO);
-  let compIndex = $state(0);
+  let compIndex = $state(initialCompIndex());
   let advanced = false;
 
   const gs = $derived(controller.snapshot!.state);
   const lives = $derived(controller.snapshot!.lives);
   const comps = $derived(competitionsOf(lives));
   const comp = $derived(comps[compIndex % Math.max(1, comps.length)]);
-  const rows = $derived(tickerRows(gs, lives, minute).filter((r) => r.competitionId === comp));
+  const rows = $derived(tickerRows(gs, lives, minute, Math.ceil(1000 / TEMPOS[tempo])).filter((r) => r.competitionId === comp));
   const finished = $derived(minute >= bounds.to);
 
   $effect(() => {

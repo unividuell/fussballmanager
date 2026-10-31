@@ -15,7 +15,15 @@ describe("Screen", () => {
     const screen = container.querySelector(".screen") as HTMLElement;
     expect(screen.style.width).toBe("640px");
     expect(screen.style.height).toBe("400px");
-    expect(screen.style.transform).toBe("scale(2)");
+    expect(screen.style.transform).toBe("translate(-50%, -50%) scale(2)");
+  });
+
+  it("verkleinert in kleinen Fenstern um die Mitte (375×667 → 375/640)", () => {
+    Object.defineProperty(window, "innerWidth", { value: 375, configurable: true });
+    Object.defineProperty(window, "innerHeight", { value: 667, configurable: true });
+    const { container } = render(Screen, { children: content });
+    const screen = container.querySelector(".screen") as HTMLElement;
+    expect(screen.style.transform).toBe("translate(-50%, -50%) scale(0.5859375)");
   });
 
   it("schaltet Scanlines ein, wenn gewünscht", () => {

@@ -16,7 +16,7 @@
     class:scanlines
     style:width="{BASE_W}px"
     style:height="{BASE_H}px"
-    style:transform="scale({scale})"
+    style:transform="translate(-50%, -50%) scale({scale})"
   >
     {@render children()}
   </div>
@@ -26,15 +26,14 @@
   .stage {
     position: fixed;
     inset: 0;
-    display: grid;
-    place-items: center;
     overflow: hidden;
     background: var(--ink);
   }
   .screen {
-    position: relative;
+    position: absolute;
+    left: 50%;
+    top: 50%;
     overflow: hidden;
-    flex: none;
     transform-origin: center;
     image-rendering: pixelated;
     background: repeating-linear-gradient(90deg, var(--grass-1) 0 40px, var(--grass-2) 40px 80px);

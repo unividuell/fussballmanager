@@ -2,6 +2,7 @@
   import { COMP } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
   import { competitionName, competitionsOf, tickerRows } from "../logic/ticker";
+  import { eventText } from "../logic/format";
   import Panel from "../theme/Panel.svelte";
 
   let { controller }: { controller: GameController } = $props();
@@ -11,6 +12,17 @@
   const gs = $derived(snap.state);
   const rows = $derived(tickerRows(gs, snap.lives, 90));
   const comps = $derived(competitionsOf(snap.lives));
+
+  const humanClubs = $derived(
+    new Set(gs.managers.map((m) => m.clubId).filter((c): c is string => c !== null)),
+  );
+  const happenings = $derived(
+    snap.lives.flatMap((l) =>
+      l.events
+        .filter((e) => (e.type === "goal" || e.type === "red" || e.type === "injury") && humanClubs.has(e.club))
+        .map((e) => `${gs.clubs[e.club].shortName}: ${eventText(gs, e)}`),
+    ),
+  );
 
   const title = $derived.by(() => {
     const l = snap.lives[0];
@@ -57,6 +69,13 @@
       </Panel>
     {/each}
   </div>
+  {#if happenings.length > 0}
+    <Panel title="EREIGNISSE">
+      {#each happenings as h, i (i)}
+        <p class="event">{h}</p>
+      {/each}
+    </Panel>
+  {/if}
   {#if snap.notices.length > 0}
     <Panel title="HINWEISE">
       {#each snap.notices as n, i (i)}
@@ -81,7 +100,8 @@
   .score { text-align: center; color: var(--gold); font-variant-numeric: tabular-nums; }
   .result.managed .home,
   .result.managed .away { color: var(--gold); }
-  .notice { margin: 0; }
+  .notice,
+  .event { margin: 0; }
   .foot { display: flex; gap: 6px; }
   .spacer { flex: 1; }
 </style>

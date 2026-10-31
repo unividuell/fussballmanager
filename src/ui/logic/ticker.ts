@@ -24,7 +24,7 @@ export interface TickerRow {
   managed: boolean;
 }
 
-export function tickerRows(state: GameState, lives: LiveMatch[], minute: number): TickerRow[] {
+export function tickerRows(state: GameState, lives: LiveMatch[], minute: number, flashMinutes = 1): TickerRow[] {
   return lives.map((l) => {
     const events = l.events.filter((e) => e.minute <= minute);
     const goals = events.filter((e) => e.type === "goal");
@@ -40,7 +40,7 @@ export function tickerRows(state: GameState, lives: LiveMatch[], minute: number)
       homeGoals: goals.filter((e) => e.club === l.home.club).length,
       awayGoals: goals.filter((e) => e.club === l.away.club).length,
       last: last ? eventText(state, last) : null,
-      goalNow: goals.some((e) => e.minute === minute),
+      goalNow: goals.some((e) => minute - flashMinutes < e.minute),
       managed: state.clubs[l.home.club].managerId !== null || state.clubs[l.away.club].managerId !== null,
     };
   });
