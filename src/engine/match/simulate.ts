@@ -18,7 +18,7 @@ import type { Rng } from "../rng";
 import { HOME_FACTOR, effectiveStrength, teamStrength, type PitchPlayer, type TeamStrength } from "./strength";
 
 export const SIM = {
-  baseChance: 0.105,
+  baseChance: 0.096,
   chanceExp: 1,
   baseGoal: 0.3,
   goalExp: 0.5,
