@@ -2,7 +2,7 @@ import type { Club, ClubId, GameState, LedgerCategory, Player } from "../model";
 import { roundTo } from "./util";
 
 export function salaryFor(strength: number): number {
-  return roundTo(2500 * Math.pow(1.075, strength - 40), 100);
+  return roundTo(2000 * Math.pow(1.075, strength - 40), 100);
 }
 
 export function startBalance(reputation: number): number {

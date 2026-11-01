@@ -37,9 +37,9 @@ describe("util", () => {
 
 describe("money", () => {
   it("Gehalt wächst exponentiell mit der Stärke", () => {
-    expect(salaryFor(40)).toBe(2_500);
-    expect(salaryFor(50)).toBe(5_200);
-    expect(salaryFor(70)).toBe(21_900);
+    expect(salaryFor(40)).toBe(2_000);
+    expect(salaryFor(50)).toBe(4_100);
+    expect(salaryFor(70)).toBe(17_500);
     expect(salaryFor(80)).toBeGreaterThan(salaryFor(70));
   });
 

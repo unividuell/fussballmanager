@@ -110,7 +110,7 @@ export function addYouth(state: GameState, rng: Rng): PlayerId[] {
   for (const club of Object.values(state.clubs)) {
     const n = rng.int(2, 3);
     for (let i = 0; i < n; i++) {
-      const p = generatePlayer(state, rng, club.id, rng.pick(YOUTH_POSITIONS), baseStrengthFor(club.reputation) - 12, rng.int(16, 18));
+      const p = generatePlayer(state, rng, club.id, rng.pick(YOUTH_POSITIONS), baseStrengthFor(club.reputation) - 14, rng.int(16, 18));
       p.potential = Math.min(99, Math.max(p.strength, p.strength + rng.int(10, 35)));
       p.contract = { salary: roundTo(salaryFor(p.strength) * 0.5, 100), endsSeason: state.season + 2 };
       club.squad.push(p.id);
