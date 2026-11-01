@@ -22,10 +22,10 @@ export const FREE_AGENT_POOL_MAX = 150;
 
 export function baseDevelopment(age: number, strength: number, potential: number): number {
   const gap = Math.max(0, potential - strength);
-  if (age <= 24) return Math.min(0.35, 0.04 + 0.01 * gap);
-  if (age <= 30) return gap > 0 ? 0.03 : 0;
-  if (age <= 32) return -0.06;
-  return -0.15;
+  if (age <= 24) return Math.min(0.35, 0.03 + 0.007 * gap);
+  if (age <= 30) return gap > 0 ? 0.02 : 0;
+  if (age <= 32) return -0.08;
+  return -0.2;
 }
 
 export function applyTraining(state: GameState, clubId: ClubId, played: ReadonlySet<PlayerId>, rng: Rng): PlayerId[] {
@@ -110,7 +110,7 @@ export function addYouth(state: GameState, rng: Rng): PlayerId[] {
   for (const club of Object.values(state.clubs)) {
     const n = rng.int(2, 3);
     for (let i = 0; i < n; i++) {
-      const p = generatePlayer(state, rng, club.id, rng.pick(YOUTH_POSITIONS), baseStrengthFor(club.reputation) - 14, rng.int(16, 18));
+      const p = generatePlayer(state, rng, club.id, rng.pick(YOUTH_POSITIONS), baseStrengthFor(club.reputation) - 18, rng.int(16, 18));
       p.potential = Math.min(99, Math.max(p.strength, p.strength + rng.int(10, 35)));
       p.contract = { salary: roundTo(salaryFor(p.strength) * 0.5, 100), endsSeason: state.season + 2 };
       club.squad.push(p.id);

@@ -17,13 +17,13 @@ const none = new Set<string>();
 
 describe("baseDevelopment", () => {
   it("Junge wachsen umso schneller, je größer der Abstand zum Potenzial", () => {
-    expect(baseDevelopment(20, 50, 70)).toBeCloseTo(0.24);
-    expect(baseDevelopment(20, 50, 51)).toBeCloseTo(0.05);
+    expect(baseDevelopment(20, 50, 70)).toBeCloseTo(0.17);
+    expect(baseDevelopment(20, 50, 51)).toBeCloseTo(0.037);
     expect(baseDevelopment(20, 40, 99)).toBe(0.35);
-    expect(baseDevelopment(27, 60, 65)).toBe(0.03);
+    expect(baseDevelopment(27, 60, 65)).toBe(0.02);
     expect(baseDevelopment(27, 65, 65)).toBe(0);
-    expect(baseDevelopment(31, 70, 70)).toBe(-0.06);
-    expect(baseDevelopment(34, 70, 70)).toBe(-0.15);
+    expect(baseDevelopment(31, 70, 70)).toBe(-0.08);
+    expect(baseDevelopment(34, 70, 70)).toBe(-0.2);
   });
 });
 
@@ -38,10 +38,10 @@ describe("applyTraining", () => {
   }
 
   it("hartes Training bringt mehr als lockeres, Förderung verdoppelt", () => {
-    expect(youngster("normal")).toBeCloseTo(0.34);
+    expect(youngster("normal")).toBeCloseTo(0.24);
     expect(youngster("hard")).toBeGreaterThan(youngster("normal"));
     expect(youngster("light")).toBeLessThan(youngster("normal"));
-    expect(youngster("normal", true)).toBeCloseTo(0.68);
+    expect(youngster("normal", true)).toBeCloseTo(0.48);
   });
 
   it("wächst nie über das Potenzial; Ältere bauen ab, nie unter 1", () => {
@@ -52,7 +52,7 @@ describe("applyTraining", () => {
     applyTraining(s, "c1", none, Rng.fromSeed(1));
     expect(s.players["c1-FW1"].strength).toBe(70);
     expect(s.players["c1-FW2"].strength).toBe(1);
-    expect(s.players["c1-FW3"].strength).toBeCloseTo(69.85);
+    expect(s.players["c1-FW3"].strength).toBeCloseTo(69.8);
   });
 
   it("Konditionsschwerpunkt erholt, hartes Training kostet Kondition", () => {

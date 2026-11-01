@@ -144,7 +144,7 @@ describe("aiTransferRound", () => {
       const signed = c.squad.some((id) => !b.ids.has(id));
       if (b.n < 22 || !signed) continue;
       const wage = wageBill(s, c.id);
-      expect(wage <= 0.65 * expectedIncome(s, c.id) + 1 || wage <= b.wage).toBe(true);
+      expect(wage <= 0.8 * expectedIncome(s, c.id) + 1 || wage <= b.wage).toBe(true);
     }
   });
 });

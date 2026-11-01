@@ -17,8 +17,10 @@ describe("Langzeittest: Wirtschaft über 10 Saisons", () => {
     if (!r.ok) throw new Error(r.error);
     let s: GameState = r.state;
     const startL1 = starterAvg(s, COMP.first);
-    const report: string[] = [];
+    const startL2 = starterAvg(s, COMP.second);
+    const report: string[] = [`Start: L1 ${startL1.toFixed(1)}, L2 ${startL2.toFixed(1)}`];
 
+    try {
     for (let season = 1; season <= 10; season++) {
       while (!isSeasonOver(s)) s = playMatchdayAuto(s);
       s = finishSeason(s).state;
@@ -31,7 +33,9 @@ describe("Langzeittest: Wirtschaft über 10 Saisons", () => {
       const active = Object.values(s.players).filter((p) => !p.retired).length;
       const l1 = starterAvg(s, COMP.first);
       const l2 = starterAvg(s, COMP.second);
-      report.push(`Saison ${season}: Median ${median}, über Limit ${over}, frei ${free}, aktiv ${active}, L1 ${l1.toFixed(1)}, L2 ${l2.toFixed(1)}`);
+      const withPlayers = clubs.filter((c) => c.managerId === null && c.squad.length >= 1);
+      const meanSquad = withPlayers.reduce((a, c) => a + c.squad.length, 0) / withPlayers.length;
+      report.push(`Saison ${season}: Median ${median}, über Limit ${over}, frei ${free}, aktiv ${active}, L1 ${l1.toFixed(1)}, L2 ${l2.toFixed(1)}, Kader ${meanSquad.toFixed(1)}`);
 
       for (const c of clubs) {
         expect(Number.isFinite(c.finance.balance)).toBe(true);
@@ -39,18 +43,20 @@ describe("Langzeittest: Wirtschaft über 10 Saisons", () => {
         if (c.managerId === null) expect(c.squad.length).toBeGreaterThanOrEqual(18);
         for (const id of c.squad) expect(s.players[id].clubId).toBe(c.id);
       }
-      expect(over).toBeLessThanOrEqual(8);
+      expect(over).toBeLessThanOrEqual(6);
+      expect(meanSquad).toBeGreaterThanOrEqual(20);
       expect(median).toBeGreaterThan(-3_000_000);
       expect(median).toBeLessThan(60_000_000);
       expect(free).toBeGreaterThanOrEqual(5);
       expect(free).toBeLessThanOrEqual(150);
       expect(l1).toBeGreaterThan(l2 + 3);
-      expect(Math.abs(l1 - startL1)).toBeLessThan(8);
+      expect(Math.abs(l1 - startL1)).toBeLessThan(5);
       expect(active).toBeLessThan(2_000);
       for (const m of s.managers) expect(s.messages.filter((x) => x.managerId === m.id).length).toBeLessThanOrEqual(60);
     }
-
-    console.log(report.join("\n"));
+    } finally {
+      console.log(report.join("\n"));
+    }
     expect(JSON.parse(JSON.stringify(s))).toEqual(s);
   });
 });

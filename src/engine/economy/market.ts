@@ -18,7 +18,7 @@ const AI_SQUAD_MIN = 22;
 const AI_SQUAD_MAX = 28;
 const EMERGENCY_SQUAD = 18;
 const SELLER_MIN_SQUAD = 22;
-const WAGE_SHARE = 0.65;
+const WAGE_SHARE = 0.8;
 
 export type OfferResponse = "accept" | "reject" | { counter: number };
 
