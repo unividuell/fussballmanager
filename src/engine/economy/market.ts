@@ -100,7 +100,7 @@ export function respondTransferOffer(state: GameState, managerId: ManagerId, off
   if (response !== "accept") {
     const counter = response.counter;
     if (!Number.isInteger(counter) || counter <= 0) return "Der Betrag muss eine positive ganze Zahl sein.";
-    if (counter <= o.maxFee) fee = counter;
+    if (counter <= o.maxFee) fee = Math.max(counter, o.fee);
     else if (o.round < 3) {
       o.fee = roundTo(o.fee + (o.maxFee - o.fee) * 0.5, 10_000);
       o.round++;
@@ -111,6 +111,11 @@ export function respondTransferOffer(state: GameState, managerId: ManagerId, off
       postMessage(state, managerId, `${buyer.name} zieht das Angebot für ${playerName(p)} zurück.`);
       return null;
     }
+  }
+  if (buyer.squad.length >= MAX_SQUAD) {
+    o.status = "withdrawn";
+    postMessage(state, managerId, `${buyer.name} hat keinen Kaderplatz mehr und zieht das Angebot für ${playerName(p)} zurück.`);
+    return null;
   }
   if (!canAfford(buyer, fee)) {
     o.status = "withdrawn";

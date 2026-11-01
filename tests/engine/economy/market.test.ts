@@ -136,10 +136,37 @@ describe("aiTransferRound", () => {
 
   it("die Gehaltssumme bleibt bei Käufen im Rahmen der erwarteten Einnahmen", () => {
     const s = game();
+    const ai = Object.values(s.clubs).filter((c) => c.managerId === null);
+    const before = new Map(ai.map((c) => [c.id, { ids: new Set(c.squad), n: c.squad.length, wage: wageBill(s, c.id) }]));
     aiTransferRound(s, Rng.fromSeed(7));
-    for (const c of Object.values(s.clubs).filter((x) => x.managerId === null && x.squad.length >= 18)) {
-      expect(expectedIncome(s, c.id)).toBeGreaterThan(0);
-      expect(wageBill(s, c.id)).toBeGreaterThan(0);
+    for (const c of ai) {
+      const b = before.get(c.id)!;
+      const signed = c.squad.some((id) => !b.ids.has(id));
+      if (b.n < 22 || !signed) continue;
+      const wage = wageBill(s, c.id);
+      expect(wage <= 0.65 * expectedIncome(s, c.id) + 1 || wage <= b.wage).toBe(true);
     }
+  });
+});
+
+describe("Kaderplatz und Gegenangebot", () => {
+  it("volle Käufer-Kader: Angebot wird zurückgezogen", () => {
+    const s = game();
+    const o = offerFor(s);
+    const buyer = s.clubs[o.fromClub];
+    const others = Object.values(s.players).filter((p) => !buyer.squad.includes(p.id) && p.id !== o.playerId);
+    for (let i = 0; buyer.squad.length < 32; i++) buyer.squad.push(others[i].id);
+    expect(respondTransferOffer(s, s.managers[0].id, o.id, "accept")).toBeNull();
+    expect(o.status).toBe("withdrawn");
+    expect(own(s).squad).toContain(o.playerId);
+  });
+
+  it("Gegenangebot unter dem Gebot verkauft nicht billiger", () => {
+    const s = game();
+    const o = offerFor(s);
+    const fee = o.fee;
+    expect(respondTransferOffer(s, s.managers[0].id, o.id, { counter: 1 })).toBeNull();
+    expect(o.status).toBe("accepted");
+    expect(o.fee).toBe(fee);
   });
 });
