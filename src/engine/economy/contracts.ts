@@ -58,6 +58,14 @@ export function signContract(state: GameState, playerId: PlayerId, clubId: ClubI
   const p = state.players[playerId];
   const club = state.clubs[clubId];
   if (p.clubId !== clubId) {
+    if (p.clubId === null) {
+      for (const n of state.negotiations) {
+        if (n.playerId !== playerId || n.status !== "open") continue;
+        n.status = "aborted";
+        n.note = `${p.firstName} ${p.lastName} ist nicht mehr verfügbar.`;
+      }
+      for (const o of state.transferOffers) if (o.playerId === playerId && o.status === "open") o.status = "withdrawn";
+    }
     if (p.clubId) removeFromClub(state, playerId);
     p.clubId = clubId;
   }

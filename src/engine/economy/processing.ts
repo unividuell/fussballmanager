@@ -15,7 +15,7 @@ import { processFinances, seasonEndFinances, startSeasonFinances } from "./finan
 import { aiTransferRound, expireOffers, generateAiOffers } from "./market";
 import { postToClub } from "./messages";
 import { cleanupNegotiations } from "./negotiations";
-import { addFreeAgents, addYouth, aiTrainingPlan, applyTraining, seasonAging, trimFreeAgents } from "./training";
+import { addFreeAgents, addYouth, aiTrainingPlan, applyTraining, pruneRetired, seasonAging, trimFreeAgents } from "./training";
 import { isTransferWindow } from "./transfers";
 import { clubLeague, isLeagueMatchday } from "./util";
 
@@ -63,6 +63,7 @@ export function seasonEndEconomy(state: GameState, tables: Record<CompetitionId,
   addYouth(state, rng);
   addFreeAgents(state, rng);
   trimFreeAgents(state);
+  pruneRetired(state);
   state.negotiations = [];
   state.transferOffers = [];
 }

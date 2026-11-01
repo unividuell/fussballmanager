@@ -47,7 +47,7 @@ function makeOffer(state: GameState, rng: Rng, seller: Club, p: Player, fee: num
     round: 1,
     status: "open" as const,
     season: state.season,
-    expiresAfter: state.calendarIndex + 1,
+    expiresAfter: state.calendarIndex === 0 ? 0 : 18,
   };
   state.transferOffers.push(offer);
   postMessage(state, seller.managerId, `${buyer.name} bietet ${formatEuro(fee)} für ${playerName(p)}.`, { type: "transferOffer", id: offer.id });
@@ -206,8 +206,9 @@ export function aiTransferRound(state: GameState, rng: Rng): void {
     }
     while (club.squad.length < AI_SQUAD_MIN) {
       const needPos = needs(state, club)[0];
+      const negotiating = new Set(state.negotiations.filter((n) => n.status === "open").map((n) => n.playerId));
       const free = Object.values(state.players)
-        .filter((p) => p.clubId === null && !p.retired)
+        .filter((p) => p.clubId === null && !p.retired && !negotiating.has(p.id))
         .map((p) => ({ p, wage: salaryDemand(state, p, id) }))
         .filter((x) => club.squad.length < EMERGENCY_SQUAD || wageRoom(state, id, x.wage))
         .sort((a, b) => Number(b.p.position === needPos) - Number(a.p.position === needPos) || b.p.strength - a.p.strength)[0];

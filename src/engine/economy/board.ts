@@ -166,6 +166,12 @@ export function acceptJobOffer(state: GameState, managerId: ManagerId, clubId: C
     closeManagerBusiness(state, managerId);
     state.clubs[m.clubId].managerId = null;
   }
+  for (const o of state.transferOffers) if (o.status === "open" && o.fromClub === clubId) o.status = "withdrawn";
+  for (const n of state.negotiations) {
+    if (n.status !== "open" || state.players[n.playerId]?.clubId !== clubId) continue;
+    n.status = "aborted";
+    n.note = "Der Verein hat einen neuen Trainer.";
+  }
   club.managerId = m.id;
   club.board.confidence = START_CONFIDENCE;
   club.board.warned = false;

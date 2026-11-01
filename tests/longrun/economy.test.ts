@@ -35,11 +35,11 @@ describe("Langzeittest: Wirtschaft über 10 Saisons", () => {
       const l2 = starterAvg(s, COMP.second);
       const withPlayers = clubs.filter((c) => c.managerId === null && c.squad.length >= 1);
       const meanSquad = withPlayers.reduce((a, c) => a + c.squad.length, 0) / withPlayers.length;
-      report.push(`Saison ${season}: Median ${median}, über Limit ${over}, frei ${free}, aktiv ${active}, L1 ${l1.toFixed(1)}, L2 ${l2.toFixed(1)}, Kader ${meanSquad.toFixed(1)}`);
+      report.push(`Saison ${season}: Median ${median}, über Limit ${over}, frei ${free}, aktiv ${active}, L1 ${l1.toFixed(1)}, L2 ${l2.toFixed(1)}, Kader ${meanSquad.toFixed(1)}, Spieler ${Object.keys(s.players).length}, dL2 ${(l2 - startL2).toFixed(1)}`);
 
       for (const c of clubs) {
         expect(Number.isFinite(c.finance.balance)).toBe(true);
-        expect(c.squad.length).toBeLessThanOrEqual(34);
+        expect(c.squad.length).toBeLessThanOrEqual(32);
         if (c.managerId === null) expect(c.squad.length).toBeGreaterThanOrEqual(18);
         for (const id of c.squad) expect(s.players[id].clubId).toBe(c.id);
       }
@@ -52,6 +52,8 @@ describe("Langzeittest: Wirtschaft über 10 Saisons", () => {
       expect(l1).toBeGreaterThan(l2 + 3);
       expect(Math.abs(l1 - startL1)).toBeLessThan(5);
       expect(active).toBeLessThan(2_000);
+      expect(Object.keys(s.players).length).toBeLessThan(1500);
+      expect(Math.abs(l2 - startL2)).toBeLessThanOrEqual(10);
       for (const m of s.managers) expect(s.messages.filter((x) => x.managerId === m.id).length).toBeLessThanOrEqual(60);
     }
     } finally {

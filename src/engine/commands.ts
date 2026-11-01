@@ -110,6 +110,8 @@ function applyEconomy(draft: GameState, clubId: ClubId, cmd: Exclude<EconomyComm
       return respondTransferOffer(draft, cmd.managerId, cmd.offerId, cmd.response);
     case "releasePlayer":
       return releasePlayer(draft, clubId, cmd.playerId);
+    default:
+      return "Unbekannter Befehl.";
   }
 }
 

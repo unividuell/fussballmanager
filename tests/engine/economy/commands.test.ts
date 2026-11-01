@@ -86,4 +86,9 @@ describe("Wirtschaftsbefehle", () => {
     const after = ok(s, { type: "acceptJobOffer", managerId: m(s), clubId: target });
     expect(after.managers[0].clubId).toBe(target);
   });
+
+  it("unbekannte Befehle scheitern", () => {
+    const s = game();
+    expect(fails(s, { type: "gibtEsNicht", managerId: m(s) } as never)).toBe("Unbekannter Befehl.");
+  });
 });

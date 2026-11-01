@@ -5,6 +5,7 @@ import {
   aiTrainingPlan,
   applyTraining,
   baseDevelopment,
+  pruneRetired,
   retireChance,
   seasonAging,
   trimFreeAgents,
@@ -153,6 +154,41 @@ describe("Saisonwechsel", () => {
         expect(p.contract).toEqual({ salary: expect.any(Number), endsSeason: s.season + 2 });
       }
     }
+  });
+
+  it("Jugend füllt den Kader nicht über 32", () => {
+    const s = makeState([{ id: "c1", strength: 60 }]);
+    const extra = 31 - s.clubs.c1.squad.length;
+    for (let i = 0; i < extra; i++) {
+      const p = makePlayer(`x${i}`, "MF", 50, { clubId: "c1" });
+      s.players[p.id] = p;
+      s.clubs.c1.squad.push(p.id);
+    }
+    expect(s.clubs.c1.squad).toHaveLength(31);
+    for (let seed = 1; seed <= 5; seed++) {
+      const t = structuredClone(s);
+      addYouth(t, Rng.fromSeed(seed));
+      expect(t.clubs.c1.squad.length).toBeLessThanOrEqual(32);
+    }
+  });
+
+  it("Karrieregeendete werden aus dem Spielstand entfernt, außer Torschützenkönige", () => {
+    const s = makeState([{ id: "c1", strength: 60 }]);
+    const [a, b, c] = addFreeAgents(s, Rng.fromSeed(3), 3);
+    for (const id of [a, b, c]) {
+      s.players[id].age = 40;
+    }
+    s.negotiations.push({ id: "n1", managerId: "m1", playerId: c, stage: "salary", fee: null, ask: 1, round: 1, desiredYears: 2, status: "open", note: "", season: 1, createdAt: 0 });
+    s.history.push({ season: 1, champions: {}, promoted: [], relegated: [], topScorers: { liga1: { player: b, goals: 9 } } } as never);
+    trimFreeAgents(s, 0);
+    const keep = s.players[c];
+    s.negotiations[0].status = "open";
+    pruneRetired(s);
+    expect(s.players[a]).toBeUndefined();
+    expect(s.players[b]).toBeDefined();
+    expect(keep).toBeDefined();
+    expect(s.players[c]).toBeDefined();
+    expect(s.players["c1-MF1"]).toBeDefined();
   });
 
   it("neue Vereinslose und Begrenzung des Pools", () => {

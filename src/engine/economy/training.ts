@@ -1,6 +1,7 @@
 import { baseStrengthFor, generatePlayer } from "../generator";
 import type { ClubId, GameState, Intensity, PlayerId, Position, TrainingFocus, TrainingPlan } from "../model";
 import type { Rng } from "../rng";
+import { MAX_SQUAD } from "../model";
 import { postToClub } from "./messages";
 import { salaryFor } from "./money";
 import { removeFromClub } from "./roster";
@@ -108,7 +109,7 @@ export function seasonAging(state: GameState, rng: Rng): PlayerId[] {
 export function addYouth(state: GameState, rng: Rng): PlayerId[] {
   const ids: PlayerId[] = [];
   for (const club of Object.values(state.clubs)) {
-    const n = rng.int(2, 3);
+    const n = Math.min(rng.int(2, 3), Math.max(0, MAX_SQUAD - club.squad.length));
     for (let i = 0; i < n; i++) {
       const p = generatePlayer(state, rng, club.id, rng.pick(YOUTH_POSITIONS), baseStrengthFor(club.reputation) - 18, rng.int(16, 18));
       p.potential = Math.min(99, Math.max(p.strength, p.strength + rng.int(10, 35)));
@@ -116,15 +117,28 @@ export function addYouth(state: GameState, rng: Rng): PlayerId[] {
       club.squad.push(p.id);
       ids.push(p.id);
     }
-    postToClub(state, club.id, `Aus der Jugend rücken ${n} Spieler in den Kader auf.`);
+    if (n > 0) postToClub(state, club.id, `Aus der Jugend rücken ${n} Spieler in den Kader auf.`);
   }
   return ids;
+}
+
+/** Entfernt Karriereende-Spieler aus dem Spielstand, sofern nichts mehr auf sie verweist. */
+export function pruneRetired(state: GameState): void {
+  const keep = new Set<PlayerId>();
+  for (const r of state.history) for (const t of Object.values(r.topScorers)) if (t) keep.add(t.player);
+  for (const c of Object.values(state.clubs)) {
+    for (const id of c.squad) keep.add(id);
+    for (const id of c.lineup.starters) keep.add(id);
+  }
+  for (const n of state.negotiations) if (n.status === "open") keep.add(n.playerId);
+  for (const o of state.transferOffers) if (o.status === "open") keep.add(o.playerId);
+  for (const p of Object.values(state.players)) if (p.retired && !keep.has(p.id)) delete state.players[p.id];
 }
 
 export function addFreeAgents(state: GameState, rng: Rng, count = 25): PlayerId[] {
   const ids: PlayerId[] = [];
   for (let i = 0; i < count; i++) {
-    ids.push(generatePlayer(state, rng, null, rng.pick(YOUTH_POSITIONS), rng.int(45, 65), rng.int(22, 32)).id);
+    ids.push(generatePlayer(state, rng, null, rng.pick(YOUTH_POSITIONS), rng.int(40, 58), rng.int(22, 32)).id);
   }
   return ids;
 }

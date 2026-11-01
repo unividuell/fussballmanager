@@ -159,3 +159,19 @@ describe("Verträge", () => {
     expect(s.players["c1-MF1"].talkCooldown).toBe(0);
   });
 });
+
+describe("signContract räumt Konkurrenz um einen Vereinslosen ab", () => {
+  it("bricht andere offene Verhandlungen ab und zieht Angebote zurück", () => {
+    const s = withManager();
+    s.players["c2-MF1"].clubId = null;
+    s.clubs.c2.squad = s.clubs.c2.squad.filter((id) => id !== "c2-MF1");
+    const talk = (id: string, status: "open" | "accepted") => ({ id, managerId: "m1", playerId: "c2-MF1", stage: "salary" as const, fee: null, ask: 1, round: 1, desiredYears: 2, status, note: "", season: 1, createdAt: 0 });
+    s.negotiations.push(talk("n1", "open"), talk("n2", "accepted"));
+    s.transferOffers.push({ id: "o1", managerId: "m1", fromClub: "c2", playerId: "c2-MF1", fee: 1, maxFee: 2, round: 1, status: "open", season: 1, expiresAfter: 0 });
+    signContract(s, "c2-MF1", "c2", 1000, 2);
+    expect(s.negotiations[0].status).toBe("aborted");
+    expect(s.negotiations[0].note).toBe(`${s.players["c2-MF1"].firstName} ${s.players["c2-MF1"].lastName} ist nicht mehr verfügbar.`);
+    expect(s.negotiations[1].status).toBe("accepted");
+    expect(s.transferOffers[0].status).toBe("withdrawn");
+  });
+});

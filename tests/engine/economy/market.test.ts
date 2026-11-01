@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { startContractTalk, respondNegotiation } from "../../../src/engine/economy/negotiations";
 import { aiTransferRound, expectedIncome, expireOffers, generateAiOffers, respondTransferOffer } from "../../../src/engine/economy/market";
+import { salaryDemand } from "../../../src/engine/economy/contracts";
 import { wageBill } from "../../../src/engine/economy/money";
 import { removeFromClub } from "../../../src/engine/economy/roster";
 import { generateWorld } from "../../../src/engine/generator";
@@ -36,7 +38,7 @@ describe("generateAiOffers", () => {
     expect(o.fee).toBeLessThanOrEqual(500_000);
     expect(o.maxFee).toBeGreaterThanOrEqual(o.fee);
     expect(s.clubs[o.fromClub].managerId).toBeNull();
-    expect(o.expiresAfter).toBe(s.calendarIndex + 1);
+    expect(o.expiresAfter).toBe(s.calendarIndex === 0 ? 0 : 18);
     expect(s.messages.some((m) => m.ref?.type === "transferOffer" && m.ref.id === o.id)).toBe(true);
   });
 
@@ -168,5 +170,28 @@ describe("Kaderplatz und Gegenangebot", () => {
     expect(respondTransferOffer(s, s.managers[0].id, o.id, { counter: 1 })).toBeNull();
     expect(o.status).toBe("accepted");
     expect(o.fee).toBe(fee);
+  });
+});
+
+describe("Auffüllen der KI-Kader und offene Verhandlungen", () => {
+  it("überspringt Spieler in Verhandlung; Annahme nimmt nie einen Spieler aus einem KI-Kader", () => {
+    const s = game();
+    const mid = s.managers[0].id;
+    const free = Object.values(s.players).filter((p) => p.clubId === null && !p.retired);
+    for (const p of free) p.strength = 40;
+    const target = free[0];
+    Object.assign(target, { strength: 99, age: 25 });
+    const ask = salaryDemand(s, target, own(s).id);
+    expect(startContractTalk(s, mid, target.id, Math.round(ask * 0.85), 3)).toBeNull();
+    const n = s.negotiations.at(-1)!;
+    expect(n.status).toBe("open");
+    const aiClub = Object.values(s.clubs).find((c) => c.managerId === null)!;
+    for (const pid of aiClub.squad.slice(10)) removeFromClub(s, pid);
+    for (const p of Object.values(s.players)) if (p.clubId === null && !p.retired) p.position = target.position;
+    aiTransferRound(s, Rng.fromSeed(5));
+    expect(aiClub.squad.length).toBeGreaterThanOrEqual(22);
+    expect(target.clubId).toBeNull();
+    respondNegotiation(s, mid, n.id, "accept");
+    expect(target.clubId === null || target.clubId === own(s).id).toBe(true);
   });
 });

@@ -140,6 +140,20 @@ describe("Jobangebote", () => {
     expect(anna(s).jobOffers).toEqual([]);
   });
 
+  it("übernommener Verein: offene KI-Geschäfte des Vereins werden aufgelöst", () => {
+    const s = game();
+    fireManager(s, anna(s).id, Rng.fromSeed(4));
+    const target = anna(s).jobOffers[0];
+    const club = s.clubs[target];
+    const pid = club.squad[0];
+    s.negotiations.push({ id: "n1", managerId: anna(s).id, playerId: pid, stage: "fee", fee: null, ask: 1, round: 1, desiredYears: 2, status: "open", note: "", season: s.season, createdAt: 0 });
+    s.transferOffers.push({ id: "o1", managerId: anna(s).id, fromClub: target, playerId: club.squad[1], fee: 1, maxFee: 2, round: 1, status: "open", season: s.season, expiresAfter: 0 });
+    acceptJobOffer(s, anna(s).id, target);
+    expect(s.negotiations.find((n) => n.id === "n1")!.status).toBe("aborted");
+    expect(s.negotiations.find((n) => n.id === "n1")!.note).toBe("Der Verein hat einen neuen Trainer.");
+    expect(s.transferOffers.find((o) => o.id === "o1")!.status).toBe("withdrawn");
+  });
+
   it("ohne Verein: spätestens nach 3 Spieltagen ein Angebot eines Zweitligisten", () => {
     const s = game();
     fireManager(s, anna(s).id, Rng.fromSeed(5));
