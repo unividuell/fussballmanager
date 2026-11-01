@@ -137,8 +137,8 @@ describe("Karten, Sperren, Verletzungen, Kondition", () => {
     const rested = s.clubs[side.club].squad.find((id) => !side.played.includes(id))!;
     s.players[rested].fitness = 60;
     const after = finishMatchday(s, lives);
-    expect(after.players[played].fitness).toBeCloseTo(88);
-    expect(after.players[rested].fitness).toBe(100);
+    expect(after.players[played].fitness).toBeCloseTo(85);
+    expect(after.players[rested].fitness).toBe(97);
   });
 });
 

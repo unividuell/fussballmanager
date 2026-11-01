@@ -78,7 +78,7 @@ function liveSide(state: GameState, clubId: ClubId): LiveSide {
     injured: [],
     played: [...club.lineup.starters],
     goals: 0,
-    bonus: 1,
+    bonus: club.tacticsBonus,
   };
 }
 

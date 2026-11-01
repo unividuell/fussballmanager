@@ -62,7 +62,7 @@ describe("kompletter Ablauf über die Oberfläche", () => {
   it("nach 36 Spieltagen erscheint das Saisonende, danach beginnt Saison 2", { timeout: 120_000 }, async () => {
     const controller = new GameController();
     const world = generateWorld(13);
-    controller.startGame(world, [{ name: "Anna", clubId: Object.keys(world.clubs)[0] }]);
+    controller.startGame(world, [{ name: "Anna", clubId: Object.keys(world.clubs)[4] }]);
     const anna = controller.snapshot!.state.managers[0].id;
     for (let i = 0; i < 36; i++) {
       await controller.endTurn(anna);

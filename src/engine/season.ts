@@ -18,6 +18,7 @@ import {
   type PlayerId,
   type SeasonRecord,
 } from "./model";
+import { afterAdvance, processMatchday, seasonEndEconomy, startSeasonEconomy, summerMarket } from "./economy/processing";
 import { Rng } from "./rng";
 import { ensureMinimumSquad } from "./squad";
 
@@ -47,6 +48,7 @@ export function startSeason(state: GameState, firstClubs: ClubId[], secondClubs:
     p.stats = { apps: 0, goals: 0 };
     p.yellowCards = 0;
   }
+  withRng(state, (rng) => startSeasonEconomy(state, rng));
 }
 
 export function startNewGame(world: GameState, managers: { name: string; clubId: ClubId }[]): Result {
@@ -250,8 +252,10 @@ export function finishMatchday(state: GameState, lives: LiveMatch[]): GameState 
         if (agg && agg.first === agg.second) match.penalties = penaltyShootout(rng);
       }
     }
+    processMatchday(draft, lives, rng);
     draft.calendarIndex++;
     if (draft.calendarIndex === LEAGUE_ROUNDS && !draft.competitions[COMP.relegation]) scheduleRelegation(draft);
+    afterAdvance(draft, rng);
   });
   return draft;
 }
@@ -311,11 +315,13 @@ export function finishSeason(state: GameState): { state: GameState; record: Seas
     topScorers: { [COMP.first]: topScorer(l1), [COMP.second]: topScorer(l2) },
   };
   draft.history.push(record);
+  withRng(draft, (rng) => seasonEndEconomy(draft, { [COMP.first]: t1, [COMP.second]: t2 }, rng));
   draft.season++;
   startSeason(
     draft,
     t1.filter((c) => !relegated.includes(c)).concat(promoted),
     t2.filter((c) => !promoted.includes(c)).concat(relegated),
   );
+  withRng(draft, (rng) => summerMarket(draft, rng));
   return { state: draft, record };
 }

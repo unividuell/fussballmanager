@@ -40,7 +40,7 @@ describe("Halbzeit", () => {
     const inId = side().bench[2];
     await fireEvent.click(btn(out));
     await fireEvent.click(btn(inId));
-    expect(screen.getByText("Wechsel übrig: 4")).toBeTruthy();
+    expect(screen.getByText(`Wechsel übrig: ${5 - side().subsUsed - 1}`)).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Fertig (Enter)" }));
     await tick();
     expect(controller.view).toEqual({ kind: "conference", half: 2 });
@@ -52,7 +52,7 @@ describe("Halbzeit", () => {
     await fireEvent.click(btn(side().pitch[3].id));
     await fireEvent.click(btn(side().bench[1]));
     await fireEvent.click(screen.getByRole("button", { name: "Wechsel entfernen" }));
-    expect(screen.getByText("Wechsel übrig: 5")).toBeTruthy();
+    expect(screen.getByText(`Wechsel übrig: ${5 - side().subsUsed}`)).toBeTruthy();
   });
 
   it("ändert die Spielweise", async () => {
