@@ -1,3 +1,11 @@
+import { acceptJobOffer } from "./economy/board";
+import { releasePlayer } from "./economy/contracts";
+import { chooseSponsor } from "./economy/finance";
+import { respondTransferOffer, type OfferResponse } from "./economy/market";
+import { respondNegotiation, startContractTalk, startTransferTalk, type NegotiationResponse } from "./economy/negotiations";
+import { startBuilding, validateTicketPrice } from "./economy/stadium";
+import { validateTraining } from "./economy/training";
+import { setTransferListing } from "./economy/transfers";
 import { autoLineup, repairLineup, validateLineup } from "./lineup";
 import { changeTactics, substitute, type LiveMatch, type Side } from "./match/simulate";
 import {
@@ -5,6 +13,7 @@ import {
   isAvailable,
   slotPositions,
   type Club,
+  type ClubId,
   type Formation,
   type GameState,
   type Hardness,
@@ -13,13 +22,28 @@ import {
   type PlayerId,
   type Style,
   type Tactics,
+  type TrainingPlan,
 } from "./model";
 import type { Result } from "./season";
+
+export type EconomyCommand =
+  | { type: "setTraining"; managerId: ManagerId; training: TrainingPlan }
+  | { type: "setTicketPrice"; managerId: ManagerId; price: number }
+  | { type: "buildStadium"; managerId: ManagerId }
+  | { type: "chooseSponsor"; managerId: ManagerId; offerId: string }
+  | { type: "startContractTalk"; managerId: ManagerId; playerId: PlayerId; salary: number; years: number }
+  | { type: "startTransferTalk"; managerId: ManagerId; playerId: PlayerId; fee: number }
+  | { type: "respondNegotiation"; managerId: ManagerId; negotiationId: string; response: NegotiationResponse }
+  | { type: "setTransferListing"; managerId: ManagerId; playerId: PlayerId; listed: boolean; askingPrice: number | null }
+  | { type: "respondTransferOffer"; managerId: ManagerId; offerId: string; response: OfferResponse }
+  | { type: "releasePlayer"; managerId: ManagerId; playerId: PlayerId }
+  | { type: "acceptJobOffer"; managerId: ManagerId; clubId: ClubId };
 
 export type StateCommand =
   | { type: "setLineup"; managerId: ManagerId; lineup: Lineup }
   | { type: "setTactics"; managerId: ManagerId; tactics: Tactics }
-  | { type: "autoLineup"; managerId: ManagerId };
+  | { type: "autoLineup"; managerId: ManagerId }
+  | EconomyCommand;
 
 export interface HalftimeCommand {
   type: "halftimeChanges";
@@ -56,7 +80,45 @@ function reslot(state: GameState, club: Club, lineup: Lineup, tactics: Tactics):
   return repairLineup(state, club.id, { starters, bench: lineup.bench }, tactics.formation);
 }
 
+function applyEconomy(draft: GameState, clubId: ClubId, cmd: Exclude<EconomyCommand, { type: "acceptJobOffer" }>): string | null {
+  switch (cmd.type) {
+    case "setTraining": {
+      const error = validateTraining(draft, clubId, cmd.training);
+      if (error) return error;
+      draft.clubs[clubId].training = { intensity: cmd.training.intensity, focus: cmd.training.focus, individual: [...cmd.training.individual] };
+      return null;
+    }
+    case "setTicketPrice": {
+      const error = validateTicketPrice(cmd.price);
+      if (error) return error;
+      draft.clubs[clubId].finance.ticketPrice = cmd.price;
+      return null;
+    }
+    case "buildStadium":
+      return startBuilding(draft, clubId);
+    case "chooseSponsor":
+      return chooseSponsor(draft, clubId, cmd.offerId);
+    case "startContractTalk":
+      return startContractTalk(draft, cmd.managerId, cmd.playerId, cmd.salary, cmd.years);
+    case "startTransferTalk":
+      return startTransferTalk(draft, cmd.managerId, cmd.playerId, cmd.fee);
+    case "respondNegotiation":
+      return respondNegotiation(draft, cmd.managerId, cmd.negotiationId, cmd.response);
+    case "setTransferListing":
+      return setTransferListing(draft, clubId, cmd.playerId, cmd.listed, cmd.askingPrice);
+    case "respondTransferOffer":
+      return respondTransferOffer(draft, cmd.managerId, cmd.offerId, cmd.response);
+    case "releasePlayer":
+      return releasePlayer(draft, clubId, cmd.playerId);
+  }
+}
+
 export function applyCommand(state: GameState, cmd: StateCommand): Result {
+  if (cmd.type === "acceptJobOffer") {
+    const draft = structuredClone(state);
+    const error = acceptJobOffer(draft, cmd.managerId, cmd.clubId);
+    return error ? { ok: false, error } : { ok: true, state: draft };
+  }
   const found = managedClub(state, cmd.managerId);
   if (typeof found === "string") return { ok: false, error: found };
   const draft = structuredClone(state);
@@ -83,6 +145,10 @@ export function applyCommand(state: GameState, cmd: StateCommand): Result {
     case "autoLineup":
       club.lineup = autoLineup(draft, club.id, club.tactics.formation);
       return { ok: true, state: draft };
+    default: {
+      const error = applyEconomy(draft, club.id, cmd);
+      return error ? { ok: false, error } : { ok: true, state: draft };
+    }
   }
 }
 
