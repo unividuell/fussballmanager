@@ -84,10 +84,8 @@ export function retireChance(age: number): number {
 
 function retire(state: GameState, playerId: PlayerId): void {
   const p = state.players[playerId];
-  if (p.clubId) {
-    postToClub(state, p.clubId, `${p.firstName} ${p.lastName} beendet seine Karriere.`);
-    removeFromClub(state, playerId);
-  }
+  if (p.clubId) postToClub(state, p.clubId, `${p.firstName} ${p.lastName} beendet seine Karriere.`);
+  removeFromClub(state, playerId);
   p.retired = true;
   p.clubId = null;
   p.contract = null;
@@ -136,5 +134,5 @@ export function trimFreeAgents(state: GameState, max = FREE_AGENT_POOL_MAX): voi
   const free = Object.values(state.players)
     .filter((p) => p.clubId === null && !p.retired)
     .sort((a, b) => b.age - a.age || a.strength - b.strength || (a.id < b.id ? -1 : 1));
-  for (const p of free.slice(0, Math.max(0, free.length - max))) p.retired = true;
+  for (const p of free.slice(0, Math.max(0, free.length - max))) retire(state, p.id);
 }

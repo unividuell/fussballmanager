@@ -170,4 +170,27 @@ describe("Saisonwechsel", () => {
   it("makePlayer bleibt mit dem neuen Modell kompatibel", () => {
     expect(makePlayer("x", "GK", 50).retired).toBe(false);
   });
+
+  describe("Karriereende räumt Verhandlungen auf", () => {
+    function setup() {
+      const s = makeState([]);
+      const [id] = addFreeAgents(s, Rng.fromSeed(3), 1);
+      s.players[id].age = 40;
+      s.negotiations.push({ id: "n1", managerId: "m1", playerId: id, stage: "salary", fee: null, ask: 1, round: 1, desiredYears: 2, status: "open", note: "", season: 1, createdAt: 0 });
+      s.transferOffers.push({ id: "o1", managerId: "m1", fromClub: "x", playerId: id, fee: 1, maxFee: 2, round: 1, status: "open", season: 1, expiresAfter: 0 });
+      return s;
+    }
+    it("seasonAging", () => {
+      const s = setup();
+      seasonAging(s, Rng.fromSeed(1));
+      expect(s.negotiations[0].status).toBe("aborted");
+      expect(s.transferOffers[0].status).toBe("withdrawn");
+    });
+    it("trimFreeAgents", () => {
+      const s = setup();
+      trimFreeAgents(s, 0);
+      expect(s.negotiations[0].status).toBe("aborted");
+      expect(s.transferOffers[0].status).toBe("withdrawn");
+    });
+  });
 });
