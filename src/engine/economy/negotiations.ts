@@ -90,6 +90,16 @@ function applySalary(state: GameState, n: Negotiation, salary: number, years: nu
       n.note = "Dafür reicht das Geld nicht.";
       return;
     }
+    if (!state.clubs[buyer].squad.includes(p.id) && state.clubs[buyer].squad.length >= MAX_SQUAD) {
+      n.status = "aborted";
+      n.note = "Der Kader ist voll (höchstens 32 Spieler).";
+      return;
+    }
+    if (n.fee !== null && p.clubId && state.clubs[p.clubId].squad.length <= MIN_SELLER_SQUAD) {
+      n.status = "aborted";
+      n.note = "Der Verein gibt keine Spieler mehr ab.";
+      return;
+    }
     n.status = "accepted";
     if (n.fee !== null) executeTransfer(state, buyer, p.id, n.fee);
     signContract(state, p.id, buyer, r.amount, years);

@@ -100,6 +100,36 @@ describe("Vereinslose Spieler", () => {
   });
 });
 
+describe("Kadergrenzen beim Abschluss", () => {
+  it("voller Kader beim Abschluss bricht die Verhandlung ab", () => {
+    const s = game();
+    const free = Object.values(s.players).find((p) => p.clubId === null && !p.retired)!;
+    const club = own(s);
+    const ask = salaryDemand(s, free, club.id);
+    startContractTalk(s, mgr(s).id, free.id, Math.round(ask * 0.85), desiredYears(free));
+    const n = last(s);
+    expect(n.status).toBe("open");
+    while (club.squad.length < 32) club.squad.push(club.squad[0]);
+    expect(respondNegotiation(s, mgr(s).id, n.id, "accept")).toBeNull();
+    expect(n.status).toBe("aborted");
+    expect(n.note).toBe("Der Kader ist voll (höchstens 32 Spieler).");
+    expect(club.squad).toHaveLength(32);
+  });
+
+  it("eine zweite offene Verhandlung um denselben Spieler wird nach dem Wechsel abgebrochen", () => {
+    const s = game(["Anna", "Ben"]);
+    const seller = Object.values(s.clubs).find((c) => c.managerId === null && s.competitions[COMP.first].clubs.includes(c.id))!;
+    const p = s.players[seller.squad[12]];
+    own(s).finance.balance = 50_000_000;
+    startTransferTalk(s, mgr(s).id, p.id, askingFee(s, p));
+    const annas = last(s);
+    s.negotiations.push({ ...annas, id: "dup", managerId: mgr(s, 1).id, status: "open" });
+    expect(respondNegotiation(s, mgr(s).id, annas.id, "accept")).toBeNull();
+    expect(annas.status).toBe("accepted");
+    expect(s.negotiations.find((x) => x.id === "dup")!.status).toBe("aborted");
+  });
+});
+
 describe("Transferverhandlung", () => {
   function aiTarget(s: GameState) {
     const seller = Object.values(s.clubs).find((c) => c.managerId === null && s.competitions[COMP.first].clubs.includes(c.id))!;
