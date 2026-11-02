@@ -4,7 +4,9 @@
   import Contracts from "./ui/screens/Contracts.svelte";
   import Finance from "./ui/screens/Finance.svelte";
   import Halftime from "./ui/screens/Halftime.svelte";
+  import Jobs from "./ui/screens/Jobs.svelte";
   import MainMenu from "./ui/screens/MainMenu.svelte";
+  import Messages from "./ui/screens/Messages.svelte";
   import NewGame from "./ui/screens/NewGame.svelte";
   import Results from "./ui/screens/Results.svelte";
   import SeasonEnd from "./ui/screens/SeasonEnd.svelte";
@@ -48,6 +50,10 @@
     <Contracts {controller} managerId={view.managerId} />
   {:else if view.kind === "transfers"}
     <Transfers {controller} managerId={view.managerId} />
+  {:else if view.kind === "messages"}
+    <Messages {controller} managerId={view.managerId} />
+  {:else if view.kind === "jobs"}
+    {#key view.managerId}<Jobs {controller} managerId={view.managerId} />{/key}
   {:else}
     <p class="placeholder">Bildschirm „{view.kind}“ folgt.</p>
   {/if}
