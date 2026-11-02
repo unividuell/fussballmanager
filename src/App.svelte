@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { GameController } from "./ui/controller.svelte";
   import Conference from "./ui/screens/Conference.svelte";
+  import Contracts from "./ui/screens/Contracts.svelte";
   import Finance from "./ui/screens/Finance.svelte";
   import Halftime from "./ui/screens/Halftime.svelte";
   import MainMenu from "./ui/screens/MainMenu.svelte";
@@ -42,6 +43,8 @@
     <Training {controller} managerId={view.managerId} />
   {:else if view.kind === "finance"}
     <Finance {controller} managerId={view.managerId} />
+  {:else if view.kind === "contracts"}
+    <Contracts {controller} managerId={view.managerId} />
   {:else}
     <p class="placeholder">Bildschirm „{view.kind}“ folgt.</p>
   {/if}
