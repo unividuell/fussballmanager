@@ -4,7 +4,7 @@
   import { formatEuro } from "../../engine/economy/util";
   import { clubOf, type ManagerId, type Player, type PlayerId, type Position } from "../../engine/model";
   import type { GameController, TransferTab } from "../controller.svelte";
-  import { DEFAULT_FILTER, marketRows, openOffers, type MarketFilter, type MarketRow, type OfferRow } from "../logic/economy";
+  import { DEFAULT_FILTER, INVALID_AMOUNT, marketRows, openOffers, parseEuro, type MarketFilter, type MarketRow, type OfferRow } from "../logic/economy";
   import { POSITION_LABEL, playerName } from "../logic/format";
   import { sortRows, toggleSort, type SortState } from "../logic/sort";
   import Panel from "../theme/Panel.svelte";
@@ -13,6 +13,7 @@
 
   let { controller, managerId }: { controller: GameController; managerId: ManagerId } = $props();
 
+  const MARKET_LIMIT = 150;
   type Key = "name" | "pos" | "age" | "strength" | "club" | "fee" | "wage";
   const COLUMNS: { key: Key; label: string; num: boolean }[] = [
     { key: "name", label: "Name", num: false },
@@ -40,12 +41,14 @@
   let talk = $state<{ playerId: PlayerId; mode: "contract" | "transfer" } | null>(null);
   let prices = $state<Record<string, string>>({});
   let counters = $state<Record<string, string>>({});
+  let note = $state<string | null>(null);
 
   const gs = $derived(controller.snapshot!.state);
   const club = $derived(clubOf(gs, managerId)!);
   const windowOpen = $derived(isTransferWindow(gs));
-  const maxFee = $derived(maxFeeText.trim() === "" ? null : Number(maxFeeText));
-  const rows = $derived(sortRows(marketRows(gs, club.id, { ...filter, maxFee }), sort, value));
+  const maxFee = $derived(parseEuro(maxFeeText));
+  const all = $derived(marketRows(gs, club.id, { ...filter, maxFee }));
+  const rows = $derived(sortRows(all, sort, value).slice(0, MARKET_LIMIT));
   const mine = $derived(club.squad.map((id) => gs.players[id]).sort((a, b) => b.strength - a.strength));
   const offers = $derived(openOffers(gs, managerId));
 
@@ -74,11 +77,23 @@
 
   function list(p: Player, listed: boolean): void {
     const text = (prices[p.id] ?? "").trim();
-    void controller.send({ type: "setTransferListing", managerId, playerId: p.id, listed, askingPrice: listed && text !== "" ? Number(text) : null });
+    const price = listed && text !== "" ? parseEuro(text) : null;
+    if (listed && text !== "" && price === null) {
+      note = INVALID_AMOUNT;
+      return;
+    }
+    note = null;
+    void controller.send({ type: "setTransferListing", managerId, playerId: p.id, listed, askingPrice: price });
   }
 
   function counter(o: OfferRow): void {
-    void controller.send({ type: "respondTransferOffer", managerId, offerId: o.offer.id, response: { counter: Number(counters[o.offer.id] ?? "0") } });
+    const amount = parseEuro(counters[o.offer.id] ?? "");
+    if (amount === null) {
+      note = INVALID_AMOUNT;
+      return;
+    }
+    note = null;
+    void controller.send({ type: "respondTransferOffer", managerId, offerId: o.offer.id, response: { counter: amount } });
   }
 
   function onKey(e: KeyboardEvent): void {
@@ -112,6 +127,7 @@
       <label><input type="checkbox" bind:checked={filter.listedOnly} /> nur Transferliste</label>
       <label>max. <input class="money" aria-label="Höchstablöse" bind:value={maxFeeText} inputmode="numeric" size="9" /></label>
     </div>
+    <p class="count">{all.length > MARKET_LIMIT ? `${MARKET_LIMIT} von ${all.length}` : `${all.length} Spieler`}</p>
     <Panel class="list">
       <div class="scroll">
         <table class="board-table">
@@ -189,7 +205,7 @@
   {/if}
 
   <div class="foot">
-    {#if controller.message}<span class="msg">{controller.message}</span>{/if}
+    {#if note}<span class="msg">{note}</span>{:else if controller.message}<span class="msg">{controller.message}</span>{/if}
     <span class="spacer"></span>
     <button class="btn" onclick={() => controller.open("menu")}>Zurück (Esc)</button>
   </div>
@@ -212,6 +228,7 @@
   .money { font-family: var(--font-body); font-size: 15px; color: var(--cream); background: var(--wood-dark); border: 2px solid var(--wood-edge); }
   .offer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 15px; }
   p { margin: 0; }
+  .count { padding: 2px 8px 0; font-size: 14px; color: var(--leaf); }
   .foot { display: flex; align-items: center; gap: 6px; padding: 0 8px 6px; }
   .spacer { flex: 1; }
 </style>

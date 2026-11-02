@@ -61,6 +61,21 @@ describe("Jobangebote", () => {
     expect(c.view.kind).toBe("conference");
   });
 
+  it("Enter auf einem fokussierten Button beendet die Runde nicht", async () => {
+    const { c, gs, anna } = await game();
+    fireManager(gs(), anna().id, Rng.fromSeed(2)); // Testaufbau
+    c.open("jobs");
+    await tick();
+    const target = gs().clubs[anna().jobOffers[0]];
+    const btn = screen.getByRole("button", { name: `${target.name} annehmen` });
+    btn.focus();
+    await fireEvent.keyDown(btn, { key: "Enter" });
+    await tick();
+    expect(c.view.kind).not.toBe("conference");
+    await fireEvent.click(btn);
+    expect(anna().clubId).toBe(target.id);
+  });
+
   it("mit Verein und Angebot: Überschrift „JOBANGEBOTE“ und „Zurück“", async () => {
     const { c, gs, anna } = await game();
     const other = Object.values(gs().clubs).find((x) => x.managerId === null)!;

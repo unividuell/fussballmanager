@@ -22,6 +22,7 @@
 
   function onKey(e: KeyboardEvent): void {
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === "Enter" && e.target instanceof Element && e.target.closest("button, input, select")) return;
     if (e.key === "Enter" && !hasClub) {
       e.preventDefault();
       void controller.endTurn(managerId);

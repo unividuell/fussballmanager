@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { desiredYears, salaryDemand } from "../../engine/economy/contracts";
+  import { desiredYears, salaryDemand, yearsAdjusted } from "../../engine/economy/contracts";
   import type { NegotiationResponse } from "../../engine/economy/negotiations";
   import { askingFee, isTransferWindow } from "../../engine/economy/transfers";
   import { formatEuro } from "../../engine/economy/util";
   import { clubOf, type ManagerId, type PlayerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
-  import { latestNegotiation } from "../logic/economy";
+  import { INVALID_AMOUNT, latestNegotiation, parseEuro } from "../logic/economy";
   import { POSITION_LABEL, playerName } from "../logic/format";
   import Dialog from "../theme/Dialog.svelte";
 
@@ -18,6 +18,7 @@
   }: { controller: GameController; managerId: ManagerId; playerId: PlayerId; mode: "contract" | "transfer"; onClose: () => void } = $props();
 
   function initial(): { negotiationId: string | null; amount: string; years: string } {
+    controller.message = null; // keine alten Fehler in einem neuen Dialog
     const s = controller.snapshot!.state;
     const p = s.players[playerId];
     const open = latestNegotiation(s, managerId, playerId);
@@ -36,14 +37,25 @@
   const p = $derived(gs.players[playerId]);
   const n = $derived(negotiationId ? (gs.negotiations.find((x) => x.id === negotiationId) ?? null) : null);
   const stage = $derived(n ? n.stage : mode === "transfer" ? "fee" : "salary");
+  let note = $state<string | null>(null);
+  const shownYears = $derived(Number(yearsText) || (n?.desiredYears ?? 0));
+  /** Die Engine speichert die Forderung auf die Wunschlaufzeit normiert; angezeigt wird sie für die gewählte Laufzeit. */
+  const shownAsk = $derived(n ? (n.stage === "salary" ? yearsAdjusted(n.ask, shownYears, n.desiredYears) : n.ask) : 0);
 
   function syncFromNegotiation(): void {
     const cur = negotiationId ? controller.snapshot!.state.negotiations.find((x) => x.id === negotiationId) : null;
-    if (cur && cur.status === "open") amountText = String(cur.ask);
+    if (cur && cur.status === "open") {
+      amountText = String(cur.stage === "salary" ? yearsAdjusted(cur.ask, Number(yearsText) || cur.desiredYears, cur.desiredYears) : cur.ask);
+    }
   }
 
   async function begin(): Promise<void> {
-    const amount = Number(amountText);
+    const amount = parseEuro(amountText);
+    if (amount === null) {
+      note = INVALID_AMOUNT;
+      return;
+    }
+    note = null;
     const ok =
       mode === "transfer"
         ? await controller.send({ type: "startTransferTalk", managerId, playerId, fee: amount })
@@ -60,7 +72,12 @@
   }
 
   function offer(): void {
-    const amount = Number(amountText);
+    const amount = parseEuro(amountText);
+    if (amount === null) {
+      note = INVALID_AMOUNT;
+      return;
+    }
+    note = null;
     void respond(stage === "salary" ? { amount, years: Number(yearsText) } : { amount });
   }
 </script>
@@ -73,7 +90,7 @@
   {#if mode === "transfer" && p.clubId !== null && !isTransferWindow(gs)}<p class="warn">Das Transferfenster ist geschlossen.</p>{/if}
   {#if n}
     <p class="note">{n.note}</p>
-    <p>Runde {n.round} von 3 · Forderung: {formatEuro(n.ask)}{n.stage === "salary" ? " pro Spieltag" : ""}</p>
+    <p>Runde {n.round} von 3 · Forderung: {formatEuro(shownAsk)}{n.stage === "salary" ? ` pro Spieltag bei ${shownYears} Jahren` : ""}</p>
   {/if}
   {#if !n || n.status === "open"}
     <div class="row">
@@ -97,7 +114,7 @@
   {:else}
     <p class="done">{n.status === "accepted" ? "Abgeschlossen." : "Beendet."}</p>
   {/if}
-  {#if controller.message}<p class="msg">{controller.message}</p>{/if}
+  {#if note}<p class="msg">{note}</p>{:else if controller.message}<p class="msg">{controller.message}</p>{/if}
 </Dialog>
 
 <style>

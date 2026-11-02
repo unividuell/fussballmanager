@@ -28,6 +28,7 @@ describe("Finanzen", () => {
     c.open("finance");
     await tick();
     expect(screen.getByText("TV-Geld")).toBeTruthy();
+    expect(screen.getAllByText(formatEuro(30_000)).length).toBeGreaterThan(0);
     expect(screen.getAllByText(formatEuro(club().finance.balance)).length).toBeGreaterThan(0);
   });
 

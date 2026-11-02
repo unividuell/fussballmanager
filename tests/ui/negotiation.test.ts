@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { describe, expect, it, vi } from "vitest";
-import { salaryDemand } from "../../src/engine/economy/contracts";
+import { desiredYears, salaryDemand, yearsAdjusted } from "../../src/engine/economy/contracts";
+import { formatEuro } from "../../src/engine/economy/util";
 import { generateWorld } from "../../src/engine/generator";
 import { GameController } from "../../src/ui/controller.svelte";
 import NegotiationDialog from "../../src/ui/screens/NegotiationDialog.svelte";
@@ -29,6 +30,47 @@ describe("Verhandlungsdialog", () => {
     await fireEvent.click(screen.getByRole("button", { name: "Forderung annehmen" }));
     expect(screen.getByText("Abgeschlossen.")).toBeTruthy();
     expect(screen.getByText(/unterschreibt/)).toBeTruthy();
+  });
+
+  it("Gehaltsstufe: Forderung und Vorbelegung berücksichtigen die Laufzeit; Bieten ohne Änderung bricht nicht ab", async () => {
+    const { c, s, managerId, clubId } = setup();
+    const pid = s.clubs[clubId].squad[5];
+    const desired = desiredYears(s.players[pid]);
+    const years = desired === 5 ? 4 : desired + 1;
+    render(NegotiationDialog, { controller: c, managerId, playerId: pid, mode: "contract", onClose: vi.fn() });
+    const base = salaryDemand(s, s.players[pid], clubId);
+    await fireEvent.input(screen.getByLabelText("Gehalt"), { target: { value: String(Math.round(yearsAdjusted(base, years, desired) * 0.85)) } });
+    await fireEvent.input(screen.getByLabelText("Laufzeit"), { target: { value: String(years) } });
+    await fireEvent.click(screen.getByRole("button", { name: "Verhandlung beginnen" }));
+    const n = c.snapshot!.state.negotiations.at(-1)!;
+    expect(n.status).toBe("open");
+    const shown = yearsAdjusted(n.ask, years, desired);
+    expect(shown).not.toBe(n.ask);
+    expect(screen.getByText(new RegExp(`Forderung: ${formatEuro(shown).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} pro Spieltag bei ${years} Jahren`))).toBeTruthy();
+    expect((screen.getByLabelText("Gehalt") as HTMLInputElement).value).toBe(String(shown));
+    await fireEvent.click(screen.getByRole("button", { name: "Bieten" }));
+    expect(c.snapshot!.state.negotiations.at(-1)!.status).not.toBe("aborted");
+  });
+
+  it("Geldfelder lesen deutsch formatierte Beträge; ungültige Eingaben werden nicht gesendet", async () => {
+    const { c, s, managerId } = setup();
+    const seller = Object.values(s.clubs).find((x) => x.managerId === null)!;
+    const send = vi.spyOn(c, "send");
+    render(NegotiationDialog, { controller: c, managerId, playerId: seller.squad[14], mode: "transfer", onClose: vi.fn() });
+    await fireEvent.input(screen.getByLabelText("Ablöse"), { target: { value: "abc" } });
+    await fireEvent.click(screen.getByRole("button", { name: "Verhandlung beginnen" }));
+    expect(send).not.toHaveBeenCalled();
+    expect(screen.getByText("Bitte einen gültigen Betrag eingeben.")).toBeTruthy();
+    await fireEvent.input(screen.getByLabelText("Ablöse"), { target: { value: "800.000" } });
+    await fireEvent.click(screen.getByRole("button", { name: "Verhandlung beginnen" }));
+    expect(send).toHaveBeenCalledWith(expect.objectContaining({ type: "startTransferTalk", fee: 800_000 }));
+  });
+
+  it("alte Fehlermeldungen erscheinen nicht in einem neu geöffneten Dialog", () => {
+    const { c, s, managerId, clubId } = setup();
+    c.message = "Alter Fehler";
+    render(NegotiationDialog, { controller: c, managerId, playerId: s.clubs[clubId].squad[5], mode: "contract", onClose: vi.fn() });
+    expect(screen.queryByText("Alter Fehler")).toBeNull();
   });
 
   it("Transfer: Ablöse wird akzeptiert, danach Gehalt, dann Wechsel", async () => {

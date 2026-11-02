@@ -4,7 +4,7 @@
   import { formatEuro } from "../../engine/economy/util";
   import { clubOf, type ManagerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
-  import { ledgerSummary } from "../logic/economy";
+  import { INVALID_AMOUNT, ledgerSummary, parseEuro } from "../logic/economy";
   import Panel from "../theme/Panel.svelte";
   import ClubHeader from "./ClubHeader.svelte";
 
@@ -13,7 +13,7 @@
   const gs = $derived(controller.snapshot!.state);
   const club = $derived(clubOf(gs, managerId)!);
   const f = $derived(club.finance);
-  const summary = $derived(ledgerSummary(club));
+  const summary = $derived(ledgerSummary(club, gs.calendarIndex));
   const next = $derived(STADIUM[f.stadiumStage + 1] ?? null);
 
   function initialPrice(): string {
@@ -21,8 +21,16 @@
   }
   let priceText = $state(initialPrice());
 
+  let note = $state<string | null>(null);
+
   function setPrice(): void {
-    void controller.send({ type: "setTicketPrice", managerId, price: Number(priceText) });
+    const price = parseEuro(priceText);
+    if (price === null) {
+      note = INVALID_AMOUNT;
+      return;
+    }
+    note = null;
+    void controller.send({ type: "setTicketPrice", managerId, price });
   }
 
   function onKey(e: KeyboardEvent): void {
@@ -86,7 +94,7 @@
     </div>
   </div>
   <div class="foot">
-    {#if controller.message}<span class="msg">{controller.message}</span>{/if}
+    {#if note}<span class="msg">{note}</span>{:else if controller.message}<span class="msg">{controller.message}</span>{/if}
     <span class="spacer"></span>
     <button class="btn" onclick={() => controller.open("menu")}>Zurück (Esc)</button>
   </div>

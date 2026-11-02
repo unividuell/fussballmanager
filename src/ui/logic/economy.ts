@@ -37,9 +37,19 @@ export interface LedgerLine {
 
 const total = (xs: number[]) => xs.reduce((a, b) => a + b, 0);
 
-export function ledgerSummary(club: Club): { lines: LedgerLine[]; lastTotal: number; seasonTotal: number; lastIndex: number | null } {
+/** Liest einen deutsch formatierten Betrag („1.500.000 €“, „12.000,50“); null bei leerem oder ungültigem Text. */
+export function parseEuro(text: string): number | null {
+  const t = text.replace(/[\s€]/g, "").replace(/,\d*$/, "").replace(/\./g, "");
+  if (!/^\d+$/.test(t)) return null;
+  const n = Number(t);
+  return Number.isSafeInteger(n) ? n : null;
+}
+
+export const INVALID_AMOUNT = "Bitte einen gültigen Betrag eingeben.";
+
+export function ledgerSummary(club: Club, calendarIndex: number): { lines: LedgerLine[]; lastTotal: number; seasonTotal: number; lastIndex: number | null } {
   const ledger = club.finance.ledger;
-  const lastIndex = ledger.length > 0 ? Math.max(...ledger.map((e) => e.calendarIndex)) : null;
+  const lastIndex = calendarIndex > 0 ? calendarIndex - 1 : null;
   const lines = (Object.keys(LEDGER_LABEL) as LedgerCategory[])
     .map((category) => ({
       category,
@@ -93,7 +103,7 @@ export interface MarketRow {
   listed: boolean;
 }
 
-export function marketRows(state: GameState, buyerClubId: ClubId, f: MarketFilter, limit = 150): MarketRow[] {
+export function marketRows(state: GameState, buyerClubId: ClubId, f: MarketFilter): MarketRow[] {
   return Object.values(state.players)
     .filter((p) => !p.retired && p.clubId !== buyerClubId && (p.clubId === null || state.clubs[p.clubId].managerId === null))
     .filter((p) => f.position === "all" || p.position === f.position)
@@ -109,8 +119,7 @@ export function marketRows(state: GameState, buyerClubId: ClubId, f: MarketFilte
       listed: p.transferListed !== null,
     }))
     .filter((r) => f.maxFee === null || r.fee <= f.maxFee)
-    .sort((a, b) => b.player.strength - a.player.strength)
-    .slice(0, limit);
+    .sort((a, b) => b.player.strength - a.player.strength);
 }
 
 export interface OfferRow {

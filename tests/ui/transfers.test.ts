@@ -39,6 +39,36 @@ describe("Transfermarkt", () => {
     expect(asc).toEqual([...asc].sort((a, b) => a - b));
   });
 
+  it("Sortieren nach Alter aufsteigend zeigt die jüngsten Spieler des ganzen Marktes; Kopfzeile nennt die Anzahl", async () => {
+    const { gs, clubId } = await transfersScreen();
+    const humanClubs = new Set(gs().managers.map((m) => m.clubId));
+    const eligible = Object.values(gs().players).filter((p) => !p.retired && p.clubId !== clubId && !humanClubs.has(p.clubId));
+    expect(eligible.length).toBeGreaterThan(150);
+    expect(screen.getByText(`150 von ${eligible.length}`)).toBeTruthy();
+    await fireEvent.click(screen.getByRole("button", { name: "Sortieren nach Alter" }));
+    await fireEvent.click(screen.getByRole("button", { name: "Sortieren nach Alter" }));
+    expect(ages()[0]).toBe(Math.min(...eligible.map((p) => p.age)));
+    expect(ages()).toHaveLength(150);
+  });
+
+  it("Höchstablöse und Wunschpreis lesen deutsche Beträge; Unsinn wird nicht gesendet", async () => {
+    const { c, gs, clubId, name } = await transfersScreen();
+    await fireEvent.input(screen.getByLabelText("Höchstablöse"), { target: { value: "1.000.000" } });
+    const fees = Array.from(document.querySelectorAll("tbody tr")).length;
+    expect(fees).toBeGreaterThan(0);
+    c.openTransfers("mine");
+    await tick();
+    const pid = gs().clubs[clubId].squad[8];
+    await fireEvent.input(screen.getByLabelText(`Wunschpreis ${name(pid)}`), { target: { value: "1.500.000 €" } });
+    await fireEvent.click(screen.getByRole("button", { name: `${name(pid)} auf die Liste` }));
+    expect(gs().players[pid].transferListed).toEqual({ askingPrice: 1_500_000 });
+    await fireEvent.click(screen.getByRole("button", { name: `${name(pid)} von der Liste` }));
+    await fireEvent.input(screen.getByLabelText(`Wunschpreis ${name(pid)}`), { target: { value: "abc" } });
+    await fireEvent.click(screen.getByRole("button", { name: `${name(pid)} auf die Liste` }));
+    expect(screen.getByText("Bitte einen gültigen Betrag eingeben.")).toBeTruthy();
+    expect(gs().players[pid].transferListed).toBeNull();
+  });
+
   it("filtert nach Torhütern und nach Vereinslosen", async () => {
     await transfersScreen();
     await fireEvent.click(screen.getByRole("button", { name: "TW" }));
@@ -77,6 +107,38 @@ describe("Meine Spieler und Angebote", () => {
     expect(gs().players[pid].transferListed).toEqual({ askingPrice: 300_000 });
     await fireEvent.click(screen.getByRole("button", { name: `${name(pid)} von der Liste` }));
     expect(gs().players[pid].transferListed).toBeNull();
+  });
+
+  it("Gegenangebot „500.000“ sendet 500000 und verkauft nie darunter", async () => {
+    const { c, gs, clubId } = await transfersScreen();
+    const pid = gs().clubs[clubId].squad[9];
+    const buyer = Object.values(gs().clubs).find((x) => x.managerId === null)!;
+    buyer.finance.balance = 100_000_000; // Testaufbau
+    gs().transferOffers.push({ id: "o1", managerId: gs().managers[0].id, fromClub: buyer.id, playerId: pid, fee: 400_000, maxFee: 700_000, round: 1, status: "open", season: 1, expiresAfter: 0 }); // Testaufbau
+    c.snapshot = { ...c.snapshot! };
+    c.openTransfers("offers");
+    await tick();
+    const p = gs().players[pid];
+    await fireEvent.input(screen.getByLabelText(`Gegenangebot ${p.firstName} ${p.lastName}`), { target: { value: "500.000" } });
+    await fireEvent.click(screen.getByRole("button", { name: `Gegenangebot für ${p.firstName} ${p.lastName} senden` }));
+    const o = gs().transferOffers.find((x) => x.id === "o1")!;
+    expect(o.status).toBe("accepted");
+    expect(o.fee).toBe(500_000);
+  });
+
+  it("Gegenangebot mit Unsinn: Hinweis, nichts gesendet", async () => {
+    const { c, gs, clubId } = await transfersScreen();
+    const pid = gs().clubs[clubId].squad[9];
+    const buyer = Object.values(gs().clubs).find((x) => x.managerId === null)!;
+    gs().transferOffers.push({ id: "o1", managerId: gs().managers[0].id, fromClub: buyer.id, playerId: pid, fee: 400_000, maxFee: 700_000, round: 1, status: "open", season: 1, expiresAfter: 0 }); // Testaufbau
+    c.snapshot = { ...c.snapshot! };
+    c.openTransfers("offers");
+    await tick();
+    const p = gs().players[pid];
+    await fireEvent.input(screen.getByLabelText(`Gegenangebot ${p.firstName} ${p.lastName}`), { target: { value: "abc" } });
+    await fireEvent.click(screen.getByRole("button", { name: `Gegenangebot für ${p.firstName} ${p.lastName} senden` }));
+    expect(screen.getByText("Bitte einen gültigen Betrag eingeben.")).toBeTruthy();
+    expect(gs().transferOffers.find((x) => x.id === "o1")!.round).toBe(1);
   });
 
   it("nimmt ein KI-Angebot an", async () => {

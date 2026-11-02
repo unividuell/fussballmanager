@@ -10,6 +10,7 @@ import {
   marketRows,
   messageLabel,
   openOffers,
+  parseEuro,
   potentialStars,
 } from "../../src/ui/logic/economy";
 import { makePlayer } from "../engine/fixtures";
@@ -27,7 +28,7 @@ describe("ledgerSummary", () => {
   it("summiert die Saison und den letzten Spieltag je Kategorie", () => {
     const s = playMatchdayAuto(playMatchdayAuto(game()));
     const club = own(s);
-    const sum = ledgerSummary(club);
+    const sum = ledgerSummary(club, s.calendarIndex);
     expect(sum.lastIndex).toBe(1);
     const tv = sum.lines.find((l) => l.category === "tv")!;
     expect(tv.label).toBe("TV-Geld");
@@ -36,8 +37,35 @@ describe("ledgerSummary", () => {
     expect(sum.lines.every((l) => l.season !== 0 || l.lastMatchday !== 0)).toBe(true);
   });
 
+  it("eine Buchung im laufenden Spieltag verdeckt den letzten Spieltag nicht", () => {
+    const s = playMatchdayAuto(playMatchdayAuto(game()));
+    const club = own(s);
+    const before = ledgerSummary(club, s.calendarIndex).lines.find((l) => l.category === "tv")!;
+    club.finance.ledger.push({ calendarIndex: s.calendarIndex, category: "tv", amount: 7_000 }); // Testaufbau
+    const after = ledgerSummary(club, s.calendarIndex);
+    const tv = after.lines.find((l) => l.category === "tv")!;
+    expect(after.lastIndex).toBe(s.calendarIndex - 1);
+    expect(tv.lastMatchday).toBe(before.lastMatchday);
+    expect(tv.season).toBe(before.season + 7_000);
+  });
+
   it("ohne Buchungen: leer", () => {
-    expect(ledgerSummary(own(game())).lines).toEqual([]);
+    const g = game();
+    expect(ledgerSummary(own(g), g.calendarIndex).lines).toEqual([]);
+  });
+});
+
+describe("parseEuro", () => {
+  it("liest deutsch formatierte Beträge", () => {
+    expect(parseEuro("500.000")).toBe(500_000);
+    expect(parseEuro("1.500.000 €")).toBe(1_500_000);
+    expect(parseEuro("12000")).toBe(12_000);
+    expect(parseEuro("12.000,50")).toBe(12_000);
+    expect(parseEuro("12.000,00")).toBe(12_000);
+    expect(parseEuro("")).toBeNull();
+    expect(parseEuro("  ")).toBeNull();
+    expect(parseEuro("abc")).toBeNull();
+    expect(parseEuro("-5")).toBeNull();
   });
 });
 
@@ -57,7 +85,7 @@ describe("marketRows", () => {
     const s = game();
     const rows = marketRows(s, own(s).id, DEFAULT_FILTER);
     const humanClubs = new Set(s.managers.map((m) => m.clubId));
-    expect(rows.length).toBeLessThanOrEqual(150);
+    expect(rows.length).toBeGreaterThan(150);
     expect(rows.every((r) => !humanClubs.has(r.player.clubId))).toBe(true);
     for (let i = 1; i < rows.length; i++) expect(rows[i - 1].player.strength).toBeGreaterThanOrEqual(rows[i].player.strength);
   });
