@@ -10,6 +10,7 @@
   import SeasonEnd from "./ui/screens/SeasonEnd.svelte";
   import Squad from "./ui/screens/Squad.svelte";
   import Tables from "./ui/screens/Tables.svelte";
+  import Transfers from "./ui/screens/Transfers.svelte";
   import Training from "./ui/screens/Training.svelte";
   import TurnStart from "./ui/screens/TurnStart.svelte";
   import Screen from "./ui/theme/Screen.svelte";
@@ -45,6 +46,8 @@
     <Finance {controller} managerId={view.managerId} />
   {:else if view.kind === "contracts"}
     <Contracts {controller} managerId={view.managerId} />
+  {:else if view.kind === "transfers"}
+    <Transfers {controller} managerId={view.managerId} />
   {:else}
     <p class="placeholder">Bildschirm „{view.kind}“ folgt.</p>
   {/if}
