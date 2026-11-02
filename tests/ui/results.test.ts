@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { render } from "@testing-library/svelte";
+import { render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { describe, expect, it } from "vitest";
 import App from "../../src/App.svelte";
@@ -33,5 +33,26 @@ describe("Ergebnisse: Ereignisse", () => {
     for (const g of goals) expect(lines).toContain(`${short}: ${eventText(snap.state, g)}`);
     if (goals.length > 0) expect(panel).toBeTruthy();
     else expect(document.body.textContent).not.toContain("EREIGNISSE");
+  });
+
+  it("viele Ereignisse: die Tafel ist höhenbegrenzt, „Tabelle“ und „Weiter“ bleiben da", async () => {
+    const controller = new GameController();
+    const world = generateWorld(3);
+    const mgrClub = Object.keys(world.clubs)[0];
+    controller.startGame(world, [{ name: "Anna", clubId: mgrClub }]);
+    const id = controller.snapshot!.state.managers[0].id;
+    await controller.endTurn(id);
+    controller.advance();
+    await controller.endTurn(id);
+    controller.advance();
+    const snap = controller.snapshot!;
+    const live = snap.lives.find((l) => l.home.club === mgrClub || l.away.club === mgrClub)!;
+    const scorer = (live.home.club === mgrClub ? live.home : live.away).played[5];
+    for (let m = 1; m <= 25; m++) live.events.push({ minute: m, type: "goal", club: mgrClub, player: scorer }); // Testaufbau: viele Ereignisse
+    render(App, { controller });
+    await tick();
+    expect(document.querySelector("section.panel.capped")).not.toBeNull();
+    expect(screen.getByRole("button", { name: /Weiter/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Tabelle" })).toBeTruthy();
   });
 });

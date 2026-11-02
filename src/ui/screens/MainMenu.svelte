@@ -1,21 +1,30 @@
 <script lang="ts">
   import type { ManagerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
+  import { messagesFor } from "../../engine/economy/messages";
+  import { openOffers } from "../logic/economy";
   import Tile from "../theme/Tile.svelte";
   import ClubHeader from "./ClubHeader.svelte";
 
   let { controller, managerId }: { controller: GameController; managerId: ManagerId } = $props();
 
-  const tiles: { key: string; icon: string; label: string; action: (() => void) | null }[] = [
+  const gs = $derived(controller.snapshot!.state);
+  const offerCount = $derived(openOffers(gs, managerId).length);
+  const newMessages = $derived(
+    messagesFor(gs, managerId).filter((m) => m.season === gs.season && m.calendarIndex >= gs.calendarIndex - 1).length,
+  );
+  const count = (label: string, n: number) => (n > 0 ? `${label} (${n})` : label);
+
+  const tiles = $derived<{ key: string; icon: string; label: string; action: (() => void) | null }[]>([
     { key: "1", icon: "11", label: "Mannschaft", action: () => controller.open("squad") },
-    { key: "2", icon: "++", label: "Training", action: null },
-    { key: "3", icon: "§", label: "Verträge", action: null },
-    { key: "4", icon: "<>", label: "Transfers", action: null },
-    { key: "5", icon: "$", label: "Finanzen", action: null },
+    { key: "2", icon: "++", label: "Training", action: () => controller.open("training") },
+    { key: "3", icon: "§", label: "Verträge", action: () => controller.open("contracts") },
+    { key: "4", icon: "<>", label: count("Transfers", offerCount), action: () => controller.openTransfers("market") },
+    { key: "5", icon: "$", label: "Finanzen", action: () => controller.open("finance") },
     { key: "6", icon: "#", label: "Tabelle", action: () => controller.open("tables") },
-    { key: "7", icon: "@", label: "Nachrichten", action: null },
+    { key: "7", icon: "@", label: count("Nachrichten", newMessages), action: () => controller.open("messages") },
     { key: "8", icon: ">>", label: "Weiter", action: () => void controller.endTurn(managerId) },
-  ];
+  ]);
 
   function onKey(e: KeyboardEvent): void {
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;

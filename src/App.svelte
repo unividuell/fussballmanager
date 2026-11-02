@@ -54,11 +54,6 @@
     <Messages {controller} managerId={view.managerId} />
   {:else if view.kind === "jobs"}
     {#key view.managerId}<Jobs {controller} managerId={view.managerId} />{/key}
-  {:else}
-    <p class="placeholder">Bildschirm „{view.kind}“ folgt.</p>
   {/if}
 </Screen>
 
-<style>
-  .placeholder { padding: 16px; }
-</style>

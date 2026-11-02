@@ -36,13 +36,13 @@ describe("„ist dran“", () => {
 });
 
 describe("Hauptmenü", () => {
-  it("hat 8 Kacheln, fünf davon gesperrt", async () => {
+  it("hat 8 Kacheln, keine gesperrt", async () => {
     const c = game();
     c.open("menu");
     await tick();
     const tiles = screen.getAllByRole("button").filter((b) => b.classList.contains("tile"));
     expect(tiles).toHaveLength(8);
-    expect(tiles.filter((b) => (b as HTMLButtonElement).disabled)).toHaveLength(5);
+    expect(tiles.filter((b) => (b as HTMLButtonElement).disabled)).toHaveLength(0);
   });
 
   it("Taste 1 öffnet die Mannschaft, Taste 6 die Tabelle", async () => {
@@ -65,12 +65,15 @@ describe("Hauptmenü", () => {
     expect(c.view.kind).toBe("menu");
   });
 
-  it("gesperrte Kacheln reagieren nicht auf ihre Taste", async () => {
+  it("Tasten 2, 3, 4, 5 und 7 öffnen die Wirtschafts-Bildschirme", async () => {
     const c = game();
-    c.open("menu");
-    await tick();
-    await fireEvent.keyDown(window, { key: "2" });
-    expect(c.view.kind).toBe("menu");
+    const expected: [string, string][] = [["2", "training"], ["3", "contracts"], ["4", "transfers"], ["5", "finance"], ["7", "messages"]];
+    for (const [key, kind] of expected) {
+      c.open("menu");
+      await tick();
+      await fireEvent.keyDown(window, { key });
+      expect(c.view.kind).toBe(kind);
+    }
   });
 
   it("„Weiter“ übergibt an den nächsten Manager", async () => {
