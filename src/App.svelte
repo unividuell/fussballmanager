@@ -36,5 +36,11 @@
     <Results {controller} />
   {:else if view.kind === "seasonEnd"}
     <SeasonEnd {controller} />
+  {:else}
+    <p class="placeholder">Bildschirm „{view.kind}“ folgt.</p>
   {/if}
 </Screen>
+
+<style>
+  .placeholder { padding: 16px; }
+</style>

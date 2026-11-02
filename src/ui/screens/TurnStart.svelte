@@ -12,7 +12,7 @@
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === "Enter") {
       e.preventDefault();
-      controller.open("menu");
+      controller.open(club ? "menu" : "jobs");
     }
   }
 </script>
@@ -26,8 +26,13 @@
       <div class="card">
         {#if club}<Crest colors={club.colors} pattern={club.crest} size={48} />{/if}
         <h1>{controller.managerName(managerId).toUpperCase()} IST DRAN</h1>
-        {#if club}<p>{club.name}</p>{/if}
-        <button class="btn primary" onclick={() => controller.open("menu")}>Los geht's (Enter)</button>
+        {#if club}
+          <p>{club.name}</p>
+          <button class="btn primary" onclick={() => controller.open("menu")}>Los geht's (Enter)</button>
+        {:else}
+          <p>Ohne Verein</p>
+          <button class="btn primary" onclick={() => controller.open("jobs")}>Jobangebote (Enter)</button>
+        {/if}
       </div>
     </Panel>
   </div>

@@ -121,7 +121,7 @@ export class Session {
   }
 
   private beginTurns(): void {
-    const pending = this.snap.state.managers.filter((m) => m.clubId !== null).map((m) => m.id);
+    const pending = this.snap.state.managers.map((m) => m.id);
     this.set({ lives: [], notices: [], phase: { kind: "managerTurns", pending } });
     if (pending.length === 0) this.startMatchday();
   }

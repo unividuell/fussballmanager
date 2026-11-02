@@ -3,7 +3,22 @@ import { startNewGame } from "../engine/season";
 import { Session, type SessionCommand, type Snapshot } from "../session/session";
 import { LocalTransport } from "../transport/transport";
 
-export type TurnScreen = "turnStart" | "menu" | "squad" | "tables";
+export type TurnScreen =
+  | "turnStart"
+  | "menu"
+  | "squad"
+  | "tables"
+  | "training"
+  | "contracts"
+  | "transfers"
+  | "finance"
+  | "messages"
+  | "jobs";
+
+export type TransferTab = "market" | "mine" | "offers";
+
+/** Bildschirme, die auch ohne Verein funktionieren. */
+const WITHOUT_CLUB: TurnScreen[] = ["turnStart", "jobs", "messages", "tables"];
 
 export type View =
   | { kind: "newGame" }
@@ -26,6 +41,7 @@ export class GameController {
   screen = $state<TurnScreen>("turnStart");
   showResultsTables = $state(false);
   message = $state<string | null>(null);
+  transferTab = $state<TransferTab>("market");
   view: View = $derived.by(() => this.computeView());
 
   private session: Session | null = null;
@@ -44,6 +60,11 @@ export class GameController {
   open(screen: TurnScreen): void {
     this.screen = screen;
     this.message = null;
+  }
+
+  openTransfers(tab: TransferTab): void {
+    this.transferTab = tab;
+    this.open("transfers");
   }
 
   async send(cmd: SessionCommand): Promise<boolean> {
@@ -77,6 +98,7 @@ export class GameController {
       this.screen = "turnStart";
       this.showResultsTables = false;
       this.message = null;
+      this.transferTab = "market";
     }
     this.snapshot = s;
   }
@@ -86,8 +108,12 @@ export class GameController {
     if (!s) return { kind: "newGame" };
     const p = s.phase;
     switch (p.kind) {
-      case "managerTurns":
-        return { kind: this.screen, managerId: p.pending[0] };
+      case "managerTurns": {
+        const managerId = p.pending[0];
+        const hasClub = s.state.managers.find((m) => m.id === managerId)?.clubId != null;
+        const screen = !hasClub && !WITHOUT_CLUB.includes(this.screen) ? "jobs" : this.screen;
+        return { kind: screen, managerId };
+      }
       case "firstHalf":
         return { kind: "conference", half: 1 };
       case "secondHalf":

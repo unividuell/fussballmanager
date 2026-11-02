@@ -5,6 +5,8 @@ import { describe, expect, it } from "vitest";
 import App from "../../src/App.svelte";
 import { generateWorld } from "../../src/engine/generator";
 import { GameController } from "../../src/ui/controller.svelte";
+import { fireManager } from "../../src/engine/economy/board";
+import { Rng } from "../../src/engine/rng";
 
 function game(names = ["Anna"]) {
   const controller = new GameController();
@@ -78,5 +80,20 @@ describe("Hauptmenü", () => {
     await fireEvent.click(screen.getByRole("button", { name: /Weiter/ }));
     expect(c.view).toEqual({ kind: "turnStart", managerId: c.snapshot!.state.managers[1].id });
     expect(await screen.findByText("BEN IST DRAN")).toBeTruthy();
+  });
+});
+
+
+describe("„ist dran“ ohne Verein", () => {
+  it("zeigt „Ohne Verein“; Enter öffnet die Jobangebote", async () => {
+    const c = new GameController();
+    const world = generateWorld(11);
+    c.startGame(world, [{ name: "Anna", clubId: Object.keys(world.clubs)[0] }]);
+    fireManager(c.snapshot!.state, c.snapshot!.state.managers[0].id, Rng.fromSeed(1));
+    render(App, { controller: c });
+    await tick();
+    expect(screen.getByText("Ohne Verein")).toBeTruthy();
+    await fireEvent.keyDown(window, { key: "Enter" });
+    expect(c.view.kind).toBe("jobs");
   });
 });

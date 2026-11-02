@@ -2,6 +2,8 @@
 import { describe, expect, it } from "vitest";
 import { generateWorld } from "../../src/engine/generator";
 import { GameController } from "../../src/ui/controller.svelte";
+import { fireManager } from "../../src/engine/economy/board";
+import { Rng } from "../../src/engine/rng";
 
 function started(names = ["Anna", "Ben"]) {
   const c = new GameController();
@@ -78,5 +80,29 @@ describe("GameController", () => {
     expect(await c.send({ type: "endTurn", managerId: "x" })).toBe(false);
     c.advance();
     expect(c.view.kind).toBe("newGame");
+  });
+});
+
+
+describe("GameController ohne Verein", () => {
+  it("leitet auf die Jobangebote um, sobald der Manager keinen Verein hat", async () => {
+    const c = started();
+    const anna = c.snapshot!.state.managers[0];
+    fireManager(c.snapshot!.state, anna.id, Rng.fromSeed(3)); // Testaufbau: Entlassung direkt im Spielstand
+    c.open("menu");
+    expect(c.view).toEqual({ kind: "jobs", managerId: anna.id });
+    c.open("tables");
+    expect(c.view).toEqual({ kind: "tables", managerId: anna.id });
+    const offer = c.snapshot!.state.managers[0].jobOffers[0];
+    expect(await c.send({ type: "acceptJobOffer", managerId: anna.id, clubId: offer })).toBe(true);
+    c.open("menu");
+    expect(c.view).toEqual({ kind: "menu", managerId: anna.id });
+  });
+
+  it("openTransfers merkt sich den Reiter", () => {
+    const c = started();
+    c.openTransfers("offers");
+    expect(c.view.kind).toBe("transfers");
+    expect(c.transferTab).toBe("offers");
   });
 });
