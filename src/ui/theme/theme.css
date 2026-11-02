@@ -11,6 +11,7 @@
   --leaf: #a8d08d;
   --rust: #b8401f;
   --ink: #0b0d0a;
+  --shade: rgb(0 0 0 / 0.55);
   --font-display: "Press Start 2P", "Courier New", monospace;
   --font-body: "VT323", "Courier New", monospace;
   color-scheme: dark;

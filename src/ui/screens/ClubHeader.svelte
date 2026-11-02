@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { formatEuro } from "../../engine/economy/util";
   import { clubOf, type ManagerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
   import { matchdayLabel } from "../logic/format";
@@ -17,6 +18,7 @@
     <strong>{club.name}</strong>
     <span>Saison {state.season} · {matchdayLabel(state)}</span>
     {#if place}<span class="place">{place.rank}. Platz · {state.competitions[place.competitionId].name}</span>{/if}
+    <span class="money" class:negative={club.finance.balance < 0}>{formatEuro(club.finance.balance)}</span>
     <span class="mgr">{controller.managerName(managerId)}</span>
   </header>
 {/if}
@@ -32,5 +34,7 @@
   }
   strong { font-family: var(--font-display); font-weight: normal; font-size: 8px; color: var(--gold); }
   .place { color: var(--leaf); }
+  .money { color: var(--leaf); font-variant-numeric: tabular-nums; }
+  .money.negative { color: var(--rust); }
   .mgr { margin-left: auto; }
 </style>
