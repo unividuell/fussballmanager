@@ -8,6 +8,7 @@
   import SeasonEnd from "./ui/screens/SeasonEnd.svelte";
   import Squad from "./ui/screens/Squad.svelte";
   import Tables from "./ui/screens/Tables.svelte";
+  import Training from "./ui/screens/Training.svelte";
   import TurnStart from "./ui/screens/TurnStart.svelte";
   import Screen from "./ui/theme/Screen.svelte";
 
@@ -36,6 +37,8 @@
     <Results {controller} />
   {:else if view.kind === "seasonEnd"}
     <SeasonEnd {controller} />
+  {:else if view.kind === "training"}
+    <Training {controller} managerId={view.managerId} />
   {:else}
     <p class="placeholder">Bildschirm „{view.kind}“ folgt.</p>
   {/if}
