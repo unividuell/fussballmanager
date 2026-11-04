@@ -42,30 +42,46 @@ test("kein Bildschirm ragt über den Rand", async ({ page }) => {
   await expectNoOverflow(page, "Ist dran");
 
   await page.keyboard.press("Enter");
-  await page.waitForTimeout(200);
+  await expect(page.getByText("Mannschaft", { exact: true })).toBeVisible();
   await expectNoOverflow(page, "Hauptmenü");
 
-  for (const key of ["1", "2", "3", "4", "5", "6", "7"]) {
+  // Kachel-Taste, Kennzeichen des Zielbildschirms (sichtbarer Text dort)
+  const kacheln: [string, string][] = [
+    ["1", "KADER"],
+    ["2", "INTENSITÄT"],
+    ["3", "VERTRÄGE"],
+    ["4", "Meine Spieler"],
+    ["5", "BILANZ"],
+    ["6", "TABELLE"],
+    ["7", "NACHRICHTEN"],
+  ];
+  for (const [key, marker] of kacheln) {
     await page.keyboard.press(key);
-    await page.waitForTimeout(200);
+    await expect(page.getByText(marker, { exact: true }).first()).toBeVisible();
     await expectNoOverflow(page, `Kachel ${key}`);
     await page.keyboard.press("Escape");
-    await page.waitForTimeout(200);
+    await expect(page.getByText("Mannschaft", { exact: true })).toBeVisible();
   }
 
   await page.keyboard.press("8");
-  await page.waitForTimeout(200);
+  await expect(page.getByText(/KONFERENZ/)).toBeVisible();
   await expectNoOverflow(page, "Konferenz");
 
   await page.keyboard.press(" ");
-  await page.waitForTimeout(300);
+  await expect(page.getByText("HALBZEIT", { exact: true })).toBeVisible();
+  await expectNoOverflow(page, "Konferenz Halbzeitstand");
+
+  await page.getByRole("button", { name: "Weiter (Enter)" }).click();
+  await expect(page.getByText("AUF DEM PLATZ")).toBeVisible();
   await expectNoOverflow(page, "Halbzeit");
 });
 
 test("Verhandlungsdialog passt auf die Fläche", async ({ page }) => {
   await startGame(page, ["Anna"]);
   await page.keyboard.press("Enter");
+  await expect(page.getByText("Mannschaft", { exact: true })).toBeVisible();
   await page.keyboard.press("4");
+  await expect(page.getByText("Meine Spieler", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: /verhandeln$/ }).first().click();
   await expect(page.locator('[role="dialog"]')).toBeVisible();
   await expectNoOverflow(page, "Verhandlung");
@@ -76,8 +92,6 @@ test("großes Fenster wird stufenlos gefüllt", async ({ page }) => {
   await expect(page.getByText("NEUES SPIEL")).toBeVisible();
   await page.setViewportSize({ width: 2560, height: 1440 });
   await expect
-    .poll(() => page.locator(".screen").evaluate((el) => getComputedStyle(el).transform))
-    .toBeTruthy();
-  const transform = await page.locator(".screen").evaluate((el) => (el as HTMLElement).style.transform);
-  expect(transform).toContain("scale(1.8)");
+    .poll(() => page.locator(".screen").evaluate((el) => (el as HTMLElement).style.transform))
+    .toContain("scale(1.8)");
 });
