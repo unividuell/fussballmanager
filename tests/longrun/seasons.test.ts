@@ -14,6 +14,7 @@ import {
   prepareMatchday,
   startNewGame,
 } from "../../src/engine/season";
+import { validateState } from "../../src/storage/validate";
 
 describe("Langzeittest: 10 Saisons", () => {
   it("bleibt stabil", { timeout: 300_000 }, () => {
@@ -61,11 +62,13 @@ describe("Langzeittest: 10 Saisons", () => {
       expect(l1).toHaveLength(18);
       expect(l2).toHaveLength(18);
       expect(new Set([...l1, ...l2]).size).toBe(36);
+      expect(validateState(next)).toBeNull();
       s = next;
     }
 
     expect(s.season).toBe(11);
     expect(s.history).toHaveLength(10);
+    expect(validateState(s)).toBeNull();
     const squadSizes = Object.values(s.clubs).map((c) => c.squad.length);
     expect(Math.max(...squadSizes)).toBeLessThan(40);
     expect(JSON.parse(JSON.stringify(s))).toEqual(s);
