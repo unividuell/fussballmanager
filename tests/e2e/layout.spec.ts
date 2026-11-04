@@ -21,11 +21,14 @@ async function expectNoOverflow(page: Page, label: string): Promise<void> {
       if (r.width <= 0 || r.height <= 0) continue;
       if (r.right > s.right + 1) out.push(`${describe(el)} rechts: ${r.right.toFixed(1)} > ${s.right.toFixed(1)}`);
       if (r.left < s.left - 1) out.push(`${describe(el)} links: ${r.left.toFixed(1)} < ${s.left.toFixed(1)}`);
-      if (el.matches("section.panel")) {
-        if (r.bottom > s.bottom + 1) out.push(`${describe(el)} unten: ${r.bottom.toFixed(1)} > ${s.bottom.toFixed(1)}`);
-        if (el.scrollWidth > el.clientWidth + 1) {
-          out.push(`${describe(el)} seitlich: scrollWidth ${el.scrollWidth} > clientWidth ${el.clientWidth}`);
-        }
+      if (el.matches("section.panel") && r.bottom > s.bottom + 1) {
+        out.push(`${describe(el)} unten: ${r.bottom.toFixed(1)} > ${s.bottom.toFixed(1)}`);
+      }
+      // Seitliches Scrollen ist nie erlaubt, auch nicht in Scroll-Listen (overflow-x nicht "visible").
+      // Ausnahme: gewollte Kürzung mit Auslassungspunkten (text-overflow: ellipsis, z. B. Spielernamen).
+      const cs = getComputedStyle(el);
+      if (cs.overflowX !== "visible" && cs.textOverflow !== "ellipsis" && el.scrollWidth > el.clientWidth + 1) {
+        out.push(`${describe(el)} seitlich: scrollWidth ${el.scrollWidth} > clientWidth ${el.clientWidth}`);
       }
     }
     return out;
