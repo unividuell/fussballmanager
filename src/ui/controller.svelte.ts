@@ -60,6 +60,8 @@ export class GameController {
   showResultsTables = $state(false);
   message = $state<string | null>(null);
   failure = $state<{ retry: () => void } | null>(null);
+  /** true, solange der letzte Autosave gescheitert ist; unabhängig von `message`, damit es sichtbar bleibt. */
+  autosaveFailed = $state(false);
   transferTab = $state<TransferTab>("market");
   view: View = $derived.by(() => this.computeView());
 
@@ -107,6 +109,7 @@ export class GameController {
   }
 
   openStart(s: StartScreen): void {
+    if (this.failure !== null) return;
     this.startScreen = s;
     this.message = null;
   }
@@ -166,6 +169,7 @@ export class GameController {
   /** Startet eine Session auf einem neuen oder geladenen Spielstand; eine alte Session wird abgehängt. */
   private begin(gs: GameState): void {
     this.failure = null;
+    this.autosaveFailed = false;
     this.unsubscribe?.();
     this.session = new Session(gs, "hotseat", { autosave: (s) => (this.lastAutosave = this.autosave(s)) });
     this.transport = new LocalTransport(this.session);
@@ -178,9 +182,10 @@ export class GameController {
     try {
       await this.store.save("auto", gs, matchdayLabel(gs), new Date());
     } catch {
-      this.message = "Autosave fehlgeschlagen.";
+      this.autosaveFailed = true;
       return;
     }
+    this.autosaveFailed = false;
     await this.refreshSlots();
   }
 
@@ -190,11 +195,13 @@ export class GameController {
   }
 
   open(screen: TurnScreen): void {
+    if (this.failure !== null) return;
     this.screen = screen;
     this.message = null;
   }
 
   openTransfers(tab: TransferTab): void {
+    if (this.failure !== null) return;
     this.transferTab = tab;
     this.open("transfers");
   }

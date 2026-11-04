@@ -4,6 +4,7 @@
   import type { GameController } from "../controller.svelte";
   import { clubRating } from "../logic/tables";
   import Crest from "../theme/Crest.svelte";
+  import Dialog from "../theme/Dialog.svelte";
   import Panel from "../theme/Panel.svelte";
 
   let { controller }: { controller: GameController } = $props();
@@ -15,6 +16,7 @@
   let names = $state(["Manager 1", "Manager 2", "Manager 3", "Manager 4"]);
   let picks = $state<(ClubId | "")[]>(["", "", "", ""]);
   let error = $state<string | null>(null);
+  let confirmOverwrite = $state(false);
   const canContinue = $derived(controller.slots.some((s) => s.slot === "auto" && s.meta !== null));
 
   const ranked = $derived(Object.values(world.clubs).sort((a, b) => b.reputation - a.reputation || (a.id < b.id ? -1 : 1)));
@@ -34,12 +36,27 @@
       error = "Bitte wähle für jeden Manager einen Verein.";
       return;
     }
+    if (canContinue && !confirmOverwrite) {
+      confirmOverwrite = true;
+      return;
+    }
+    confirmOverwrite = false;
     error = controller.startGame(
       world,
       chosen.map((clubId, i) => ({ name: names[i], clubId: clubId as ClubId })),
     );
   }
+
+  function onKey(e: KeyboardEvent): void {
+    if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === "Escape" && confirmOverwrite) {
+      e.preventDefault();
+      confirmOverwrite = false;
+    }
+  }
 </script>
+
+<svelte:window onkeydown={onKey} />
 
 <div class="newgame">
   <div class="start">
@@ -89,6 +106,16 @@
   </div>
 </div>
 
+{#if confirmOverwrite}
+  <Dialog title="BESTÄTIGEN" onClose={() => (confirmOverwrite = false)}>
+    <p>Neues Spiel starten? Der Autosave des bisherigen Spiels wird überschrieben.</p>
+    <div class="row">
+      <button class="btn primary" onclick={start}>Ja</button>
+      <button class="btn" onclick={() => (confirmOverwrite = false)}>Nein</button>
+    </div>
+  </Dialog>
+{/if}
+
 <style>
   .newgame {
     display: flex;
@@ -115,4 +142,6 @@
   select { flex: 1; min-width: 0; }
   .foot { display: flex; align-items: center; gap: 6px; margin-top: auto; }
   .spacer { flex: 1; }
+  .row { display: flex; gap: 8px; justify-content: flex-end; }
+  p { margin: 0 0 8px; }
 </style>

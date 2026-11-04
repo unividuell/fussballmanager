@@ -33,6 +33,9 @@
           <p>Ohne Verein</p>
           <button class="btn primary" onclick={() => controller.open("jobs")}>Jobangebote (Enter)</button>
         {/if}
+        {#if controller.autosaveFailed}
+          <p class="warn">Autosave fehlgeschlagen – der Spielstand wird nicht automatisch gespeichert.</p>
+        {/if}
       </div>
     </Panel>
   </div>
@@ -43,4 +46,5 @@
   .center { flex: 1; display: grid; place-items: center; }
   .card { display: grid; justify-items: center; gap: 10px; padding: 12px 28px; }
   p { margin: 0; font-size: 20px; }
+  .warn { font-size: 16px; color: var(--rust); }
 </style>

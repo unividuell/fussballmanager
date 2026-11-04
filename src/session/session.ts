@@ -129,6 +129,10 @@ export class Session {
   private beginTurns(autosave: boolean): void {
     const pending = this.snap.state.managers.map((m) => m.id);
     this.set({ lives: [], notices: [], phase: { kind: "managerTurns", pending } });
+    // Autosave-Zeitpunkt: erst wenn die nächsten Manager-Runden beginnen (nach den Ergebnissen
+    // bzw. nach dem Saisonende). Schließt man den Tab auf dem Ergebnisbildschirm, wird dieser
+    // Spieltag beim Weiterspielen erneut gespielt. Der gespeicherte Stand ist der Stand nach
+    // der Nachbearbeitung des Spieltags.
     if (autosave) this.hooks.autosave?.(this.snap.state);
     if (pending.length === 0) this.startMatchday();
   }

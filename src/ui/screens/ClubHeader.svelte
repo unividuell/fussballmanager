@@ -19,6 +19,7 @@
     <span>Saison {state.season} · {matchdayLabel(state)}</span>
     {#if place}<span class="place">{place.rank}. Platz · {state.competitions[place.competitionId].name}</span>{/if}
     <span class="money" class:negative={club.finance.balance < 0}>{formatEuro(club.finance.balance)}</span>
+    {#if controller.autosaveFailed}<span class="negative">Autosave aus</span>{/if}
     <span class="mgr">{controller.managerName(managerId)}</span>
   </header>
 {/if}
@@ -36,5 +37,6 @@
   .place { color: var(--leaf); }
   .money { color: var(--leaf); font-variant-numeric: tabular-nums; }
   .money.negative { color: var(--rust); }
+  .negative { color: var(--rust); }
   .mgr { margin-left: auto; }
 </style>

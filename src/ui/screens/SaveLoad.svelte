@@ -23,9 +23,11 @@
     failed = !(await controller.loadFrom(slot)) && slot !== "auto";
   }
 
-  function askLoad(info: SlotInfo): void {
-    if (inGame) confirm = { text: `${slotName(info.slot)} laden? Nicht gespeicherter Fortschritt geht verloren.`, action: () => load(info.slot) };
-    else void load(info.slot);
+  const LOSS = "Nicht gespeicherter Fortschritt geht verloren.";
+
+  function askLoad(slot: SlotId): void {
+    if (inGame) confirm = { text: `${slotName(slot)} laden? ${LOSS}`, action: () => load(slot) };
+    else void load(slot);
   }
 
   function askSave(slot: ManualSlot, info: SlotInfo): void {
@@ -52,7 +54,8 @@
       failed = true;
       return;
     }
-    failed = !controller.importText(text);
+    if (inGame) confirm = { text: `Datei laden? ${LOSS}`, action: async () => void (failed = !controller.importText(text)) };
+    else failed = !controller.importText(text);
   }
 
   function exportGame(): void {
@@ -93,7 +96,7 @@
               </td>
               <td class="date">{info.meta ? formatSavedAt(info.meta.savedAt) : ""}</td>
               <td class="actions">
-                <button class="btn" aria-label="{slotName(info.slot)} laden" disabled={!info.meta} onclick={() => askLoad(info)}>Laden</button>
+                <button class="btn" aria-label="{slotName(info.slot)} laden" disabled={!info.meta} onclick={() => askLoad(info.slot)}>Laden</button>
                 {#if inGame && info.slot !== "auto"}
                   {@const slot = info.slot}
                   <button class="btn" aria-label="In {slotName(slot)} speichern" onclick={() => askSave(slot, info)}>Speichern</button>
@@ -108,7 +111,7 @@
   <div class="foot">
     <label class="btn file">Datei importieren<input type="file" accept=".json,application/json" onchange={(e) => void importFile(e)} /></label>
     {#if inGame}<button class="btn" onclick={exportGame}>Exportieren</button>{/if}
-    {#if failed && autoUsable}<button class="btn" onclick={() => void load("auto")}>Autosave laden</button>{/if}
+    {#if failed && autoUsable}<button class="btn" onclick={() => askLoad("auto")}>Autosave laden</button>{/if}
     {#if controller.message}<span class="msg">{controller.message}</span>{/if}
     <span class="spacer"></span>
     <button class="btn" onclick={onBack}>Zurück (Esc)</button>

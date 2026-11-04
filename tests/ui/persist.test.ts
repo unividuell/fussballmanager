@@ -109,10 +109,34 @@ describe("Controller: Speichern und Laden", () => {
     vi.spyOn(store, "save").mockRejectedValue(new Error("voll"));
     const { c } = setup(["Anna"], store);
     await c.lastAutosave;
-    expect(c.message).toBe("Autosave fehlgeschlagen.");
+    expect(c.autosaveFailed).toBe(true);
     await playMatchday(c);
     await c.lastAutosave;
+    expect(c.autosaveFailed).toBe(true);
     expect(c.snapshot!.state.calendarIndex).toBe(1);
+  });
+
+  it("ein späterer erfolgreicher Autosave nimmt die Warnung zurück", async () => {
+    const store = new SaveStore(new IDBFactory());
+    const spy = vi.spyOn(store, "save").mockRejectedValueOnce(new Error("voll"));
+    const { c } = setup(["Anna"], store);
+    await c.lastAutosave;
+    expect(c.autosaveFailed).toBe(true);
+    spy.mockRestore();
+    await playMatchday(c);
+    await c.lastAutosave;
+    expect(c.autosaveFailed).toBe(false);
+  });
+
+  it("solange ein Berechnungsfehler offen ist, wechselt open() den Bildschirm nicht", () => {
+    const { c } = setup(["Anna"]);
+    c.failure = { retry: () => {} };
+    c.open("squad");
+    c.openTransfers("mine");
+    c.openStart("loadGame");
+    expect(c.view.kind).toBe("turnStart");
+    expect(c.transferTab).toBe("market");
+    expect(c.startScreen).toBe("newGame");
   });
 
   it("ohne Speicher melden Speichern und Laden das", async () => {
