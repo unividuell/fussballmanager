@@ -41,7 +41,7 @@ describe("Transfermarkt", () => {
 
   it("Sortieren nach Alter aufsteigend zeigt die jüngsten Spieler des ganzen Marktes; Kopfzeile nennt die Anzahl", async () => {
     const { gs, clubId } = await transfersScreen();
-    const humanClubs = new Set(gs().managers.map((m) => m.clubId));
+    const humanClubs = new Set<string | null>(gs().managers.map((m) => m.clubId));
     const eligible = Object.values(gs().players).filter((p) => !p.retired && p.clubId !== clubId && !humanClubs.has(p.clubId));
     expect(eligible.length).toBeGreaterThan(150);
     expect(screen.getByText(`150 von ${eligible.length}`)).toBeTruthy();

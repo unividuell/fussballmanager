@@ -155,7 +155,7 @@ export interface Message {
   season: number;
   calendarIndex: number;
   text: string;
-  ref: { type: "transferOffer" | "jobOffer" | "sponsor" | "negotiation"; id: string } | null;
+  ref: { type: "transferOffer" | "sponsor" | "negotiation"; id: string } | null;
 }
 
 export const MAX_SQUAD = 32;
@@ -214,10 +214,8 @@ export interface Club {
 export interface Manager {
   id: ManagerId;
   name: string;
-  clubId: ClubId | null;
-  jobOffers: ClubId[];
-  /** Spieltage ohne Verein */
-  unemployedFor: number;
+  /** Verein des Managers – fest für das ganze Spiel (keine Entlassungen) */
+  clubId: ClubId;
 }
 
 export interface Score {
@@ -267,7 +265,7 @@ export interface SeasonRecord {
 }
 
 export interface GameState {
-  version: 1;
+  version: 2;
   rngState: RngState;
   season: number;
   calendar: CalendarEntry[];
@@ -301,5 +299,5 @@ export function displayStrength(p: Player): number {
 
 export function clubOf(state: GameState, managerId: ManagerId): Club | null {
   const m = state.managers.find((x) => x.id === managerId);
-  return m && m.clubId ? state.clubs[m.clubId] : null;
+  return m ? state.clubs[m.clubId] : null;
 }

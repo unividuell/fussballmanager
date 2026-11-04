@@ -76,7 +76,7 @@ function clubName(rng: Rng, town: string): string {
 export function generateWorld(seed: number): GameState {
   const rng = Rng.fromSeed(seed);
   const state: GameState = {
-    version: 1,
+    version: 2,
     rngState: rng.state(),
     season: 1,
     calendar: [],

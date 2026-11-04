@@ -1,4 +1,3 @@
-import { acceptJobOffer } from "./economy/board";
 import { releasePlayer } from "./economy/contracts";
 import { chooseSponsor } from "./economy/finance";
 import { respondTransferOffer, type OfferResponse } from "./economy/market";
@@ -36,8 +35,7 @@ export type EconomyCommand =
   | { type: "respondNegotiation"; managerId: ManagerId; negotiationId: string; response: NegotiationResponse }
   | { type: "setTransferListing"; managerId: ManagerId; playerId: PlayerId; listed: boolean; askingPrice: number | null }
   | { type: "respondTransferOffer"; managerId: ManagerId; offerId: string; response: OfferResponse }
-  | { type: "releasePlayer"; managerId: ManagerId; playerId: PlayerId }
-  | { type: "acceptJobOffer"; managerId: ManagerId; clubId: ClubId };
+  | { type: "releasePlayer"; managerId: ManagerId; playerId: PlayerId };
 
 export type StateCommand =
   | { type: "setLineup"; managerId: ManagerId; lineup: Lineup }
@@ -66,7 +64,6 @@ function validateTactics(t: Partial<Tactics>, requireAll: boolean): string | nul
 function managedClub(state: GameState, managerId: ManagerId): Club | string {
   const m = state.managers.find((x) => x.id === managerId);
   if (!m) return "Unbekannter Manager.";
-  if (!m.clubId) return "Du hast zurzeit keinen Verein.";
   return state.clubs[m.clubId];
 }
 
@@ -80,7 +77,7 @@ function reslot(state: GameState, club: Club, lineup: Lineup, tactics: Tactics):
   return repairLineup(state, club.id, { starters, bench: lineup.bench }, tactics.formation);
 }
 
-function applyEconomy(draft: GameState, clubId: ClubId, cmd: Exclude<EconomyCommand, { type: "acceptJobOffer" }>): string | null {
+function applyEconomy(draft: GameState, clubId: ClubId, cmd: EconomyCommand): string | null {
   switch (cmd.type) {
     case "setTraining": {
       const error = validateTraining(draft, clubId, cmd.training);
@@ -116,11 +113,6 @@ function applyEconomy(draft: GameState, clubId: ClubId, cmd: Exclude<EconomyComm
 }
 
 export function applyCommand(state: GameState, cmd: StateCommand): Result {
-  if (cmd.type === "acceptJobOffer") {
-    const draft = structuredClone(state);
-    const error = acceptJobOffer(draft, cmd.managerId, cmd.clubId);
-    return error ? { ok: false, error } : { ok: true, state: draft };
-  }
   const found = managedClub(state, cmd.managerId);
   if (typeof found === "string") return { ok: false, error: found };
   const draft = structuredClone(state);

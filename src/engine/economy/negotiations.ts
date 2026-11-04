@@ -20,7 +20,6 @@ export type NegotiationResponse = { amount: number; years?: number } | "accept" 
 function managedClubId(state: GameState, managerId: ManagerId): ClubId | { error: string } {
   const m = state.managers.find((x) => x.id === managerId);
   if (!m) return { error: "Unbekannter Manager." };
-  if (!m.clubId) return { error: "Du hast zurzeit keinen Verein." };
   return m.clubId;
 }
 

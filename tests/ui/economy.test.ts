@@ -84,7 +84,7 @@ describe("marketRows", () => {
   it("zeigt nur Vereinslose und KI-Spieler, nie eigene oder die anderer Manager", () => {
     const s = game();
     const rows = marketRows(s, own(s).id, DEFAULT_FILTER);
-    const humanClubs = new Set(s.managers.map((m) => m.clubId));
+    const humanClubs = new Set<string | null>(s.managers.map((m) => m.clubId));
     expect(rows.length).toBeGreaterThan(150);
     expect(rows.every((r) => !humanClubs.has(r.player.clubId))).toBe(true);
     for (let i = 1; i < rows.length; i++) expect(rows[i - 1].player.strength).toBeGreaterThanOrEqual(rows[i].player.strength);

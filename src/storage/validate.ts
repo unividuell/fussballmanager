@@ -43,11 +43,8 @@ export function validateState(raw: unknown): string | null {
 
   for (const m of managers) {
     if (!isObject(m) || typeof m.id !== "string") return "Manager fehlerhaft";
-    if (m.clubId !== null) {
-      if (!hasClub(m.clubId)) return `Verein ${String(m.clubId)} fehlt`;
-      if (clubs[m.clubId as string].managerId !== m.id) return `Verein ${String(m.clubId)} gehört nicht zu ${m.id}`;
-    }
-    for (const cid of ids(m.jobOffers)) if (!hasClub(cid)) return `Verein ${String(cid)} fehlt`;
+    if (!hasClub(m.clubId)) return `Verein ${String(m.clubId)} fehlt`;
+    if (clubs[m.clubId as string].managerId !== m.id) return `Verein ${String(m.clubId)} gehört nicht zu ${m.id}`;
   }
 
   for (const [id, comp] of Object.entries(raw.competitions as Record<string, unknown>)) {

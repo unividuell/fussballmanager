@@ -3,8 +3,6 @@ import { applyCommand, type StateCommand } from "../../../src/engine/commands";
 import { salaryDemand } from "../../../src/engine/economy/contracts";
 import { generateWorld } from "../../../src/engine/generator";
 import type { GameState } from "../../../src/engine/model";
-import { Rng } from "../../../src/engine/rng";
-import { fireManager } from "../../../src/engine/economy/board";
 import { startNewGame } from "../../../src/engine/season";
 
 function game(): GameState {
@@ -76,15 +74,6 @@ describe("Wirtschaftsbefehle", () => {
   it("Angebote beantworten scheitert bei unbekannter ID", () => {
     const s = game();
     expect(fails(s, { type: "respondTransferOffer", managerId: m(s), offerId: "x", response: "accept" })).toBe("Dieses Angebot gibt es nicht.");
-  });
-
-  it("Jobangebot annehmen geht auch ohne Verein; andere Befehle nicht", () => {
-    const s = game();
-    fireManager(s, m(s), Rng.fromSeed(1));
-    expect(fails(s, { type: "setTicketPrice", managerId: m(s), price: 30 })).toBe("Du hast zurzeit keinen Verein.");
-    const target = s.managers[0].jobOffers[0];
-    const after = ok(s, { type: "acceptJobOffer", managerId: m(s), clubId: target });
-    expect(after.managers[0].clubId).toBe(target);
   });
 
   it("unbekannte Befehle scheitern", () => {

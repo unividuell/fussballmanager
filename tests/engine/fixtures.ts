@@ -69,7 +69,7 @@ export function makeClub(id: string, squad: Player[], extra: Partial<Club> = {})
 /** Minimaler Spielstand mit den übergebenen Vereinen (je mit eigenem Kader). */
 export function makeState(clubs: { id: string; strength: number }[], seed = 1): GameState {
   const state: GameState = {
-    version: 1,
+    version: 2,
     rngState: Rng.fromSeed(seed).state(),
     season: 1,
     calendar: [],

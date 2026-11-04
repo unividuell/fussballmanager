@@ -1,21 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   START_CONFIDENCE,
-  acceptJobOffer,
   assignExpectations,
   boardChecks,
-  clearStaleJobOffers,
   expectationLabel,
   expectationMet,
-  fireManager,
-  jobOffersFor,
   seasonReview,
-  unemployedTick,
   updateConfidence,
 } from "../../../src/engine/economy/board";
 import { generateWorld } from "../../../src/engine/generator";
 import { COMP, type GameState } from "../../../src/engine/model";
-import { Rng } from "../../../src/engine/rng";
 import { kickOff, startNewGame } from "../../../src/engine/season";
 
 function game(index = 3): GameState {
@@ -26,7 +20,7 @@ function game(index = 3): GameState {
   return r.state;
 }
 const anna = (s: GameState) => s.managers[0];
-const own = (s: GameState) => s.clubs[anna(s).clubId!];
+const own = (s: GameState) => s.clubs[anna(s).clubId];
 
 describe("Erwartungen", () => {
   it("verteilt 2/4/6/6 je Liga nach Reputation", () => {
@@ -82,107 +76,31 @@ describe("Vertrauen", () => {
   });
 });
 
-describe("Warnung und Entlassung", () => {
-  it("warnt einmal unter 30 und entlässt unter 15 erst ab Spieltag 8", () => {
+describe("boardChecks – keine Entlassung", () => {
+  it("warnt einmal unter 30, erst nach Erholung über 40 erneut; der Manager bleibt", () => {
     const s = game();
-    const c = own(s);
-    c.board.confidence = 25;
-    boardChecks(s, Rng.fromSeed(1));
-    boardChecks(s, Rng.fromSeed(1));
-    expect(s.messages.filter((m) => m.text.includes("unzufrieden"))).toHaveLength(1);
-    c.board.confidence = 10;
-    s.calendarIndex = 7;
-    boardChecks(s, Rng.fromSeed(1));
-    expect(anna(s).clubId).toBe(c.id);
-    s.calendarIndex = 8;
-    boardChecks(s, Rng.fromSeed(1));
-    expect(anna(s).clubId).toBeNull();
-    expect(c.managerId).toBeNull();
-  });
-
-  it("KI-Vereine holen einen neuen Trainer", () => {
-    const s = game();
-    const ai = Object.values(s.clubs).find((c) => c.managerId === null)!;
-    ai.board.confidence = 5;
-    boardChecks(s, Rng.fromSeed(1));
-    expect(ai.board.confidence).toBe(55);
-  });
-
-  it("Entlassung: Angebote kleinerer Vereine, Verhandlungen weg, Nachricht", () => {
-    const s = game(0);
-    const old = own(s);
-    s.negotiations.push({ id: "n1", managerId: anna(s).id, playerId: old.squad[0], stage: "salary", fee: null, ask: 1, round: 1, desiredYears: 2, status: "open", note: "", season: 1, createdAt: 0 });
-    fireManager(s, anna(s).id, Rng.fromSeed(3));
-    const offers = anna(s).jobOffers;
-    expect(offers.length).toBeGreaterThanOrEqual(1);
-    expect(offers.length).toBeLessThanOrEqual(3);
-    for (const id of offers) {
-      expect(s.clubs[id].managerId).toBeNull();
-      expect(s.clubs[id].reputation).toBeLessThanOrEqual(old.reputation + 5);
-      expect(id).not.toBe(old.id);
-    }
-    expect(s.negotiations[0].status).toBe("aborted");
-    expect(old.training).toEqual({ intensity: "normal", focus: "technique", individual: [] });
-    expect(s.messages.some((m) => m.text.includes("trennt sich"))).toBe(true);
+    const club = own(s);
+    const count = () => s.messages.filter((m) => m.managerId === anna(s).id && m.text === "Der Vorstand ist unzufrieden.").length;
+    s.calendarIndex = 20;
+    club.board.confidence = 0;
+    for (let i = 0; i < 10; i++) boardChecks(s);
+    expect(count()).toBe(1);
+    expect(anna(s).clubId).toBe(club.id);
+    expect(club.managerId).toBe(anna(s).id);
+    club.board.confidence = 35;
+    boardChecks(s);
+    club.board.confidence = 10;
+    boardChecks(s);
+    expect(count()).toBe(1);
+    club.board.confidence = 41;
+    boardChecks(s);
+    club.board.confidence = 10;
+    boardChecks(s);
+    expect(count()).toBe(2);
   });
 });
 
-describe("Jobangebote", () => {
-  it("annehmen wechselt den Verein; ungültige Angebote werden abgelehnt", () => {
-    const s = game();
-    fireManager(s, anna(s).id, Rng.fromSeed(4));
-    const target = anna(s).jobOffers[0];
-    expect(acceptJobOffer(s, anna(s).id, "gibts-nicht")).toBe("Dieses Angebot gibt es nicht.");
-    expect(acceptJobOffer(s, anna(s).id, target)).toBeNull();
-    expect(anna(s).clubId).toBe(target);
-    expect(s.clubs[target].managerId).toBe(anna(s).id);
-    expect(s.clubs[target].board.confidence).toBe(START_CONFIDENCE);
-    expect(anna(s).jobOffers).toEqual([]);
-  });
-
-  it("übernommener Verein: offene KI-Geschäfte des Vereins werden aufgelöst", () => {
-    const s = game();
-    fireManager(s, anna(s).id, Rng.fromSeed(4));
-    const target = anna(s).jobOffers[0];
-    const club = s.clubs[target];
-    const pid = club.squad[0];
-    s.negotiations.push({ id: "n1", managerId: anna(s).id, playerId: pid, stage: "fee", fee: null, ask: 1, round: 1, desiredYears: 2, status: "open", note: "", season: s.season, createdAt: 0 });
-    s.transferOffers.push({ id: "o1", managerId: anna(s).id, fromClub: target, playerId: club.squad[1], fee: 1, maxFee: 2, round: 1, status: "open", season: s.season, expiresAfter: 0 });
-    acceptJobOffer(s, anna(s).id, target);
-    expect(s.negotiations.find((n) => n.id === "n1")!.status).toBe("aborted");
-    expect(s.negotiations.find((n) => n.id === "n1")!.note).toBe("Der Verein hat einen neuen Trainer.");
-    expect(s.transferOffers.find((o) => o.id === "o1")!.status).toBe("withdrawn");
-  });
-
-  it("ohne Verein: spätestens nach 3 Spieltagen ein Angebot eines Zweitligisten", () => {
-    const s = game();
-    fireManager(s, anna(s).id, Rng.fromSeed(5));
-    anna(s).jobOffers = [];
-    const rng = Rng.fromSeed(6);
-    for (let i = 0; i < 3 && anna(s).jobOffers.length === 0; i++) unemployedTick(s, rng);
-    expect(anna(s).jobOffers.length).toBeGreaterThan(0);
-    anna(s).jobOffers = [];
-    anna(s).unemployedFor = 3;
-    unemployedTick(s, Rng.fromSeed(7));
-    expect(anna(s).jobOffers).toHaveLength(1);
-    expect(s.competitions[COMP.second].clubs).toContain(anna(s).jobOffers[0]);
-  });
-
-  it("jobOffersFor 'higher' liefert nur größere Vereine; alte Angebote verfallen nach dem 1. Spieltag", () => {
-    const s = game(30);
-    const rep = own(s).reputation;
-    const offers = jobOffersFor(s, rep, Rng.fromSeed(8), "higher", 2);
-    for (const id of offers) {
-      expect(s.clubs[id].reputation).toBeGreaterThan(rep + 5);
-      expect(s.clubs[id].reputation).toBeLessThanOrEqual(rep + 25);
-    }
-    anna(s).jobOffers = offers;
-    clearStaleJobOffers(s);
-    expect(anna(s).jobOffers).toEqual([]);
-  });
-});
-
-describe("seasonReview", () => {
+describe("seasonReview – nur Rückmeldung", () => {
   function tables(s: GameState, ownRank: number) {
     const l1 = s.competitions[COMP.first].clubs.filter((id) => id !== own(s).id);
     const l2 = [...s.competitions[COMP.second].clubs];
@@ -191,21 +109,23 @@ describe("seasonReview", () => {
     return { [COMP.first]: s.competitions[COMP.first].clubs.includes(own(s).id) ? ownLeague : l1, [COMP.second]: s.competitions[COMP.first].clubs.includes(own(s).id) ? l2 : ownLeague };
   }
 
-  it("Ziel erreicht: +15 Vertrauen", () => {
+  function review(rank: number, confidence: number, text: string) {
     const s = game();
     own(s).board.expectation = "mid";
     own(s).board.confidence = 50;
-    seasonReview(s, tables(s, 5), Rng.fromSeed(9));
-    expect(own(s).board.confidence).toBe(65);
-  });
+    const before = anna(s).clubId;
+    seasonReview(s, tables(s, rank));
+    expect(own(s).board.confidence).toBe(confidence);
+    expect(s.messages.some((m) => m.managerId === anna(s).id && m.text === text)).toBe(true);
+    expect(anna(s).clubId).toBe(before);
+    expect(own(s).managerId).toBe(anna(s).id);
+    expect("jobOffers" in s.managers[0]).toBe(false);
+    expect("unemployedFor" in s.managers[0]).toBe(false);
+    expect(s.messages.some((m) => m.text.startsWith("Jobangebote"))).toBe(false);
+  }
 
-  it("knapp verfehlt: −10; deutlich verfehlt: Entlassung", () => {
-    const s = game();
-    own(s).board.expectation = "upper";
-    own(s).board.confidence = 50;
-    seasonReview(s, tables(s, 9), Rng.fromSeed(9));
-    expect(own(s).board.confidence).toBe(40);
-    seasonReview(s, tables(s, 12), Rng.fromSeed(9));
-    expect(anna(s).clubId).toBeNull();
-  });
+  it("Ziel erreicht: +15 und Lob", () => review(12, 65, "Der Vorstand ist zufrieden: Saisonziel erreicht."));
+  it("Ziel verfehlt: −10 und Enttäuschung", () => review(15, 40, "Der Vorstand ist enttäuscht: Saisonziel verfehlt."));
+  it("Ziel deutlich verfehlt: −15, Nachricht, Manager bleibt beim Verein", () =>
+    review(18, 35, "Der Vorstand ist sehr enttäuscht: Saisonziel deutlich verfehlt."));
 });

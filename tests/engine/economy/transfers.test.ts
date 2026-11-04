@@ -6,7 +6,7 @@ import { makePlayer, makeState } from "../fixtures";
 
 function setup() {
   const s = makeState([{ id: "c1", strength: 60 }, { id: "c2", strength: 60 }]);
-  s.managers.push({ id: "m1", name: "Anna", clubId: "c1", jobOffers: [], unemployedFor: 0 });
+  s.managers.push({ id: "m1", name: "Anna", clubId: "c1" });
   s.clubs.c1.managerId = "m1";
   for (const c of ["c1", "c2"]) s.clubs[c].lineup = autoLineup(s, c, "4-4-2");
   return s;

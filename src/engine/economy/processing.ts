@@ -4,10 +4,8 @@ import type { Rng } from "../rng";
 import {
   assignExpectations,
   boardChecks,
-  clearStaleJobOffers,
   expectationMet,
   seasonReview,
-  unemployedTick,
   updateConfidence,
 } from "./board";
 import { aiRenewals, expireContracts, expiringNotices, tickCooldowns } from "./contracts";
@@ -35,9 +33,7 @@ export function processMatchday(state: GameState, lives: LiveMatch[], rng: Rng):
     }
   }
   updateConfidence(state, lives);
-  boardChecks(state, rng);
-  unemployedTick(state, rng);
-  if (state.calendarIndex === 0) clearStaleJobOffers(state);
+  boardChecks(state);
   tickCooldowns(state);
   aiRenewals(state);
   expiringNotices(state);
@@ -57,7 +53,7 @@ export function seasonEndEconomy(state: GameState, tables: Record<CompetitionId,
     return expectationMet(state, clubId, (tables[league] ?? []).indexOf(clubId) + 1);
   };
   seasonEndFinances(state, tables, met);
-  seasonReview(state, tables, rng);
+  seasonReview(state, tables);
   expireContracts(state);
   seasonAging(state, rng);
   addYouth(state, rng);

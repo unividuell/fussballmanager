@@ -50,8 +50,8 @@
       </Panel>
       <Panel title="MANAGER">
         {#each gs.managers as m (m.id)}
-          {@const league = m.clubId ? leagueOf(gs, m.clubId) : null}
-          <p>{m.name}: {m.clubId ? gs.clubs[m.clubId].name : "ohne Verein"}{league ? ` – nächste Saison ${gs.competitions[league].name}` : ""}</p>
+          {@const league = leagueOf(gs, m.clubId)}
+          <p>{m.name}: {gs.clubs[m.clubId].name}{league ? ` – nächste Saison ${gs.competitions[league].name}` : ""}</p>
         {/each}
       </Panel>
     </div>

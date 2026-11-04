@@ -1,14 +1,15 @@
 import type { GameState } from "../engine/model";
 import { isObject } from "./guards";
 import { DAMAGED, TOO_NEW } from "./messages";
+import { v1ToV2 } from "./migrations";
 
 /** Version des Spielstand-Schemas, die dieses Spiel schreibt. */
-export const CURRENT_VERSION = 1;
+export const CURRENT_VERSION = 2;
 
 export type Migration = (raw: Record<string, unknown>) => Record<string, unknown>;
 
 /** MIGRATIONS[v] hebt einen Spielstand von Version v auf v + 1. */
-export const MIGRATIONS: Record<number, Migration> = {};
+export const MIGRATIONS: Record<number, Migration> = { 1: v1ToV2 };
 
 export type MigrateResult = { ok: true; state: GameState } | { ok: false; error: string };
 

@@ -13,7 +13,6 @@
   function initialCompIndex(): number {
     const snap = controller.snapshot!;
     for (const m of snap.state.managers) {
-      if (!m.clubId) continue;
       const i = competitionsOf(snap.lives).indexOf(leagueOf(snap.state, m.clubId) ?? "");
       if (i >= 0) return i;
     }

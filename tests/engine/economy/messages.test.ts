@@ -7,7 +7,7 @@ import { makeState } from "../fixtures";
 describe("messages", () => {
   it("legt Nachrichten an, neueste zuerst, höchstens 60 pro Manager", () => {
     const s = makeState([{ id: "c1", strength: 60 }]);
-    s.managers.push({ id: "m1", name: "A", clubId: "c1", jobOffers: [], unemployedFor: 0 });
+    s.managers.push({ id: "m1", name: "A", clubId: "c1" });
     s.clubs.c1.managerId = "m1";
     for (let i = 0; i < MESSAGE_LIMIT + 5; i++) postMessage(s, "m1", `Nachricht ${i}`);
     const mine = messagesFor(s, "m1");
@@ -18,7 +18,7 @@ describe("messages", () => {
 
   it("postToClub schreibt nur an menschliche Manager", () => {
     const s = makeState([{ id: "c1", strength: 60 }, { id: "c2", strength: 60 }]);
-    s.managers.push({ id: "m1", name: "A", clubId: "c1", jobOffers: [], unemployedFor: 0 });
+    s.managers.push({ id: "m1", name: "A", clubId: "c1" });
     s.clubs.c1.managerId = "m1";
     expect(postToClub(s, "c1", "Hallo")?.managerId).toBe("m1");
     expect(postToClub(s, "c2", "Hallo")).toBeNull();

@@ -5,8 +5,6 @@ import type { GameState } from "../../src/engine/model";
 import { startNewGame } from "../../src/engine/season";
 import { Session, type Snapshot } from "../../src/session/session";
 import { LocalTransport } from "../../src/transport/transport";
-import { fireManager } from "../../src/engine/economy/board";
-import { Rng } from "../../src/engine/rng";
 
 function twoManagers(): GameState {
   const world = generateWorld(8);
@@ -137,31 +135,6 @@ describe("LocalTransport", () => {
   });
 });
 
-
-describe("Session mit Manager ohne Verein", () => {
-  it("nimmt ihn in die Manager-Runden auf; er kann ein Jobangebot annehmen und weiterklicken", () => {
-    const s = twoManagers();
-    const anna = s.managers[0];
-    fireManager(s, anna.id, Rng.fromSeed(1));
-    const session = new Session(s);
-    expect(session.snapshot.phase).toEqual({ kind: "managerTurns", pending: [anna.id, s.managers[1].id] });
-    const offer = session.snapshot.state.managers[0].jobOffers[0];
-    expect(session.dispatch({ type: "acceptJobOffer", managerId: anna.id, clubId: offer })).toBeNull();
-    expect(session.snapshot.state.managers[0].clubId).toBe(offer);
-    expect(session.dispatch({ type: "endTurn", managerId: anna.id })).toBeNull();
-  });
-
-  it("ohne Verein spielt er nicht mit und ist in der Halbzeit nicht dran", () => {
-    const s = twoManagers();
-    const [anna, ben] = s.managers;
-    fireManager(s, anna.id, Rng.fromSeed(2));
-    const session = new Session(s);
-    session.dispatch({ type: "endTurn", managerId: anna.id });
-    session.dispatch({ type: "endTurn", managerId: ben.id });
-    session.advance();
-    expect(session.snapshot.phase).toEqual({ kind: "halftime", pending: [ben.id] });
-  });
-});
 
 describe("Session-Autosave", () => {
   it("speichert, wenn nach einem Spieltag die Manager-Runden beginnen – nicht beim Erzeugen", () => {

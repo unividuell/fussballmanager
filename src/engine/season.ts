@@ -61,7 +61,7 @@ export function startNewGame(world: GameState, managers: { name: string; clubId:
   const state = structuredClone(world);
   for (const m of managers) {
     const id = newId(state, "mgr");
-    state.managers.push({ id, name: m.name.trim(), clubId: m.clubId, jobOffers: [], unemployedFor: 0 });
+    state.managers.push({ id, name: m.name.trim(), clubId: m.clubId });
     state.clubs[m.clubId].managerId = id;
   }
   const byReputation = Object.values(state.clubs)
