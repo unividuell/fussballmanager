@@ -1,24 +1,21 @@
-import { readdirSync, readFileSync } from "node:fs";
-import { resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
-
-const root = resolve(__dirname, "../..");
 
 // Alle Dateien, die auf 1280×800 stehen müssen: jede *.svelte unter src/ui, App.svelte und theme.css.
 // Neue Dateien fallen automatisch unter die Prüfung.
-const CONVERTED: string[] = [
-  ...(readdirSync(resolve(root, "src/ui"), { recursive: true }) as string[])
-    .map((p) => p.split(sep).join("/"))
-    .filter((p) => p.endsWith(".svelte"))
-    .map((p) => `src/ui/${p}`),
-  "src/App.svelte",
-  "src/ui/theme/theme.css",
-].sort();
+const sources = import.meta.glob(["/src/ui/**/*.svelte", "/src/App.svelte", "/src/ui/theme/theme.css"], {
+  query: "?raw",
+  import: "default",
+  eager: true,
+}) as Record<string, string>;
+
+const CONVERTED: string[] = Object.keys(sources)
+  .map((p) => p.replace(/^\//, ""))
+  .sort();
 
 type Rule = { selector: string; declarations: string };
 
 function read(path: string): string {
-  return readFileSync(resolve(root, path), "utf8");
+  return sources[`/${path}`];
 }
 
 function cssOf(path: string, text: string): string {
