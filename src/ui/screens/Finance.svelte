@@ -102,14 +102,14 @@
 
 <style>
   .finance { display: flex; flex-direction: column; height: 100%; }
-  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px; overflow-y: auto; }
-  .side { display: flex; flex-direction: column; gap: 6px; }
-  p { margin: 0; font-size: 15px; }
-  .row { display: flex; align-items: center; gap: 6px; justify-content: space-between; font-size: 15px; }
-  input { width: 64px; font-family: var(--font-body); font-size: 16px; color: var(--cream); background: var(--wood-dark); border: 2px solid var(--wood-edge); }
-  .sum td { color: var(--gold); border-top: 1px solid var(--wood-edge); }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; overflow-y: auto; }
+  .side { display: flex; flex-direction: column; gap: 12px; }
+  p { margin: 0; font-size: 23px; }
+  .row { display: flex; align-items: center; gap: 12px; justify-content: space-between; font-size: 23px; }
+  input { width: 128px; font-family: var(--font-body); font-size: 24px; color: var(--cream); background: var(--wood-dark); border: 4px solid var(--wood-edge); }
+  .sum td { color: var(--gold); border-top: 2px solid var(--wood-edge); }
   b { font-weight: normal; color: var(--leaf); }
   b.negative { color: var(--rust); }
-  .foot { display: flex; gap: 6px; padding: 0 8px 6px; }
+  .foot { display: flex; gap: 12px; padding: 0 16px 12px; }
   .spacer { flex: 1; }
 </style>

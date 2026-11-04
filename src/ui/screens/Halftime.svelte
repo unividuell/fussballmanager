@@ -139,32 +139,32 @@
 </div>
 
 <style>
-  .halftime { display: flex; flex-direction: column; height: 100%; padding: 8px; box-sizing: border-box; gap: 6px; }
+  .halftime { display: flex; flex-direction: column; height: 100%; padding: 16px; box-sizing: border-box; gap: 12px; }
   .bar {
     display: flex;
     justify-content: space-between;
     font-family: var(--font-display);
-    font-size: 8px;
+    font-size: 16px;
     color: var(--gold);
     background: var(--wood);
-    border: 3px solid var(--wood-edge);
-    padding: 6px 8px;
+    border: 6px solid var(--wood-edge);
+    padding: 12px 16px;
   }
-  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 150px 190px; gap: 6px; }
-  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; overflow-y: auto; }
-  li { display: grid; grid-template-columns: 30px 1fr 36px 12px; gap: 4px; }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 300px 380px; gap: 12px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; overflow-y: auto; }
+  li { display: grid; grid-template-columns: 60px 1fr 72px 24px; gap: 8px; }
   li.picked { background: var(--rust); }
   .slot { color: var(--leaf); }
   .fit { text-align: right; font-variant-numeric: tabular-nums; }
   .card { color: var(--gold); }
   .name { all: unset; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .name:focus-visible { outline: 1px solid var(--gold); }
-  .side { display: flex; flex-direction: column; gap: 6px; }
-  .sub { display: flex; justify-content: space-between; align-items: center; gap: 4px; }
-  .x { padding: 0 4px; }
-  .opts { display: flex; flex-wrap: wrap; gap: 3px; }
-  .opts .btn { padding: 0 4px; }
-  .foot { display: flex; align-items: center; gap: 6px; }
+  .name:focus-visible { outline: 2px solid var(--gold); }
+  .side { display: flex; flex-direction: column; gap: 12px; }
+  .sub { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .x { padding: 0 8px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 6px; }
+  .opts .btn { padding: 0 8px; }
+  .foot { display: flex; align-items: center; gap: 12px; }
   .spacer { flex: 1; }
   .none { flex: 1; }
 </style>

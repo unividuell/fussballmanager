@@ -95,19 +95,19 @@
 </div>
 
 <style>
-  .tables { display: flex; flex-direction: column; height: 100%; padding: 8px; box-sizing: border-box; gap: 6px; }
-  .tabs { display: flex; gap: 6px; }
+  .tables { display: flex; flex-direction: column; height: 100%; padding: 16px; box-sizing: border-box; gap: 12px; }
+  .tabs { display: flex; gap: 12px; }
   .spacer { flex: 1; }
-  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 226px; gap: 8px; }
-  .board-table { font-size: 15px; line-height: 1; }
-  tr.zone-champion td:first-child { box-shadow: inset 3px 0 var(--gold); }
-  tr.zone-promotion td:first-child { box-shadow: inset 3px 0 var(--leaf); }
-  tr.zone-playoff td:first-child { box-shadow: inset 3px 0 var(--cream); }
-  tr.zone-relegation td:first-child { box-shadow: inset 3px 0 var(--rust); }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 452px; gap: 16px; }
+  .board-table { font-size: 23px; line-height: 1; }
+  tr.zone-champion td:first-child { box-shadow: inset 6px 0 var(--gold); }
+  tr.zone-promotion td:first-child { box-shadow: inset 6px 0 var(--leaf); }
+  tr.zone-playoff td:first-child { box-shadow: inset 6px 0 var(--cream); }
+  tr.zone-relegation td:first-child { box-shadow: inset 6px 0 var(--rust); }
   .nav { display: flex; align-items: center; justify-content: space-between; }
-  .nav .btn { padding: 0 6px; }
-  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
-  li { display: grid; grid-template-columns: 1fr 52px 1fr; gap: 4px; font-size: 15px; }
+  .nav .btn { padding: 0 12px; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  li { display: grid; grid-template-columns: 1fr 104px 1fr; gap: 8px; font-size: 23px; }
   li .team { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   li .team:first-child { text-align: right; }
   li .res { text-align: center; color: var(--gold); font-variant-numeric: tabular-nums; }

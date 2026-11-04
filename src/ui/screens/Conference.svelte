@@ -119,20 +119,20 @@
 </div>
 
 <style>
-  .conference { display: flex; flex-direction: column; height: 100%; padding: 8px; box-sizing: border-box; gap: 6px; }
+  .conference { display: flex; flex-direction: column; height: 100%; padding: 16px; box-sizing: border-box; gap: 12px; }
   .bar {
     display: flex;
     justify-content: space-between;
     font-family: var(--font-display);
-    font-size: 8px;
+    font-size: 16px;
     color: var(--gold);
     background: var(--wood);
-    border: 3px solid var(--wood-edge);
-    padding: 6px 8px;
+    border: 6px solid var(--wood-edge);
+    padding: 12px 16px;
   }
   .clock { color: var(--cream); }
   .conference :global(.board) { flex: 1; justify-content: space-around; }
-  .row { display: grid; grid-template-columns: 1fr 44px 1fr 150px; gap: 8px; font-size: 17px; padding: 0 4px; }
+  .row { display: grid; grid-template-columns: 1fr 88px 1fr 300px; gap: 16px; font-size: 26px; padding: 0 8px; }
   .home { text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .away { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .score { text-align: center; color: var(--gold); font-variant-numeric: tabular-nums; }
@@ -144,9 +144,9 @@
     .row.goal { animation: blink 0.5s steps(1) 2; }
     @keyframes blink { 50% { background: transparent; } }
   }
-  .foot { display: flex; align-items: center; gap: 6px; }
-  .foot .btn { padding: 1px 6px; }
+  .foot { display: flex; align-items: center; gap: 12px; }
+  .foot .btn { padding: 2px 12px; }
   .tempo { color: var(--leaf); }
   .spacer { flex: 1; }
-  .end { font-family: var(--font-display); font-weight: normal; font-size: 8px; color: var(--gold); }
+  .end { font-family: var(--font-display); font-weight: normal; font-size: 16px; color: var(--gold); }
 </style>

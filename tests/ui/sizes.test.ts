@@ -1,34 +1,19 @@
-import { existsSync, readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, readFileSync } from "node:fs";
+import { resolve, sep } from "node:path";
 import { describe, expect, it } from "vitest";
 
-// Dateien, die schon auf 1280×800 umgerechnet sind (Pfade relativ zum Projektordner).
-// Spätere Aufgaben erweitern diese Liste.
-const CONVERTED: string[] = [
-  "src/ui/theme/theme.css",
-  "src/ui/theme/Panel.svelte",
-  "src/ui/theme/Dialog.svelte",
-  "src/ui/theme/Tile.svelte",
-  "src/ui/theme/Crest.svelte",
-  "src/ui/theme/Screen.svelte",
-  ...[
-    "ClubHeader",
-    "MainMenu",
-    "TurnStart",
-    "NewGame",
-    "Options",
-    "SaveLoad",
-    "Messages",
-    "NegotiationDialog",
-    "FailureDialog",
-    "SeasonEnd",
-    "Jobs",
-  ]
-    .map((n) => `src/ui/screens/${n}.svelte`)
-    .filter((p) => existsSync(resolve(__dirname, "../..", p))),
-];
-
 const root = resolve(__dirname, "../..");
+
+// Alle Dateien, die auf 1280×800 stehen müssen: jede *.svelte unter src/ui, App.svelte und theme.css.
+// Neue Dateien fallen automatisch unter die Prüfung.
+const CONVERTED: string[] = [
+  ...(readdirSync(resolve(root, "src/ui"), { recursive: true }) as string[])
+    .map((p) => p.split(sep).join("/"))
+    .filter((p) => p.endsWith(".svelte"))
+    .map((p) => `src/ui/${p}`),
+  "src/App.svelte",
+  "src/ui/theme/theme.css",
+].sort();
 
 type Rule = { selector: string; declarations: string };
 

@@ -81,12 +81,12 @@
 
 <style>
   .contracts { display: flex; flex-direction: column; height: 100%; position: relative; }
-  .contracts :global(.list) { flex: 1; min-height: 0; margin: 8px; }
+  .contracts :global(.list) { flex: 1; min-height: 0; margin: 16px; }
   .scroll { overflow-y: auto; min-height: 0; flex: 1; }
-  .board-table { font-size: 15px; }
+  .board-table { font-size: 23px; }
   tr.expiring td { color: var(--gold); }
-  .actions { display: flex; gap: 4px; }
-  .actions .btn { padding: 0 4px; font-size: 14px; }
-  .foot { display: flex; align-items: center; gap: 6px; padding: 0 8px 6px; }
+  .actions { display: flex; gap: 8px; }
+  .actions .btn { padding: 0 8px; font-size: 21px; }
+  .foot { display: flex; align-items: center; gap: 12px; padding: 0 16px 12px; }
   .spacer { flex: 1; }
 </style>

@@ -112,22 +112,22 @@
 
 <style>
   .squad { display: flex; flex-direction: column; height: 100%; }
-  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 168px; gap: 8px; padding: 8px; }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 336px; gap: 16px; padding: 16px; }
   .body :global(.list) { min-height: 0; }
   .scroll { overflow-y: auto; min-height: 0; flex: 1; }
-  .side { display: flex; flex-direction: column; gap: 6px; }
-  .opts { display: flex; flex-wrap: wrap; gap: 4px; }
-  .opts .btn { padding: 1px 5px; }
+  .side { display: flex; flex-direction: column; gap: 12px; }
+  .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+  .opts .btn { padding: 2px 10px; }
   .name {
     all: unset;
     cursor: pointer;
     color: inherit;
   }
-  .name:focus-visible { outline: 1px solid var(--gold); }
+  .name:focus-visible { outline: 2px solid var(--gold); }
   tr.bench td { color: var(--leaf); }
   tr.reserve td { opacity: 0.8; }
   tr.picked td { background: var(--rust); color: var(--cream); opacity: 1; }
   .status { color: var(--rust); }
   tr.picked .status { color: var(--cream); }
-  .msg { margin: 0 8px 6px; }
+  .msg { margin: 0 16px 12px; }
 </style>
