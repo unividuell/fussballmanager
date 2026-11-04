@@ -225,7 +225,7 @@ interface GameState {
   history: SeasonRecord[];    // Meister, Auf- und Absteiger, Torschützenkönig pro Saison
 }
 
-interface Manager { id; name; clubId: ClubId | null; jobOffers: JobOffer[]; career: CareerEntry[] }
+interface Manager { id; name; clubId: ClubId }  // fest für das ganze Spiel (keine Entlassungen)
 
 interface Club {
   id; name; shortName; colors: [string, string]; crest: CrestSpec;

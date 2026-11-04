@@ -27,7 +27,7 @@ function newGame(): GameState {
 describe("prepareMatchday", () => {
   it("repariert eine Manager-Aufstellung mit verletztem Spieler und meldet es", () => {
     const s = newGame();
-    const club = s.clubs[s.managers[0].clubId!];
+    const club = s.clubs[s.managers[0].clubId];
     const victim = club.lineup.starters[4];
     s.players[victim].injury = { matchesLeft: 2 };
     const before = JSON.stringify(s);
@@ -122,7 +122,7 @@ describe("Karten, Sperren, Verletzungen, Kondition", () => {
 
   it("Sperren laufen nach den Spielen des eigenen Vereins ab", () => {
     const s = newGame();
-    const clubId = s.managers[0].clubId!;
+    const clubId = s.managers[0].clubId;
     const pid = s.clubs[clubId].squad[20];
     s.players[pid].suspension = { matchesLeft: 1 };
     const after = playMatchdayAuto(s);

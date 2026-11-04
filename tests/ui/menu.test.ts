@@ -18,7 +18,7 @@ function game(names = ["Anna"]) {
 describe("„ist dran“", () => {
   it("zeigt Manager, Verein und Spieltag; Enter öffnet das Hauptmenü", async () => {
     const c = game();
-    const club = c.snapshot!.state.clubs[c.snapshot!.state.managers[0].clubId!];
+    const club = c.snapshot!.state.clubs[c.snapshot!.state.managers[0].clubId];
     expect(screen.getByText("ANNA IST DRAN")).toBeTruthy();
     expect(screen.getAllByText(club.name).length).toBeGreaterThan(0);
     expect(screen.getByText(/Saison 1 · 1\. Spieltag/)).toBeTruthy();

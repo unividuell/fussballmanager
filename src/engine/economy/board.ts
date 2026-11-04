@@ -6,6 +6,8 @@ import { isLeagueMatchday, leagueRank } from "./util";
 export const TARGET_RANK: Record<Expectation, number> = { title: 2, upper: 6, mid: 12, survival: 15 };
 export const START_CONFIDENCE = 60;
 export const WARN_BELOW = 30;
+export const WARN_RESET = 40;
+export const CLEARLY_MISSED_BY = 5;
 const RANK_FROM = 3;
 const BY_RANK: Expectation[] = ["title", "title", "upper", "upper", "upper", "upper", "mid", "mid", "mid", "mid", "mid", "mid"];
 
@@ -63,9 +65,6 @@ export function updateConfidence(state: GameState, lives: LiveMatch[]): void {
     }
   }
 }
-
-export const WARN_RESET = 40;
-export const CLEARLY_MISSED_BY = 5;
 
 /** Vertrauen hat außer einer Nachricht keine Folgen – Manager werden nie entlassen. */
 export function boardChecks(state: GameState): void {

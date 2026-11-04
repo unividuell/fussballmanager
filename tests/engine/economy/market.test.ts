@@ -16,7 +16,7 @@ function game(): GameState {
   return r.state;
 }
 
-const own = (s: GameState) => s.clubs[s.managers[0].clubId!];
+const own = (s: GameState) => s.clubs[s.managers[0].clubId];
 
 function offerFor(s: GameState, playerIndex = 20): TransferOffer {
   const club = own(s);

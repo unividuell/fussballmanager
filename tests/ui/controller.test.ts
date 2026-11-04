@@ -81,7 +81,6 @@ describe("GameController", () => {
   });
 });
 
-
 describe("GameController", () => {
   it("openTransfers merkt sich den Reiter", () => {
     const c = started();

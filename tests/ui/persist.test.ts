@@ -56,7 +56,7 @@ describe("Controller: Speichern und Laden", () => {
   it("mitten in der Hot-Seat-Runde gespeichert: nach dem Laden ist wieder Manager 1 dran, seine Änderungen bleiben", async () => {
     const { c } = setup();
     const [anna, ben] = c.snapshot!.state.managers;
-    const clubId = anna.clubId!;
+    const clubId = anna.clubId;
     const current = c.snapshot!.state.clubs[clubId].finance.ticketPrice;
     const price = current < 100 ? current + 1 : current - 1;
     expect(await c.send({ type: "setTicketPrice", managerId: anna.id, price })).toBe(true);

@@ -121,6 +121,20 @@ describe("Session", () => {
     session.advance();
     expect(session.snapshot.phase.kind).toBe("managerTurns");
   });
+
+  it("Halbzeit: nur Manager, deren Verein am Spieltag spielt, müssen noch handeln (Relegationstag)", () => {
+    const s = twoManagers();
+    const session = new Session(s);
+    for (let i = 0; i < 34; i++) playMatchday(session);
+    endAll(session);
+    expect(session.snapshot.lives).toHaveLength(1);
+    session.advance();
+    const snap = session.snapshot;
+    const playing = s.managers.filter((m) => findLiveFor(snap.state, snap.lives, m.id) !== null).map((m) => m.id);
+    expect(playing.length).toBeLessThan(s.managers.length);
+    if (playing.length === 0) expect(snap.phase.kind).toBe("secondHalf");
+    else expect(snap.phase).toEqual({ kind: "halftime", pending: playing });
+  });
 });
 
 describe("LocalTransport", () => {
@@ -134,7 +148,6 @@ describe("LocalTransport", () => {
     expect(last).not.toBeNull();
   });
 });
-
 
 describe("Session-Autosave", () => {
   it("speichert, wenn nach einem Spieltag die Manager-Runden beginnen – nicht beim Erzeugen", () => {

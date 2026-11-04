@@ -19,7 +19,7 @@ describe("„ist dran“ und Nachrichten ohne Sonderfall", () => {
     const c = started();
     render(App, { controller: c });
     await tick();
-    const club = c.snapshot!.state.clubs[c.snapshot!.state.managers[0].clubId!];
+    const club = c.snapshot!.state.clubs[c.snapshot!.state.managers[0].clubId];
     expect(screen.getByText("ANNA IST DRAN")).toBeTruthy();
     expect(screen.getAllByText(club.name).length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText("Ohne Verein")).toBeNull();

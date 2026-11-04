@@ -21,7 +21,7 @@ function game(names = ["Anna"]): GameState {
 }
 
 const mgr = (s: GameState, i = 0) => s.managers[i];
-const own = (s: GameState) => s.clubs[mgr(s).clubId!];
+const own = (s: GameState) => s.clubs[mgr(s).clubId];
 const last = (s: GameState) => s.negotiations.at(-1)!;
 
 describe("Vertragsverhandlung mit eigenem Spieler", () => {
@@ -163,7 +163,7 @@ describe("Transferverhandlung", () => {
     own(s).finance.balance = -100_000_000;
     expect(startTransferTalk(s, mgr(s).id, p.id, 1_000_000)).toBe("Dafür reicht das Geld nicht.");
     own(s).finance.balance = 50_000_000;
-    const benPlayer = s.clubs[mgr(s, 1).clubId!].squad[0];
+    const benPlayer = s.clubs[mgr(s, 1).clubId].squad[0];
     expect(startTransferTalk(s, mgr(s).id, benPlayer, 1_000_000)).toBe("Mit Vereinen anderer Manager wird nicht verhandelt.");
     expect(startTransferTalk(s, mgr(s).id, own(s).squad[0], 1_000_000)).toBe("Der Spieler gehört schon zu deinem Verein.");
     const free = Object.values(s.players).find((x) => x.clubId === null && !x.retired)!;
@@ -176,7 +176,7 @@ describe("Transferverhandlung", () => {
     const s = game(["Anna", "Ben"]);
     const { p } = aiTarget(s);
     const fee = askingFee(s, p);
-    for (const m of s.managers) s.clubs[m.clubId!].finance.balance = 100_000_000;
+    for (const m of s.managers) s.clubs[m.clubId].finance.balance = 100_000_000;
     startTransferTalk(s, mgr(s, 1).id, p.id, Math.round(fee * 0.8));
     const bens = last(s);
     expect(bens.status).toBe("open");

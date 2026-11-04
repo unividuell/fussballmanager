@@ -37,7 +37,7 @@ describe("tableView und fixturesView", () => {
     expect(rows).toHaveLength(18);
     expect(rows.map((r) => r.rank)).toEqual(Array.from({ length: 18 }, (_, i) => i + 1));
     expect(rows.every((r) => r.played === 1 && r.name.length > 0)).toBe(true);
-    const annaClub = s.managers[0].clubId!;
+    const annaClub = s.managers[0].clubId;
     expect(rows.find((r) => r.club === annaClub)?.manager).toBe("Anna");
     expect(rows[0].zone).toBe("champion");
   });
@@ -65,7 +65,7 @@ describe("tableView und fixturesView", () => {
   });
 
   it("bewertet Vereine, findet Platz und Manager", () => {
-    const clubId = s.managers[1].clubId!;
+    const clubId = s.managers[1].clubId;
     const rating = clubRating(s, clubId);
     expect(rating).toBeGreaterThan(20);
     expect(rating).toBeLessThan(99);

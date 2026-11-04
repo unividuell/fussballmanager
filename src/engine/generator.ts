@@ -1,3 +1,4 @@
+import { START_CONFIDENCE } from "./economy/board";
 import { salaryFor, startBalance } from "./economy/money";
 import { initialStage, optimalPrice } from "./economy/stadium";
 import { autoLineup } from "./lineup";
@@ -117,7 +118,7 @@ export function generateWorld(seed: number): GameState {
         overdraftStreak: 0,
         lastAttendance: 0,
       },
-      board: { expectation: "mid", confidence: 60, warned: false },
+      board: { expectation: "mid", confidence: START_CONFIDENCE, warned: false },
       training: { intensity: "normal", focus: "technique", individual: [] },
       tacticsBonus: 1,
     };

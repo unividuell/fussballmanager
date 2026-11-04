@@ -6,7 +6,7 @@ import { newTestGame } from "./game";
 describe("squadRows", () => {
   it("listet Startelf mit Plätzen, dann Bank, dann Reserve – jeder Spieler genau einmal", () => {
     const s = newTestGame();
-    const club = s.clubs[s.managers[0].clubId!];
+    const club = s.clubs[s.managers[0].clubId];
     const rows = squadRows(s, club.id);
     expect(rows).toHaveLength(club.squad.length);
     expect(new Set(rows.map((r) => r.player.id)).size).toBe(club.squad.length);

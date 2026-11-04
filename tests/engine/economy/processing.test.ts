@@ -41,7 +41,7 @@ describe("ein Spieltag mit Wirtschaft", () => {
 
   it("Taktiktraining wirkt im nächsten Spiel", () => {
     const s = game();
-    const club = s.clubs[s.managers[0].clubId!];
+    const club = s.clubs[s.managers[0].clubId];
     club.training = { intensity: "normal", focus: "tactics", individual: [] };
     const after = playMatchdayAuto(s);
     const m = currentFixtures(after).find((x) => x.home === club.id || x.away === club.id)!;
@@ -53,7 +53,7 @@ describe("ein Spieltag mit Wirtschaft", () => {
   it("zu Beginn des Winterfensters bietet die KI für gelistete Spieler", () => {
     let s = game();
     for (let i = 0; i < 16; i++) s = playMatchdayAuto(s);
-    const club = s.clubs[s.managers[0].clubId!];
+    const club = s.clubs[s.managers[0].clubId];
     for (const id of club.squad.slice(15)) s.players[id].transferListed = { askingPrice: null };
     s = playMatchdayAuto(s);
     expect(s.calendarIndex).toBe(17);

@@ -22,7 +22,7 @@ function game(names = ["Anna", "Ben"]): GameState {
   if (!r.ok) throw new Error(r.error);
   return r.state;
 }
-const own = (s: GameState) => s.clubs[s.managers[0].clubId!];
+const own = (s: GameState) => s.clubs[s.managers[0].clubId];
 
 describe("ledgerSummary", () => {
   it("summiert die Saison und den letzten Spieltag je Kategorie", () => {

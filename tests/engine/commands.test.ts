@@ -145,7 +145,7 @@ describe("applyHalftime", () => {
     expect(r).toEqual({ ok: false, error: "Der Spieler steht nicht auf dem Platz." });
   });
 
-  it("findet kein Spiel für einen Manager ohne Verein", () => {
+  it("findet kein Spiel für einen unbekannten Manager", () => {
     const { s, lives } = atHalftime();
     expect(findLiveFor(s, lives, "nix")).toBeNull();
   });

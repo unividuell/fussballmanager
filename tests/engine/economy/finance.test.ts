@@ -125,7 +125,7 @@ describe("processFinances", () => {
 
   it("die KI nimmt den besten Sponsor, der Manager bekommt das erste Angebot mit Nachricht", () => {
     const s = game();
-    const human = s.clubs[s.managers[0].clubId!];
+    const human = s.clubs[s.managers[0].clubId];
     const ai = Object.values(s.clubs).find((c) => c.managerId === null)!;
     const best = Math.max(...ai.finance.sponsorOffers.map((o) => o.perMatchday));
     processFinances(s, []);
@@ -136,7 +136,7 @@ describe("processFinances", () => {
 
   it("Zinsen bei negativem Konto, Dispo-Zähler und Nachricht", () => {
     const s = game();
-    const human = s.clubs[s.managers[0].clubId!];
+    const human = s.clubs[s.managers[0].clubId];
     human.finance.balance = -100_000_000;
     processFinances(s, []);
     expect(human.finance.ledger.some((e) => e.category === "interest" && e.amount < 0)).toBe(true);
@@ -148,7 +148,7 @@ describe("processFinances", () => {
 
   it("Stadionausbau wird fertig und meldet sich", () => {
     const s = game();
-    const human = s.clubs[s.managers[0].clubId!];
+    const human = s.clubs[s.managers[0].clubId];
     human.finance.stadiumStage = 1;
     human.finance.building = { stage: 2, matchdaysLeft: 1 };
     processFinances(s, []);
