@@ -89,7 +89,7 @@
         </select>
         {#if picks[i]}
           {@const club = world.clubs[picks[i]]}
-          <Crest colors={club.colors} pattern={club.crest} size={16} />
+          <Crest colors={club.colors} pattern={club.crest} size={32} />
         {/if}
       </div>
     {/each}
@@ -120,28 +120,28 @@
   .newgame {
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 12px;
+    gap: 16px;
+    padding: 24px;
     height: 100%;
     box-sizing: border-box;
   }
-  .start { display: flex; gap: 6px; justify-content: flex-end; }
-  .head { display: flex; align-items: center; gap: 12px; }
+  .start { display: flex; gap: 12px; justify-content: flex-end; }
+  .head { display: flex; align-items: center; gap: 24px; }
   .seed { margin-left: auto; color: var(--leaf); }
-  .row { display: flex; align-items: center; gap: 8px; }
-  .no { font-family: var(--font-display); font-size: 8px; color: var(--gold); width: 12px; }
+  .row { display: flex; align-items: center; gap: 16px; }
+  .no { font-family: var(--font-display); font-size: 16px; color: var(--gold); width: 24px; }
   input,
   select {
     font-family: var(--font-body);
-    font-size: 16px;
+    font-size: 24px;
     color: var(--cream);
     background: var(--wood-dark);
-    border: 2px solid var(--wood-edge);
-    padding: 1px 4px;
+    border: 4px solid var(--wood-edge);
+    padding: 2px 8px;
   }
   select { flex: 1; min-width: 0; }
-  .foot { display: flex; align-items: center; gap: 6px; margin-top: auto; }
+  .foot { display: flex; align-items: center; gap: 12px; margin-top: auto; }
   .spacer { flex: 1; }
-  .row { display: flex; gap: 8px; justify-content: flex-end; }
-  p { margin: 0 0 8px; }
+  .row { display: flex; gap: 16px; justify-content: flex-end; }
+  p { margin: 0 0 16px; }
 </style>

@@ -67,12 +67,12 @@
 
 <style>
   .messages { display: flex; flex-direction: column; height: 100%; }
-  .messages :global(.list) { flex: 1; min-height: 0; margin: 8px; overflow-y: auto; }
-  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
-  li { display: grid; grid-template-columns: 96px 1fr auto; gap: 6px; align-items: center; font-size: 15px; }
+  .messages :global(.list) { flex: 1; min-height: 0; margin: 16px; overflow-y: auto; }
+  ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+  li { display: grid; grid-template-columns: 192px 1fr auto; gap: 12px; align-items: center; font-size: 23px; }
   .when { color: var(--leaf); }
-  .small { padding: 0 4px; font-size: 14px; }
+  .small { padding: 0 8px; font-size: 21px; }
   p { margin: 0; }
-  .foot { display: flex; padding: 0 8px 6px; }
+  .foot { display: flex; padding: 0 16px 12px; }
   .spacer { flex: 1; }
 </style>

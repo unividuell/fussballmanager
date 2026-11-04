@@ -14,7 +14,7 @@
 
 {#if club}
   <header class="clubhead">
-    <Crest colors={club.colors} pattern={club.crest} size={20} />
+    <Crest colors={club.colors} pattern={club.crest} size={40} />
     <strong>{club.name}</strong>
     <span>Saison {state.season} · {matchdayLabel(state)}</span>
     {#if place}<span class="place">{place.rank}. Platz · {state.competitions[place.competitionId].name}</span>{/if}
@@ -28,12 +28,12 @@
   .clubhead {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 4px 8px;
+    gap: 20px;
+    padding: 8px 16px;
     background: var(--wood);
-    border-bottom: 3px solid var(--wood-edge);
+    border-bottom: 6px solid var(--wood-edge);
   }
-  strong { font-family: var(--font-display); font-weight: normal; font-size: 8px; color: var(--gold); }
+  strong { font-family: var(--font-display); font-weight: normal; font-size: 16px; color: var(--gold); }
   .place { color: var(--leaf); }
   .money { color: var(--leaf); font-variant-numeric: tabular-nums; }
   .money.negative { color: var(--rust); }

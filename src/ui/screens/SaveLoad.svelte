@@ -129,16 +129,16 @@
 {/if}
 
 <style>
-  .saveload { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 12px; box-sizing: border-box; }
+  .saveload { display: flex; flex-direction: column; gap: 16px; height: 100%; padding: 24px; box-sizing: border-box; }
   table { width: 100%; border-collapse: collapse; }
-  td { padding: 3px 4px; font-size: 17px; }
-  .name { color: var(--gold); width: 80px; }
-  .meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+  td { padding: 6px 8px; font-size: 26px; }
+  .name { color: var(--gold); width: 160px; }
+  .meta { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 600px; }
   .date { color: var(--leaf); white-space: nowrap; }
   .actions { text-align: right; white-space: nowrap; }
-  .foot { display: flex; align-items: center; gap: 6px; margin-top: auto; }
+  .foot { display: flex; align-items: center; gap: 12px; margin-top: auto; }
   .file input { display: none; }
   .spacer { flex: 1; }
-  .row { display: flex; gap: 8px; justify-content: flex-end; }
-  p { margin: 0 0 8px; }
+  .row { display: flex; gap: 16px; justify-content: flex-end; }
+  p { margin: 0 0 16px; }
 </style>

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -11,6 +11,21 @@ const CONVERTED: string[] = [
   "src/ui/theme/Tile.svelte",
   "src/ui/theme/Crest.svelte",
   "src/ui/theme/Screen.svelte",
+  ...[
+    "ClubHeader",
+    "MainMenu",
+    "TurnStart",
+    "NewGame",
+    "Options",
+    "SaveLoad",
+    "Messages",
+    "NegotiationDialog",
+    "FailureDialog",
+    "SeasonEnd",
+    "Jobs",
+  ]
+    .map((n) => `src/ui/screens/${n}.svelte`)
+    .filter((p) => existsSync(resolve(__dirname, "../..", p))),
 ];
 
 const root = resolve(__dirname, "../..");

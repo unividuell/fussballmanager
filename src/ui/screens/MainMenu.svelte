@@ -71,9 +71,9 @@
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
-    gap: 10px;
-    padding: 12px;
+    gap: 20px;
+    padding: 24px;
   }
-  .extra { display: flex; gap: 6px; justify-content: flex-end; padding: 0 12px 6px; }
-  .msg { margin: 0 12px 8px; }
+  .extra { display: flex; gap: 12px; justify-content: flex-end; padding: 0 24px 12px; }
+  .msg { margin: 0 24px 16px; }
 </style>

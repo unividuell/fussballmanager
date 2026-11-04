@@ -44,9 +44,9 @@
 </div>
 
 <style>
-  .options { display: flex; flex-direction: column; gap: 8px; height: 100%; padding: 12px; box-sizing: border-box; }
-  .row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
-  .label { width: 160px; color: var(--leaf); }
+  .options { display: flex; flex-direction: column; gap: 16px; height: 100%; padding: 24px; box-sizing: border-box; }
+  .row { display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+  .label { width: 320px; color: var(--leaf); }
   .hint { margin: 0; color: var(--leaf); }
   .foot { display: flex; margin-top: auto; }
   .spacer { flex: 1; }

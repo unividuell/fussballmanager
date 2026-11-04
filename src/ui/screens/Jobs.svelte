@@ -47,7 +47,7 @@
       {#each offers as c (c.id)}
         {@const league = leagueOf(c.id)}
         <div class="offer">
-          <Crest colors={c.colors} pattern={c.crest} size={20} />
+          <Crest colors={c.colors} pattern={c.crest} size={40} />
           <strong>{c.name}</strong>
           <span>{gs.competitions[league]?.name ?? ""} · Ziel: {expectationLabel(c.board.expectation, league)}</span>
           <button class="btn primary" aria-label="{c.name} annehmen" onclick={() => void accept(c.id)}>Annehmen</button>
@@ -69,12 +69,12 @@
 </div>
 
 <style>
-  .jobs { display: flex; flex-direction: column; height: 100%; padding: 8px; box-sizing: border-box; gap: 6px; }
+  .jobs { display: flex; flex-direction: column; height: 100%; padding: 16px; box-sizing: border-box; gap: 12px; }
   .jobs :global(.list) { flex: 1; min-height: 0; overflow-y: auto; }
   p { margin: 0; }
-  .offer { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+  .offer { display: flex; align-items: center; gap: 16px; font-size: 24px; }
   .offer strong { font-weight: normal; color: var(--gold); }
   .offer .btn { margin-left: auto; }
-  .foot { display: flex; align-items: center; gap: 6px; }
+  .foot { display: flex; align-items: center; gap: 12px; }
   .spacer { flex: 1; }
 </style>
