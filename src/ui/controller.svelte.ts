@@ -18,16 +18,12 @@ export type TurnScreen =
   | "transfers"
   | "finance"
   | "messages"
-  | "jobs"
   | "save"
   | "options";
 
 export type StartScreen = "newGame" | "loadGame" | "startOptions";
 
 export type TransferTab = "market" | "mine" | "offers";
-
-/** Bildschirme, die auch ohne Verein funktionieren. */
-const WITHOUT_CLUB: TurnScreen[] = ["turnStart", "jobs", "messages", "tables", "save", "options"];
 
 export type View =
   | { kind: StartScreen }
@@ -273,12 +269,8 @@ export class GameController {
     if (!s) return { kind: this.startScreen };
     const p = s.phase;
     switch (p.kind) {
-      case "managerTurns": {
-        const managerId = p.pending[0];
-        const hasClub = s.state.managers.find((m) => m.id === managerId)?.clubId != null;
-        const screen = !hasClub && !WITHOUT_CLUB.includes(this.screen) ? "jobs" : this.screen;
-        return { kind: screen, managerId };
-      }
+      case "managerTurns":
+        return { kind: this.screen, managerId: p.pending[0] };
       case "firstHalf":
         return { kind: "conference", half: 1 };
       case "secondHalf":

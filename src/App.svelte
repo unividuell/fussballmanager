@@ -5,7 +5,6 @@
   import FailureDialog from "./ui/screens/FailureDialog.svelte";
   import Finance from "./ui/screens/Finance.svelte";
   import Halftime from "./ui/screens/Halftime.svelte";
-  import Jobs from "./ui/screens/Jobs.svelte";
   import MainMenu from "./ui/screens/MainMenu.svelte";
   import Messages from "./ui/screens/Messages.svelte";
   import Options from "./ui/screens/Options.svelte";
@@ -63,8 +62,6 @@
     <Transfers {controller} managerId={view.managerId} />
   {:else if view.kind === "messages"}
     <Messages {controller} managerId={view.managerId} />
-  {:else if view.kind === "jobs"}
-    {#key view.managerId}<Jobs {controller} managerId={view.managerId} />{/key}
   {/if}
   {#if controller.failure}<FailureDialog {controller} />{/if}
 </Screen>

@@ -9,25 +9,23 @@
   let { controller, managerId }: { controller: GameController; managerId: ManagerId } = $props();
 
   const gs = $derived(controller.snapshot!.state);
-  const hasClub = $derived(gs.managers.find((m) => m.id === managerId)?.clubId != null);
   const list = $derived(messagesFor(gs, managerId));
 
   function link(m: Message): { label: string; go: () => void } | null {
-    if (!m.ref) return null;
-    switch (m.ref.type) {
-      case "jobOffer":
-        return { label: "Zu den Jobangeboten", go: () => controller.open("jobs") };
+    switch (m.ref?.type) {
       case "transferOffer":
-        return hasClub ? { label: "Zum Angebot", go: () => controller.openTransfers("offers") } : null;
+        return { label: "Zum Angebot", go: () => controller.openTransfers("offers") };
       case "sponsor":
-        return hasClub ? { label: "Zu den Finanzen", go: () => controller.open("finance") } : null;
+        return { label: "Zu den Finanzen", go: () => controller.open("finance") };
       case "negotiation":
-        return hasClub ? { label: "Zu den Verträgen", go: () => controller.open("contracts") } : null;
+        return { label: "Zu den Verträgen", go: () => controller.open("contracts") };
+      default:
+        return null;
     }
   }
 
   function back(): void {
-    controller.open(hasClub ? "menu" : "jobs");
+    controller.open("menu");
   }
 
   function onKey(e: KeyboardEvent): void {
