@@ -8,6 +8,7 @@
   import Jobs from "./ui/screens/Jobs.svelte";
   import MainMenu from "./ui/screens/MainMenu.svelte";
   import Messages from "./ui/screens/Messages.svelte";
+  import Options from "./ui/screens/Options.svelte";
   import NewGame from "./ui/screens/NewGame.svelte";
   import Results from "./ui/screens/Results.svelte";
   import SeasonEnd from "./ui/screens/SeasonEnd.svelte";
@@ -22,9 +23,13 @@
   const view = $derived(controller.view);
 </script>
 
-<Screen>
+<Screen scanlines={controller.options.scanlines}>
   {#if view.kind === "newGame"}
     <NewGame {controller} />
+  {:else if view.kind === "startOptions"}
+    <Options {controller} onBack={() => controller.openStart("newGame")} />
+  {:else if view.kind === "options"}
+    <Options {controller} onBack={() => controller.open("menu")} />
   {:else if view.kind === "turnStart"}
     {#key view.managerId}<TurnStart {controller} managerId={view.managerId} />{/key}
   {:else if view.kind === "menu"}

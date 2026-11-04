@@ -29,6 +29,11 @@
   function onKey(e: KeyboardEvent): void {
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
     if (e.key === "Enter" && e.target instanceof Element && e.target.closest("button, input, select")) return;
+    if (e.key.toLowerCase() === "o") {
+      e.preventDefault();
+      controller.open("options");
+      return;
+    }
     const key = e.key === "Enter" ? "8" : e.key;
     const tile = tiles.find((t) => t.key === key);
     if (tile?.action) {
@@ -47,6 +52,9 @@
       <Tile shortcut={t.key} icon={t.icon} label={t.label} disabled={t.action === null} onclick={() => t.action?.()} />
     {/each}
   </div>
+  <div class="extra">
+    <button class="btn" onclick={() => controller.open("options")}>Optionen (O)</button>
+  </div>
   {#if controller.message}<p class="msg">{controller.message}</p>{/if}
 </div>
 
@@ -60,5 +68,6 @@
     gap: 10px;
     padding: 12px;
   }
+  .extra { display: flex; gap: 6px; justify-content: flex-end; padding: 0 12px 6px; }
   .msg { margin: 0 12px 8px; }
 </style>

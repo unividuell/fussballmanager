@@ -5,6 +5,7 @@ import { decodeSave, encodeSave, makeMeta, type Decoded } from "../storage/savef
 import type { ManualSlot, SaveStore, SlotId, SlotInfo } from "../storage/store";
 import { LocalTransport } from "../transport/transport";
 import { matchdayLabel } from "./logic/format";
+import { loadOptions, saveOptions, type Options, type PrefsStorage } from "./logic/options";
 
 export type TurnScreen =
   | "turnStart"
@@ -41,6 +42,7 @@ export const SAVE_ONLY_BEFORE = "Speichern geht nur vor dem Spieltag.";
 
 export interface ControllerDeps {
   store?: SaveStore | null;
+  prefs?: PrefsStorage | null;
 }
 
 function phaseKey(s: Snapshot): string {
@@ -61,6 +63,7 @@ export class GameController {
 
   startScreen = $state<StartScreen>("newGame");
   slots = $state.raw<SlotInfo[]>([]);
+  options = $state.raw<Options>(loadOptions(null));
   /** Für Tests: der zuletzt angestoßene Autosave. */
   lastAutosave: Promise<void> = Promise.resolve();
 
@@ -68,11 +71,19 @@ export class GameController {
   private transport: LocalTransport | null = null;
   private lastKey = "";
   private readonly store: SaveStore | null;
+  private readonly prefs: PrefsStorage | null;
   private unsubscribe: (() => void) | null = null;
 
   constructor(deps: ControllerDeps = {}) {
     this.store = deps.store ?? null;
+    this.prefs = deps.prefs ?? null;
+    this.options = loadOptions(this.prefs);
     void this.refreshSlots();
+  }
+
+  setOptions(patch: Partial<Options>): void {
+    this.options = { ...this.options, ...patch };
+    saveOptions(this.prefs, this.options);
   }
 
   get hasStore(): boolean {

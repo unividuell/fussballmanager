@@ -41,6 +41,10 @@
 </script>
 
 <div class="newgame">
+  <div class="start">
+    <button class="btn" onclick={() => controller.openStart("startOptions")}>Optionen</button>
+  </div>
+
   <Panel>
     <div class="head">
       <h1>NEUES SPIEL</h1>
@@ -91,6 +95,7 @@
     height: 100%;
     box-sizing: border-box;
   }
+  .start { display: flex; gap: 6px; justify-content: flex-end; }
   .head { display: flex; align-items: center; gap: 12px; }
   .seed { margin-left: auto; color: var(--leaf); }
   .row { display: flex; align-items: center; gap: 8px; }

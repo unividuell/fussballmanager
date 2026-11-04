@@ -4,5 +4,14 @@ import "./ui/theme/theme.css";
 import { mount } from "svelte";
 import App from "./App.svelte";
 import { GameController } from "./ui/controller.svelte";
+import type { PrefsStorage } from "./ui/logic/options";
 
-mount(App, { target: document.getElementById("app")!, props: { controller: new GameController() } });
+function localPrefs(): PrefsStorage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+mount(App, { target: document.getElementById("app")!, props: { controller: new GameController({ prefs: localPrefs() }) } });

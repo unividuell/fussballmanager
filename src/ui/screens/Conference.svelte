@@ -1,7 +1,7 @@
 <script lang="ts">
   import { leagueOf } from "../../engine/season";
   import type { GameController } from "../controller.svelte";
-  import { DEFAULT_TEMPO, TEMPOS, competitionName, competitionsOf, halfBounds, tickerRows } from "../logic/ticker";
+  import { TEMPOS, competitionName, competitionsOf, halfBounds, tickerRows } from "../logic/ticker";
   import Panel from "../theme/Panel.svelte";
 
   let { controller, half }: { controller: GameController; half: 1 | 2 } = $props();
@@ -22,7 +22,7 @@
 
   const bounds = $derived(halfBounds(half));
   let minute = $state(startMinute());
-  let tempo = $state(DEFAULT_TEMPO);
+  const tempo = $derived(controller.options.tempo);
   let compIndex = $state(initialCompIndex());
   let advanced = false;
 
@@ -40,6 +40,10 @@
     }, TEMPOS[tempo]);
     return () => clearTimeout(timer);
   });
+
+  function setTempo(t: number): void {
+    controller.setOptions({ tempo: Math.max(0, Math.min(TEMPOS.length - 1, t)) });
+  }
 
   function skip(): void {
     minute = bounds.to;
@@ -59,10 +63,10 @@
         compIndex = (compIndex + 1) % Math.max(1, comps.length);
         break;
       case "+":
-        tempo = Math.min(TEMPOS.length - 1, tempo + 1);
+        setTempo(tempo + 1);
         break;
       case "-":
-        tempo = Math.max(0, tempo - 1);
+        setTempo(tempo - 1);
         break;
       case " ":
         e.preventDefault();
@@ -96,9 +100,9 @@
   </Panel>
   <div class="foot">
     <button class="btn" onclick={() => (compIndex = (compIndex + 1) % Math.max(1, comps.length))}>Liga (TAB)</button>
-    <button class="btn" onclick={() => (tempo = Math.max(0, tempo - 1))}>−</button>
+    <button class="btn" onclick={() => setTempo(tempo - 1)}>−</button>
     <span class="tempo">Tempo {tempo + 1}/3</span>
-    <button class="btn" onclick={() => (tempo = Math.min(TEMPOS.length - 1, tempo + 1))}>+</button>
+    <button class="btn" onclick={() => setTempo(tempo + 1)}>+</button>
     <button class="btn" onclick={skip} disabled={finished}>Überspringen (Leertaste)</button>
     <span class="spacer"></span>
     {#if finished}
