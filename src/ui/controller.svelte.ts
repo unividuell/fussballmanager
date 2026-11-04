@@ -181,7 +181,7 @@ export class GameController {
   }
 
   async send(cmd: SessionCommand): Promise<boolean> {
-    if (!this.transport) return false;
+    if (!this.transport || this.failure !== null) return false;
     let error: string | null;
     try {
       error = await this.transport.send(cmd);
@@ -198,7 +198,7 @@ export class GameController {
   }
 
   advance(): void {
-    if (!this.session) return;
+    if (!this.session || this.failure !== null) return;
     try {
       this.message = this.session.advance();
     } catch (e) {
@@ -218,6 +218,7 @@ export class GameController {
 
   private crashed(e: unknown, retry: () => void): void {
     console.error("Fehler beim Berechnen des Spieltags:", e);
+    this.message = null;
     this.failure = { retry };
   }
 
