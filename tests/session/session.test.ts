@@ -162,3 +162,27 @@ describe("Session mit Manager ohne Verein", () => {
     expect(session.snapshot.phase).toEqual({ kind: "halftime", pending: [ben.id] });
   });
 });
+
+describe("Session-Autosave", () => {
+  it("speichert, wenn nach einem Spieltag die Manager-Runden beginnen – nicht beim Erzeugen", () => {
+    const saved: GameState[] = [];
+    const session = new Session(twoManagers(), "hotseat", { autosave: (s) => saved.push(s) });
+    expect(saved).toHaveLength(0);
+    playMatchday(session);
+    expect(saved).toHaveLength(1);
+    expect(saved[0]).toBe(session.snapshot.state);
+    expect(saved[0].calendarIndex).toBe(1);
+  });
+
+  it("speichert nach dem Saisonende den Stand der neuen Saison", () => {
+    const saved: GameState[] = [];
+    const session = new Session(twoManagers(), "hotseat", { autosave: (s) => saved.push(s) });
+    for (let i = 0; i < 36; i++) playMatchday(session);
+    expect(session.snapshot.phase.kind).toBe("seasonEnd");
+    expect(saved).toHaveLength(35);
+    session.advance();
+    expect(saved).toHaveLength(36);
+    expect(saved[35].season).toBe(2);
+    expect(saved[35].calendarIndex).toBe(0);
+  });
+});

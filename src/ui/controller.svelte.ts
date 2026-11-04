@@ -1,7 +1,10 @@
 import type { ClubId, GameState, ManagerId } from "../engine/model";
 import { startNewGame } from "../engine/season";
 import { Session, type SessionCommand, type Snapshot } from "../session/session";
+import { decodeSave, encodeSave, makeMeta, type Decoded } from "../storage/savefile";
+import type { ManualSlot, SaveStore, SlotId, SlotInfo } from "../storage/store";
 import { LocalTransport } from "../transport/transport";
+import { matchdayLabel } from "./logic/format";
 
 export type TurnScreen =
   | "turnStart"
@@ -13,21 +16,32 @@ export type TurnScreen =
   | "transfers"
   | "finance"
   | "messages"
-  | "jobs";
+  | "jobs"
+  | "save"
+  | "options";
+
+export type StartScreen = "newGame" | "loadGame" | "startOptions";
 
 export type TransferTab = "market" | "mine" | "offers";
 
 /** Bildschirme, die auch ohne Verein funktionieren. */
-const WITHOUT_CLUB: TurnScreen[] = ["turnStart", "jobs", "messages", "tables"];
+const WITHOUT_CLUB: TurnScreen[] = ["turnStart", "jobs", "messages", "tables", "save", "options"];
 
 export type View =
-  | { kind: "newGame" }
+  | { kind: StartScreen }
   | { kind: TurnScreen; managerId: ManagerId }
   | { kind: "conference"; half: 1 | 2 }
   | { kind: "halftime"; managerId: ManagerId }
   | { kind: "results" }
   | { kind: "resultsTables" }
   | { kind: "seasonEnd" };
+
+export const NO_STORE = "Speichern ist in diesem Browser nicht möglich.";
+export const SAVE_ONLY_BEFORE = "Speichern geht nur vor dem Spieltag.";
+
+export interface ControllerDeps {
+  store?: SaveStore | null;
+}
 
 function phaseKey(s: Snapshot): string {
   const p = s.phase;
@@ -44,17 +58,114 @@ export class GameController {
   transferTab = $state<TransferTab>("market");
   view: View = $derived.by(() => this.computeView());
 
+  startScreen = $state<StartScreen>("newGame");
+  slots = $state.raw<SlotInfo[]>([]);
+  /** Für Tests: der zuletzt angestoßene Autosave. */
+  lastAutosave: Promise<void> = Promise.resolve();
+
   private session: Session | null = null;
   private transport: LocalTransport | null = null;
   private lastKey = "";
+  private readonly store: SaveStore | null;
+  private unsubscribe: (() => void) | null = null;
+
+  constructor(deps: ControllerDeps = {}) {
+    this.store = deps.store ?? null;
+    void this.refreshSlots();
+  }
+
+  get hasStore(): boolean {
+    return this.store !== null;
+  }
 
   startGame(world: GameState, managers: { name: string; clubId: ClubId }[]): string | null {
     const r = startNewGame(world, managers);
     if (!r.ok) return r.error;
-    this.session = new Session(r.state);
-    this.transport = new LocalTransport(this.session);
-    this.transport.subscribe((s) => this.receive(s));
+    this.begin(r.state);
+    this.lastAutosave = this.autosave(r.state);
     return null;
+  }
+
+  openStart(s: StartScreen): void {
+    this.startScreen = s;
+    this.message = null;
+  }
+
+  async refreshSlots(): Promise<void> {
+    if (!this.store) return;
+    try {
+      this.slots = await this.store.list();
+    } catch {
+      this.slots = [];
+    }
+  }
+
+  async saveTo(slot: ManualSlot): Promise<boolean> {
+    const snap = this.snapshot;
+    if (!this.store) return this.fail(NO_STORE);
+    if (!snap || snap.phase.kind !== "managerTurns") return this.fail(SAVE_ONLY_BEFORE);
+    try {
+      await this.store.save(slot, snap.state, matchdayLabel(snap.state), new Date());
+    } catch {
+      return this.fail("Speichern fehlgeschlagen.");
+    }
+    await this.refreshSlots();
+    this.message = "Gespeichert.";
+    return true;
+  }
+
+  async loadFrom(slot: SlotId): Promise<boolean> {
+    if (!this.store) return this.fail(NO_STORE);
+    let r: Decoded;
+    try {
+      r = await this.store.load(slot);
+    } catch {
+      r = { ok: false, error: "Laden fehlgeschlagen." };
+    }
+    if (!r.ok) return this.fail(r.error);
+    this.begin(r.file.state);
+    return true;
+  }
+
+  importText(text: string): boolean {
+    const r = decodeSave(text);
+    if (!r.ok) return this.fail(r.error);
+    this.begin(r.file.state);
+    return true;
+  }
+
+  exportFile(): { name: string; text: string } | null {
+    const gs = this.snapshot?.state;
+    if (!gs) return null;
+    return {
+      name: `fussballmanager-s${gs.season}-t${gs.calendarIndex + 1}.json`,
+      text: encodeSave(gs, makeMeta(gs, matchdayLabel(gs), new Date())),
+    };
+  }
+
+  /** Startet eine Session auf einem neuen oder geladenen Spielstand; eine alte Session wird abgehängt. */
+  private begin(gs: GameState): void {
+    this.unsubscribe?.();
+    this.session = new Session(gs, "hotseat", { autosave: (s) => (this.lastAutosave = this.autosave(s)) });
+    this.transport = new LocalTransport(this.session);
+    this.lastKey = "";
+    this.unsubscribe = this.transport.subscribe((s) => this.receive(s));
+  }
+
+  private async autosave(gs: GameState): Promise<void> {
+    if (!this.store) return;
+    try {
+      await this.store.save("auto", gs, matchdayLabel(gs), new Date());
+    } catch {
+      this.message = "Autosave fehlgeschlagen.";
+      return;
+    }
+    await this.refreshSlots();
+  }
+
+  private fail(message: string): false {
+    this.message = message;
+    return false;
   }
 
   open(screen: TurnScreen): void {
@@ -105,7 +216,7 @@ export class GameController {
 
   private computeView(): View {
     const s = this.snapshot;
-    if (!s) return { kind: "newGame" };
+    if (!s) return { kind: this.startScreen };
     const p = s.phase;
     switch (p.kind) {
       case "managerTurns": {

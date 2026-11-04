@@ -31,6 +31,11 @@ export interface Snapshot {
 
 export type Mode = "hotseat" | "parallel";
 
+export interface SessionHooks {
+  /** Wird aufgerufen, wenn nach einem Spieltag oder nach dem Saisonende die Manager-Runden beginnen. */
+  autosave?: (state: GameState) => void;
+}
+
 const NOT_YOUR_TURN = "Du bist gerade nicht dran.";
 
 export class Session {
@@ -40,9 +45,10 @@ export class Session {
   constructor(
     state: GameState,
     private readonly mode: Mode = "hotseat",
+    private readonly hooks: SessionHooks = {},
   ) {
     this.snap = { state, phase: { kind: "managerTurns", pending: [] }, lives: [], notices: [] };
-    this.beginTurns();
+    this.beginTurns(false);
   }
 
   get snapshot(): Snapshot {
@@ -104,10 +110,10 @@ export class Session {
         if (isSeasonOver(state)) {
           const { state: next, record } = finishSeason(state);
           this.set({ state: next, lives: [], notices: [], phase: { kind: "seasonEnd", record } });
-        } else this.beginTurns();
+        } else this.beginTurns(true);
         return null;
       case "seasonEnd":
-        this.beginTurns();
+        this.beginTurns(true);
         return null;
       default:
         return "Hier warten wir auf die Manager.";
@@ -120,9 +126,10 @@ export class Session {
     return null;
   }
 
-  private beginTurns(): void {
+  private beginTurns(autosave: boolean): void {
     const pending = this.snap.state.managers.map((m) => m.id);
     this.set({ lives: [], notices: [], phase: { kind: "managerTurns", pending } });
+    if (autosave) this.hooks.autosave?.(this.snap.state);
     if (pending.length === 0) this.startMatchday();
   }
 
