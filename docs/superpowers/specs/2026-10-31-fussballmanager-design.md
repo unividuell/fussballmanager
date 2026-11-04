@@ -1,6 +1,6 @@
 # Fussballmanager – Design-Spec
 
-Stand: 2026-10-31
+Stand: 2026-10-31, geändert 2026-11-04 (keine Entlassungen, keine Jobangebote)
 
 ## 1. Ziel und Rahmen
 
@@ -47,12 +47,12 @@ Diese Spec beschreibt Schritt 1 vollständig und legt fest, welche Vorkehrungen 
 
 1. Anzahl der Manager wählen (1–4) und Namen eingeben.
 2. Jeder Manager wählt einen beliebigen Verein aus beiden Ligen. Zwei Manager können nicht denselben Verein wählen.
-3. Zu jedem Verein werden die Saisonerwartung des Vorstands und das Budget angezeigt. Der Startverein bestimmt damit den Schwierigkeitsgrad.
+3. Zu jedem Verein werden die Saisonerwartung des Vorstands und das Budget angezeigt. Der Startverein bestimmt damit den Schwierigkeitsgrad. Jeder Manager bleibt für das ganze Spiel bei diesem Verein.
 4. Die Welt wird aus einem Zufalls-Seed erzeugt. Der Seed kann optional eingegeben werden, damit sich eine Welt reproduzieren lässt.
 
 ### 3.2 Ein Spieltag
 
-1. **Manager-Runden (Hot-Seat):** Reihum erscheint „Manager X ist dran“, danach das Hauptmenü des eigenen Vereins. „Weiter“ beendet die Runde dieses Managers. Ein entlassener Manager ohne Verein überspringt seine Runde, sieht aber seine Jobangebote.
+1. **Manager-Runden (Hot-Seat):** Reihum erscheint „Manager X ist dran“, danach das Hauptmenü des eigenen Vereins. „Weiter“ beendet die Runde dieses Managers.
 2. **Vor dem Anpfiff:** Die KI-Vereine stellen auf. Für jeden Manager wird geprüft, ob seine Aufstellung gültig ist (11 einsatzfähige Spieler, kein gesperrter oder verletzter Spieler). Ist sie es nicht, ergänzt das Spiel sie automatisch und zeigt einen Hinweis an.
 3. **Konferenz, 1. Halbzeit:** Alle Spiele beider Ligen werden simuliert und als Ticker abgespielt. Angezeigt wird die Liga des ersten Managers, mit TAB wechselt man die Liga.
 4. **Halbzeit:** Jeder menschliche Manager, dessen Verein spielt, bekommt nacheinander die Halbzeitansicht mit Auswechseln, Formation und Spielweise. „Weiter“ überspringt sie.
@@ -66,7 +66,7 @@ Diese Spec beschreibt Schritt 1 vollständig und legt fest, welche Vorkehrungen 
 1. Meister und Absteiger werden ermittelt. Es gibt je 2 direkte Auf- und Absteiger.
 2. **Relegation:** Der 16. der 1. Liga spielt gegen den 3. der 2. Liga, in Hin- und Rückspiel als echte Spieltage mit Konferenz. Ist das Gesamtergebnis gleich, folgt direkt ein Elfmeterschießen, das als ein Ereignis simuliert wird. Es gibt weder Auswärtstorregel noch Verlängerung.
 3. **Prämien** werden nach Tabellenplatz ausgezahlt.
-4. **Vorstandsbilanz** für jeden Manager: Ziel erreicht oder verfehlt, möglicherweise Entlassung, möglicherweise Angebote anderer Vereine (Abschnitt 8.5).
+4. **Vorstandsbilanz** für jeden Manager: Ziel erreicht, verfehlt oder deutlich verfehlt (Abschnitt 8.5). Sie hat keine Entlassung und keine Angebote anderer Vereine zur Folge.
 5. **Sommerpause** (Details zu Nachwuchs und Karriereende in Abschnitt 8.4):
    - Die Spieler altern um 1 Jahr.
    - Auslaufende Verträge enden, die betroffenen Spieler werden vereinslos.
@@ -160,7 +160,7 @@ Die Referenz-Mockups liegen hier: https://claude.ai/artifact/7yPio9FvtHP7uZX4d14
 | `finance` | Einnahmen, Ausgaben, Stadion, Dispo und Zinsen |
 | `contracts` | Vertragsforderungen, Verhandlung, Verlängerung, Entlassung |
 | `transfers` | Marktwert, Transferliste, Ablöse-Verhandlung, KI-Angebote |
-| `board` | Erwartungen, Vertrauen, Entlassung, Jobangebote |
+| `board` | Erwartungen, Vertrauen, Vorstandsbilanz |
 | `ai` | Entscheidungen der KI-Vereine: Aufstellung, Transfers, Verträge, Training |
 | `season` | Ablauf von Spieltag und Saisonende, verbindet die Module |
 | `commands` | Definition aller Befehle, ihre Prüfung und Anwendung |
@@ -183,7 +183,6 @@ type Command =
   | { type: "listForTransfer"; managerId; playerId; askingPrice | null }
   | { type: "respondTransferOffer"; managerId; offerId; "accept" | "reject" | { counter: fee } }
   | { type: "releasePlayer"; managerId; playerId }
-  | { type: "acceptJobOffer"; managerId; offerId }
   | { type: "halftimeChanges"; managerId; matchId; substitutions; formation?; style? }
   | { type: "endTurn"; managerId };
 ```
@@ -448,30 +447,20 @@ Sie richtet sich nach der Reputation im Vergleich zu den anderen Vereinen der Li
 - Nach jedem Spieltag wird der Tabellenplatz mit dem Zielkorridor verglichen. Dabei werden die letzten Ergebnisse stärker gewichtet.
 - Die Finanzlage beeinflusst das Vertrauen: Ein überzogenes Limit wirkt negativ.
 
-**Folgen von niedrigem Vertrauen**
+**Keine Entlassungen (Änderung vom 2026-11-04)**
 
-| Vertrauen | Folge |
-|---|---|
-| unter 30 | Warnung per Nachricht |
-| unter 15 | Entlassung, auch mitten in der Saison (frühestens ab dem 8. Spieltag) |
+Manager werden nie entlassen und bekommen keine Jobangebote. Jeder Manager bleibt für das ganze Spiel bei seinem Startverein. Erwartung und Vertrauen sind reine Rückmeldung:
 
-**Saisonende**
-
-- **Ziel erreicht:** Das Vertrauen steigt, und es kommen mit gewisser Wahrscheinlichkeit Angebote größerer Vereine. Der Manager kann wechseln oder bleiben.
-- **Ziel deutlich verfehlt:** Die Entlassung ist wahrscheinlich.
-
-**Nach der Entlassung**
-
-- Der Manager bekommt 1–3 Angebote von Vereinen, die ihren Trainer entlassen haben. Das sind meist Vereine mit geringerer Reputation. Die KI-Vereine entlassen ihre Trainer ebenfalls nach diesen Regeln, damit es freie Stellen gibt.
-- Nimmt der Manager kein Angebot an, setzt er bis zum nächsten Spieltag aus und bekommt dann neue Angebote.
-- Spätestens nach 3 Spieltagen ohne Verein bekommt er garantiert ein Angebot eines Zweitligisten.
+- Fällt das Vertrauen unter 30, kommt einmal die Nachricht „Der Vorstand ist unzufrieden.“ (erneut erst, nachdem es wieder über 40 gestiegen ist).
+- **Saisonende:** Das Vertrauen steigt bei erreichtem Ziel und sinkt bei verfehltem Ziel. Die Nachricht lautet „Saisonziel erreicht“, „Saisonziel verfehlt“ oder „Saisonziel deutlich verfehlt“ (mehr als 5 Plätze unter dem Ziel).
+- Der Sponsorbonus hängt weiterhin am Saisonziel (Abschnitt 8.1).
 
 ## 9. Nachrichten
 
 Nachrichten werden pro Manager angelegt. Es gibt zwei Arten:
 
 - **Info:** Verletzung, Vertrag läuft aus, Stadion fertig, Vorstandswarnung, Saisonbilanz.
-- **Entscheidung:** Transferangebot, Gegenangebot, Jobangebot, Sponsorwahl. Jede Entscheidungsnachricht hat eine Standard-Reaktion, die gilt, wenn der Manager nicht reagiert: Transferangebote verfallen nach 2 Spieltagen als abgelehnt, die Sponsorwahl fällt auf das erste Angebot.
+- **Entscheidung:** Transferangebot, Gegenangebot, Sponsorwahl. Jede Entscheidungsnachricht hat eine Standard-Reaktion, die gilt, wenn der Manager nicht reagiert: Transferangebote verfallen nach 2 Spieltagen als abgelehnt, die Sponsorwahl fällt auf das erste Angebot.
 
 Beim Start seiner Runde sieht jeder Manager einen Hinweis auf neue Nachrichten. Dieser Hinweis erscheint nur, wenn eine Entscheidung offen ist.
 
@@ -510,7 +499,7 @@ Beim Start seiner Runde sieht jeder Manager einen Hinweis auf neue Nachrichten. 
 - `lineup`: Ungültige Aufstellungen werden erkannt, und die automatische Aufstellung ist immer gültig.
 - `contracts` und `transfers`: Die Verhandlungslogik stimmt für jede Runde und Grenze.
 - `finance`: Buchungen sind korrekt, und Kapazität und Preis wirken richtig.
-- `board`: Die Schwellen für Entlassung und Angebote greifen.
+- `board`: Vertrauen, Warnung und Saisonbilanz greifen; niemand wird entlassen.
 
 **Langzeittest:** 10 Saisons mit nur KI-Vereinen. Geprüft werden:
 
