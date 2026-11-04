@@ -86,7 +86,7 @@ Diese Spec beschreibt Schritt 1 vollständig und legt fest, welche Vorkehrungen 
 
 Die Referenz-Mockups liegen hier: https://claude.ai/artifact/7yPio9FvtHP7uZX4d14hiv (Variante B).
 
-**Logische Fläche:** 1280×800 Pixel (16:10, geändert am 2026-11-04, vorher 640×400). Sie wird stufenlos auf die Fenstergröße skaliert, nach oben wie nach unten, unter Wahrung des Seitenverhältnisses, und auf dem Bildschirm zentriert. Die Ränder sind dunkel. Beispiele: 2560×1440 ergibt Faktor 1,6, 1366×768 ergibt etwa 0,9. Die untere Grenze bleibt 0,25. Schrift und Rahmen zeichnet der Browser scharf neu. Pixelgrafiken werden mit `image-rendering: pixelated` dargestellt und dürfen bei nicht ganzzahligem Faktor leicht ungleichmäßige Pixel haben (geändert am 2026-11-04, vorher nur ganzzahlige Vergrößerung).
+**Logische Fläche:** 1280×800 Pixel (16:10, geändert am 2026-11-04, vorher 640×400). Sie wird stufenlos auf die Fenstergröße skaliert, nach oben wie nach unten, unter Wahrung des Seitenverhältnisses, und auf dem Bildschirm zentriert. Die Ränder sind dunkel. Beispiele: 2560×1440 ergibt Faktor 1,8, ein Laptop-Fenster von 1366×650 (1366×768 abzüglich Browserleiste) etwa 0,81. Die untere Grenze bleibt 0,25. Schrift und Rahmen zeichnet der Browser scharf neu. Pixelgrafiken werden mit `image-rendering: pixelated` dargestellt und dürfen bei nicht ganzzahligem Faktor leicht ungleichmäßige Pixel haben (geändert am 2026-11-04, vorher nur ganzzahlige Vergrößerung).
 
 **Warum 1280×800:** Mit 640×400 passt zu wenig Inhalt auf den Bildschirm. Außerdem braucht die geplante Live-Ansicht mit bis zu vier Spielen gleichzeitig Platz: Jedes Viertel hat dann 640×400.
 
