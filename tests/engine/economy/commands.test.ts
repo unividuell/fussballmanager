@@ -12,7 +12,7 @@ function game(): GameState {
   return r.state;
 }
 const m = (s: GameState) => s.managers[0].id;
-const club = (s: GameState) => s.clubs[s.managers[0].clubId!];
+const club = (s: GameState) => s.clubs[s.managers[0].clubId];
 
 function ok(s: GameState, cmd: StateCommand): GameState {
   const r = applyCommand(s, cmd);

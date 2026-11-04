@@ -73,7 +73,7 @@ function applySalary(state: GameState, n: Negotiation, salary: number, years: nu
   const buyer = buyerOf(state, n);
   if (!buyer) {
     n.status = "aborted";
-    n.note = "Du hast zurzeit keinen Verein.";
+    n.note = "Unbekannter Manager.";
     return;
   }
   const factor = yearsAdjusted(10_000, years, n.desiredYears) / 10_000;

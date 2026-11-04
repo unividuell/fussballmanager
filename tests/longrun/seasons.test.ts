@@ -22,6 +22,7 @@ describe("Langzeittest: 10 Saisons", () => {
     const r = startNewGame(world, [{ name: "Test", clubId: Object.keys(world.clubs)[10] }]);
     if (!r.ok) throw new Error(r.error);
     let s: GameState = r.state;
+    const start = s.managers[0].clubId;
 
     for (let season = 1; season <= 10; season++) {
       let goals = 0;
@@ -63,6 +64,7 @@ describe("Langzeittest: 10 Saisons", () => {
       expect(l2).toHaveLength(18);
       expect(new Set([...l1, ...l2]).size).toBe(36);
       expect(validateState(next)).toBeNull();
+      expect(next.managers[0].clubId).toBe(start);
       s = next;
     }
 

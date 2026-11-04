@@ -30,6 +30,5 @@ test("zwei Manager: ein Spieltag mit Halbzeit, dann Saisonende im Schnellvorlauf
   await expect(page.getByText("SAISON 1 BEENDET")).toBeVisible();
   await page.getByRole("button", { name: "Neue Saison (Enter)" }).click();
   await expect(page.getByText("ANNA IST DRAN")).toBeVisible();
-  // Wurde Anna im Schnellvorlauf entlassen, zeigt der Bildschirm „Ohne Verein“ und keine Kopfzeile mit der Saison.
-  expect(await page.evaluate(() => window.__fm!.controller.snapshot!.state.season)).toBe(2);
+  await expect(page.getByText(/Saison 2/)).toBeVisible();
 });

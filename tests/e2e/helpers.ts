@@ -2,7 +2,7 @@ import { expect, type Page } from "@playwright/test";
 
 declare global {
   interface Window {
-    __fm?: { controller: { snapshot: { state: { season: number } } | null }; playToSeasonEnd: () => Promise<boolean> };
+    __fm?: { playToSeasonEnd: () => Promise<boolean> };
   }
 }
 

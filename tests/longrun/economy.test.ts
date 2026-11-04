@@ -63,21 +63,22 @@ describe("Langzeittest: Wirtschaft über 10 Saisons", () => {
   });
 });
 
-describe("Langzeittest: Vorstand entlässt untätige Manager nicht zu schnell", () => {
-  it("höchstens 2 von 8 Managern fliegen in Saison 1", { timeout: 600_000 }, () => {
-    const sacked: number[] = [];
+describe("Langzeittest: Manager bleiben bei ihrem Verein", () => {
+  it("Manager bleiben bei ihrem Verein – in Saison 1 bei 8 verschiedenen Startvereinen", { timeout: 300_000 }, () => {
     for (let i = 0; i < 8; i++) {
       const world = generateWorld(13);
-      const r = startNewGame(world, [{ name: "Test", clubId: Object.keys(world.clubs)[i] }]);
+      const start = Object.keys(world.clubs)[i];
+      const r = startNewGame(world, [{ name: "Test", clubId: start }]);
       if (!r.ok) throw new Error(r.error);
       let s: GameState = r.state;
-      let fired = false;
       while (!isSeasonOver(s)) {
         s = playMatchdayAuto(s);
+        expect(s.managers[0].clubId).toBe(start);
+        expect(s.clubs[start].managerId).toBe(s.managers[0].id);
       }
-      if (fired) sacked.push(i);
+      s = finishSeason(s).state;
+      expect(s.managers[0].clubId).toBe(start);
+      expect(s.clubs[start].managerId).toBe(s.managers[0].id);
     }
-    console.log(`Entlassen in Saison 1: ${sacked.length} von 8 (Clubs ${sacked.join(", ") || "-"})`);
-    expect(sacked.length).toBeLessThanOrEqual(2);
   });
 });
