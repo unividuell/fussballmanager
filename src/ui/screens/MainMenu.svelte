@@ -34,6 +34,11 @@
       controller.open("options");
       return;
     }
+    if (e.key.toLowerCase() === "s") {
+      e.preventDefault();
+      controller.open("save");
+      return;
+    }
     const key = e.key === "Enter" ? "8" : e.key;
     const tile = tiles.find((t) => t.key === key);
     if (tile?.action) {
@@ -53,6 +58,7 @@
     {/each}
   </div>
   <div class="extra">
+    <button class="btn" onclick={() => controller.open("save")}>Speichern (S)</button>
     <button class="btn" onclick={() => controller.open("options")}>Optionen (O)</button>
   </div>
   {#if controller.message}<p class="msg">{controller.message}</p>{/if}

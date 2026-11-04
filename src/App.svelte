@@ -10,6 +10,7 @@
   import Messages from "./ui/screens/Messages.svelte";
   import Options from "./ui/screens/Options.svelte";
   import NewGame from "./ui/screens/NewGame.svelte";
+  import SaveLoad from "./ui/screens/SaveLoad.svelte";
   import Results from "./ui/screens/Results.svelte";
   import SeasonEnd from "./ui/screens/SeasonEnd.svelte";
   import Squad from "./ui/screens/Squad.svelte";
@@ -30,6 +31,10 @@
     <Options {controller} onBack={() => controller.openStart("newGame")} />
   {:else if view.kind === "options"}
     <Options {controller} onBack={() => controller.open("menu")} />
+  {:else if view.kind === "loadGame"}
+    <SaveLoad {controller} managerId={null} onBack={() => controller.openStart("newGame")} />
+  {:else if view.kind === "save"}
+    <SaveLoad {controller} managerId={view.managerId} onBack={() => controller.open("menu")} />
   {:else if view.kind === "turnStart"}
     {#key view.managerId}<TurnStart {controller} managerId={view.managerId} />{/key}
   {:else if view.kind === "menu"}

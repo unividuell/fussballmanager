@@ -5,6 +5,7 @@ import { mount } from "svelte";
 import App from "./App.svelte";
 import { GameController } from "./ui/controller.svelte";
 import type { PrefsStorage } from "./ui/logic/options";
+import { SaveStore } from "./storage/store";
 import { createChiptune } from "./ui/sound";
 
 function localPrefs(): PrefsStorage | null {
@@ -15,4 +16,12 @@ function localPrefs(): PrefsStorage | null {
   }
 }
 
-mount(App, { target: document.getElementById("app")!, props: { controller: new GameController({ prefs: localPrefs(), sound: createChiptune() }) } });
+function browserStore(): SaveStore | null {
+  try {
+    return typeof indexedDB === "undefined" ? null : new SaveStore(indexedDB);
+  } catch {
+    return null;
+  }
+}
+
+mount(App, { target: document.getElementById("app")!, props: { controller: new GameController({ store: browserStore(), prefs: localPrefs(), sound: createChiptune() }) } });

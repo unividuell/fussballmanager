@@ -15,6 +15,7 @@
   let names = $state(["Manager 1", "Manager 2", "Manager 3", "Manager 4"]);
   let picks = $state<(ClubId | "")[]>(["", "", "", ""]);
   let error = $state<string | null>(null);
+  const canContinue = $derived(controller.slots.some((s) => s.slot === "auto" && s.meta !== null));
 
   const ranked = $derived(Object.values(world.clubs).sort((a, b) => b.reputation - a.reputation || (a.id < b.id ? -1 : 1)));
   const first = $derived(ranked.slice(0, LEAGUE_SIZE));
@@ -42,6 +43,8 @@
 
 <div class="newgame">
   <div class="start">
+    {#if canContinue}<button class="btn primary" onclick={() => void controller.loadFrom("auto")}>Weiterspielen</button>{/if}
+    <button class="btn" onclick={() => controller.openStart("loadGame")}>Spiel laden</button>
     <button class="btn" onclick={() => controller.openStart("startOptions")}>Optionen</button>
   </div>
 
@@ -81,7 +84,7 @@
       <button class="btn" class:selected={count === n} onclick={() => (count = n)}>{n}</button>
     {/each}
     <span class="spacer"></span>
-    {#if error}<span class="msg">{error}</span>{/if}
+    {#if error ?? controller.message}<span class="msg">{error ?? controller.message}</span>{/if}
     <button class="btn primary" onclick={start}>Anpfiff!</button>
   </div>
 </div>
