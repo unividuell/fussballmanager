@@ -1,7 +1,7 @@
 <script lang="ts">
   import { leagueOf } from "../../engine/season";
   import type { GameController } from "../controller.svelte";
-  import { TEMPOS, competitionName, competitionsOf, halfBounds, tickerRows } from "../logic/ticker";
+  import { TEMPOS, competitionName, competitionsOf, halfBounds, soundsFor, tickerRows } from "../logic/ticker";
   import Panel from "../theme/Panel.svelte";
 
   let { controller, half }: { controller: GameController; half: 1 | 2 } = $props();
@@ -33,10 +33,16 @@
   const rows = $derived(tickerRows(gs, lives, minute, Math.ceil(1000 / TEMPOS[tempo])).filter((r) => r.competitionId === comp));
   const finished = $derived(minute >= bounds.to);
 
+  function step(next: number): void {
+    const sounds = soundsFor(gs, lives, minute, next, bounds.to);
+    minute = next;
+    for (const k of sounds) controller.playSound(k);
+  }
+
   $effect(() => {
     if (minute >= bounds.to) return;
     const timer = setTimeout(() => {
-      minute = Math.min(bounds.to, minute + 1);
+      step(Math.min(bounds.to, minute + 1));
     }, TEMPOS[tempo]);
     return () => clearTimeout(timer);
   });
@@ -46,7 +52,7 @@
   }
 
   function skip(): void {
-    minute = bounds.to;
+    step(bounds.to);
   }
 
   function next(): void {

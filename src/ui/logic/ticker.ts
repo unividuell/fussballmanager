@@ -1,5 +1,6 @@
 import type { LiveMatch } from "../../engine/match/simulate";
 import type { ClubId, CompetitionId, GameState, MatchId } from "../../engine/model";
+import type { SoundKind } from "../sound";
 import { eventText } from "./format";
 
 /** Millisekunden pro Spielminute: langsam, normal, schnell. */
@@ -54,4 +55,13 @@ export function competitionsOf(lives: LiveMatch[]): CompetitionId[] {
 
 export function competitionName(state: GameState, id: CompetitionId): string {
   return state.competitions[id]?.name ?? id;
+}
+
+/** Töne beim Sprung der Uhr von `from` auf `to`: Tor eines Manager-Vereins (nur beim Weiterzählen um eine Minute) und der Pfiff am Ende der Halbzeit. */
+export function soundsFor(state: GameState, lives: LiveMatch[], from: number, to: number, end: number): SoundKind[] {
+  const out: SoundKind[] = [];
+  const managed = (l: LiveMatch) => state.clubs[l.home.club].managerId !== null || state.clubs[l.away.club].managerId !== null;
+  if (to === from + 1 && lives.some((l) => managed(l) && l.events.some((e) => e.type === "goal" && e.minute > from && e.minute <= to))) out.push("goal");
+  if (from < end && to >= end) out.push("whistle");
+  return out;
 }

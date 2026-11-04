@@ -6,6 +6,7 @@ import type { ManualSlot, SaveStore, SlotId, SlotInfo } from "../storage/store";
 import { LocalTransport } from "../transport/transport";
 import { matchdayLabel } from "./logic/format";
 import { loadOptions, saveOptions, type Options, type PrefsStorage } from "./logic/options";
+import { silentSound, type Sound, type SoundKind } from "./sound";
 
 export type TurnScreen =
   | "turnStart"
@@ -43,6 +44,7 @@ export const SAVE_ONLY_BEFORE = "Speichern geht nur vor dem Spieltag.";
 export interface ControllerDeps {
   store?: SaveStore | null;
   prefs?: PrefsStorage | null;
+  sound?: Sound;
 }
 
 function phaseKey(s: Snapshot): string {
@@ -72,11 +74,13 @@ export class GameController {
   private lastKey = "";
   private readonly store: SaveStore | null;
   private readonly prefs: PrefsStorage | null;
+  private readonly sound: Sound;
   private unsubscribe: (() => void) | null = null;
 
   constructor(deps: ControllerDeps = {}) {
     this.store = deps.store ?? null;
     this.prefs = deps.prefs ?? null;
+    this.sound = deps.sound ?? silentSound;
     this.options = loadOptions(this.prefs);
     void this.refreshSlots();
   }
@@ -84,6 +88,10 @@ export class GameController {
   setOptions(patch: Partial<Options>): void {
     this.options = { ...this.options, ...patch };
     saveOptions(this.prefs, this.options);
+  }
+
+  playSound(kind: SoundKind): void {
+    if (this.options.sound) this.sound.play(kind);
   }
 
   get hasStore(): boolean {

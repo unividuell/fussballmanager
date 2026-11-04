@@ -5,6 +5,7 @@ import { mount } from "svelte";
 import App from "./App.svelte";
 import { GameController } from "./ui/controller.svelte";
 import type { PrefsStorage } from "./ui/logic/options";
+import { createChiptune } from "./ui/sound";
 
 function localPrefs(): PrefsStorage | null {
   try {
@@ -14,4 +15,4 @@ function localPrefs(): PrefsStorage | null {
   }
 }
 
-mount(App, { target: document.getElementById("app")!, props: { controller: new GameController({ prefs: localPrefs() }) } });
+mount(App, { target: document.getElementById("app")!, props: { controller: new GameController({ prefs: localPrefs(), sound: createChiptune() }) } });
