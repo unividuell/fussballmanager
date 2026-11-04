@@ -55,6 +55,7 @@ export class GameController {
   screen = $state<TurnScreen>("turnStart");
   showResultsTables = $state(false);
   message = $state<string | null>(null);
+  failure = $state<{ retry: () => void } | null>(null);
   transferTab = $state<TransferTab>("market");
   view: View = $derived.by(() => this.computeView());
 
@@ -145,6 +146,7 @@ export class GameController {
 
   /** Startet eine Session auf einem neuen oder geladenen Spielstand; eine alte Session wird abgehängt. */
   private begin(gs: GameState): void {
+    this.failure = null;
     this.unsubscribe?.();
     this.session = new Session(gs, "hotseat", { autosave: (s) => (this.lastAutosave = this.autosave(s)) });
     this.transport = new LocalTransport(this.session);
@@ -180,7 +182,13 @@ export class GameController {
 
   async send(cmd: SessionCommand): Promise<boolean> {
     if (!this.transport) return false;
-    const error = await this.transport.send(cmd);
+    let error: string | null;
+    try {
+      error = await this.transport.send(cmd);
+    } catch (e) {
+      this.crashed(e, () => void this.send(cmd));
+      return false;
+    }
     this.message = error;
     return error === null;
   }
@@ -191,7 +199,26 @@ export class GameController {
 
   advance(): void {
     if (!this.session) return;
-    this.message = this.session.advance();
+    try {
+      this.message = this.session.advance();
+    } catch (e) {
+      this.crashed(e, () => this.advance());
+    }
+  }
+
+  retryFailure(): void {
+    const f = this.failure;
+    this.failure = null;
+    f?.retry();
+  }
+
+  async loadAutosaveAfterFailure(): Promise<void> {
+    if (await this.loadFrom("auto")) this.failure = null;
+  }
+
+  private crashed(e: unknown, retry: () => void): void {
+    console.error("Fehler beim Berechnen des Spieltags:", e);
+    this.failure = { retry };
   }
 
   setResultsTables(show: boolean): void {

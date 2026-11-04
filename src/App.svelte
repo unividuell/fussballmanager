@@ -2,6 +2,7 @@
   import type { GameController } from "./ui/controller.svelte";
   import Conference from "./ui/screens/Conference.svelte";
   import Contracts from "./ui/screens/Contracts.svelte";
+  import FailureDialog from "./ui/screens/FailureDialog.svelte";
   import Finance from "./ui/screens/Finance.svelte";
   import Halftime from "./ui/screens/Halftime.svelte";
   import Jobs from "./ui/screens/Jobs.svelte";
@@ -55,5 +56,6 @@
   {:else if view.kind === "jobs"}
     {#key view.managerId}<Jobs {controller} managerId={view.managerId} />{/key}
   {/if}
+  {#if controller.failure}<FailureDialog {controller} />{/if}
 </Screen>
 
