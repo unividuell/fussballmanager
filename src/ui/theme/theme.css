@@ -25,7 +25,7 @@ body {
   background: var(--ink);
   color: var(--cream);
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 24px;
 }
 
 h1,
@@ -37,21 +37,21 @@ h3 {
   margin: 0;
   line-height: 1.4;
 }
-h1 { font-size: 16px; }
-h2 { font-size: 8px; letter-spacing: 0.04em; }
+h1 { font-size: 32px; }
+h2 { font-size: 16px; letter-spacing: 0.04em; }
 
 .btn {
   font-family: var(--font-body);
-  font-size: 16px;
+  font-size: 24px;
   line-height: 1;
   color: var(--cream);
   background: var(--wood-light);
-  border: 2px solid var(--wood-edge);
-  padding: 3px 8px;
+  border: 4px solid var(--wood-edge);
+  padding: 6px 16px;
   cursor: pointer;
 }
 .btn:hover:not(:disabled) { border-color: var(--gold); }
-.btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.btn:focus-visible { outline: 4px solid var(--gold); outline-offset: 2px; }
 .btn:disabled { opacity: 0.45; cursor: default; }
 .btn.primary { color: var(--wood-dark); background: var(--gold); border-color: var(--cream); }
 .btn.selected { border-color: var(--gold); color: var(--gold); }
@@ -65,11 +65,11 @@ h2 { font-size: 8px; letter-spacing: 0.04em; }
   text-align: left;
   color: var(--leaf);
   font-weight: normal;
-  border-bottom: 1px solid var(--wood-edge);
+  border-bottom: 2px solid var(--wood-edge);
   cursor: default;
 }
 .board-table td,
-.board-table th { padding: 0 4px; white-space: nowrap; }
+.board-table th { padding: 0 8px; white-space: nowrap; }
 .board-table td.num,
 .board-table th.num { text-align: right; }
 .board-table tr.mine td { color: var(--gold); }
@@ -80,6 +80,6 @@ h2 { font-size: 8px; letter-spacing: 0.04em; }
 .msg {
   color: var(--cream);
   background: var(--rust);
-  border: 2px solid var(--cream);
-  padding: 2px 6px;
+  border: 4px solid var(--cream);
+  padding: 4px 12px;
 }

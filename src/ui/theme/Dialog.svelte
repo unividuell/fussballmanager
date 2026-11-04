@@ -22,8 +22,8 @@
     background: var(--shade);
   }
   .overlay :global(.dialog) {
-    width: 440px;
-    max-height: 370px;
+    width: 880px;
+    max-height: 740px;
     overflow-y: auto;
   }
   .close { align-self: flex-end; }

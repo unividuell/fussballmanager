@@ -1,7 +1,7 @@
 <script lang="ts">
   import type { CrestPattern } from "../../engine/model";
 
-  let { colors, pattern, size = 16 }: { colors: [string, string]; pattern: CrestPattern; size?: number } = $props();
+  let { colors, pattern, size = 32 }: { colors: [string, string]; pattern: CrestPattern; size?: number } = $props();
   const uid = $props.id();
   const clipId = `crest-${uid}`;
   const SHIELD = "M1 1 H15 V9 Q15 15 8 17 Q1 15 1 9 Z";

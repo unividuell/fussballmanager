@@ -12,12 +12,12 @@
 <style>
   .panel {
     background: var(--wood);
-    border: 3px solid var(--wood-edge);
-    box-shadow: inset 0 0 0 2px var(--wood-dark);
-    padding: 6px 8px;
+    border: 6px solid var(--wood-edge);
+    box-shadow: inset 0 0 0 4px var(--wood-dark);
+    padding: 12px 16px;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 8px;
     min-height: 0;
     min-width: 0;
   }

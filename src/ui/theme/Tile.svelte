@@ -29,15 +29,15 @@
     display: grid;
     place-items: center;
     align-content: center;
-    gap: 6px;
+    gap: 12px;
     background: var(--wood);
-    border: 3px solid var(--wood-edge);
-    box-shadow: inset 0 0 0 2px var(--wood-dark);
+    border: 6px solid var(--wood-edge);
+    box-shadow: inset 0 0 0 4px var(--wood-dark);
     color: var(--cream);
     font-family: var(--font-body);
-    font-size: 18px;
+    font-size: 27px;
     cursor: pointer;
-    padding: 4px;
+    padding: 8px;
   }
   .tile:hover:not(:disabled),
   .tile:focus-visible,
@@ -50,21 +50,21 @@
   b {
     font-family: var(--font-display);
     font-weight: normal;
-    font-size: 16px;
+    font-size: 32px;
     color: var(--gold);
   }
   .key {
     position: absolute;
-    top: 3px;
-    left: 5px;
-    font-size: 14px;
+    top: 6px;
+    left: 10px;
+    font-size: 21px;
     color: var(--leaf);
   }
   .soon {
     position: absolute;
-    bottom: 3px;
-    right: 5px;
-    font-size: 13px;
+    bottom: 6px;
+    right: 10px;
+    font-size: 20px;
     color: var(--leaf);
   }
 </style>
