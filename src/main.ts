@@ -24,4 +24,12 @@ function browserStore(): SaveStore | null {
   }
 }
 
-mount(App, { target: document.getElementById("app")!, props: { controller: new GameController({ store: browserStore(), prefs: localPrefs(), sound: createChiptune() }) } });
+const controller = new GameController({ store: browserStore(), prefs: localPrefs(), sound: createChiptune() });
+
+mount(App, { target: document.getElementById("app")!, props: { controller } });
+
+if (import.meta.env.MODE === "e2e") {
+  void import("./debug").then(({ playToSeasonEnd }) => {
+    Object.assign(window, { __fm: { controller, playToSeasonEnd: () => playToSeasonEnd(controller) } });
+  });
+}

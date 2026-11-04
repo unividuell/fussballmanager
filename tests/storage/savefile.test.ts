@@ -1,4 +1,3 @@
-/// <reference types="vite/client" />
 import { describe, expect, it } from "vitest";
 import savedV1 from "./fixtures/save-v1.json?raw";
 import type { GameState } from "../../src/engine/model";
