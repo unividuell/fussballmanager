@@ -216,19 +216,19 @@
 
 <style>
   .transfers { display: flex; flex-direction: column; height: 100%; position: relative; }
-  .tabs, .filters { display: flex; align-items: center; gap: 6px; padding: 4px 8px 0; flex-wrap: wrap; font-size: 15px; }
+  .tabs, .filters { display: flex; align-items: center; gap: 12px; padding: 8px 16px 0; flex-wrap: wrap; font-size: 23px; }
   .status { margin-left: auto; color: var(--leaf); }
   .status.closed { color: var(--rust); }
-  .transfers :global(.list) { flex: 1; min-height: 0; margin: 6px 8px; }
+  .transfers :global(.list) { flex: 1; min-height: 0; margin: 12px 16px; }
   .scroll { overflow-y: auto; min-height: 0; flex: 1; }
-  .board-table { font-size: 15px; }
+  .board-table { font-size: 23px; }
   .sort { all: unset; cursor: pointer; color: var(--leaf); }
-  .sort:focus-visible { outline: 1px solid var(--gold); }
-  .small { padding: 0 4px; font-size: 14px; }
-  .money { font-family: var(--font-body); font-size: 15px; color: var(--cream); background: var(--wood-dark); border: 2px solid var(--wood-edge); }
-  .offer { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 15px; }
+  .sort:focus-visible { outline: 2px solid var(--gold); }
+  .small { padding: 0 8px; font-size: 21px; }
+  .money { font-family: var(--font-body); font-size: 23px; color: var(--cream); background: var(--wood-dark); border: 4px solid var(--wood-edge); }
+  .offer { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 23px; }
   p { margin: 0; }
-  .count { padding: 2px 8px 0; font-size: 14px; color: var(--leaf); }
-  .foot { display: flex; align-items: center; gap: 6px; padding: 0 8px 6px; }
+  .count { padding: 4px 16px 0; font-size: 21px; color: var(--leaf); }
+  .foot { display: flex; align-items: center; gap: 12px; padding: 0 16px 12px; }
   .spacer { flex: 1; }
 </style>

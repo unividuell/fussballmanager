@@ -63,9 +63,9 @@
 {/if}
 
 <style>
-  .seasonend { display: flex; flex-direction: column; height: 100%; padding: 12px; box-sizing: border-box; gap: 8px; }
-  .cols { flex: 1; display: grid; grid-template-columns: 3fr 2fr; gap: 8px; min-height: 0; }
-  p { margin: 0; font-size: 17px; }
+  .seasonend { display: flex; flex-direction: column; height: 100%; padding: 24px; box-sizing: border-box; gap: 16px; }
+  .cols { flex: 1; display: grid; grid-template-columns: 3fr 2fr; gap: 16px; min-height: 0; }
+  p { margin: 0; font-size: 26px; }
   b { color: var(--gold); font-weight: normal; }
   .foot { display: flex; }
   .spacer { flex: 1; }

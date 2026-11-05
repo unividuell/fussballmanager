@@ -27,6 +27,6 @@
     place-items: center;
     background: var(--shade);
   }
-  p { margin: 0 0 8px; max-width: 400px; font-size: 17px; }
-  .row { display: flex; gap: 8px; justify-content: flex-end; }
+  p { margin: 0 0 16px; max-width: 800px; font-size: 26px; }
+  .row { display: flex; gap: 16px; justify-content: flex-end; }
 </style>

@@ -1,6 +1,6 @@
 # Fussballmanager – Design-Spec
 
-Stand: 2026-10-31, geändert 2026-11-04 (keine Entlassungen, keine Jobangebote)
+Stand: 2026-10-31, geändert 2026-11-04 (keine Entlassungen, keine Jobangebote; logische Fläche 1280×800)
 
 ## 1. Ziel und Rahmen
 
@@ -86,7 +86,29 @@ Diese Spec beschreibt Schritt 1 vollständig und legt fest, welche Vorkehrungen 
 
 Die Referenz-Mockups liegen hier: https://claude.ai/artifact/7yPio9FvtHP7uZX4d14hiv (Variante B).
 
-**Logische Fläche:** 640×400 Pixel. Sie wird pixelgenau mit ganzzahligem Faktor skaliert, wenn möglich, sonst mit `image-rendering: pixelated`, und auf dem Bildschirm zentriert. Die Ränder sind dunkel.
+**Logische Fläche:** 1280×800 Pixel (16:10, geändert am 2026-11-04, vorher 640×400). Sie wird stufenlos auf die Fenstergröße skaliert, nach oben wie nach unten, unter Wahrung des Seitenverhältnisses, und auf dem Bildschirm zentriert. Die Ränder sind dunkel. Beispiele: 2560×1440 ergibt Faktor 1,8, ein Laptop-Fenster von 1366×650 (1366×768 abzüglich Browserleiste) etwa 0,81. Die untere Grenze bleibt 0,25. Schrift und Rahmen zeichnet der Browser scharf neu. Pixelgrafiken werden mit `image-rendering: pixelated` dargestellt und dürfen bei nicht ganzzahligem Faktor leicht ungleichmäßige Pixel haben (geändert am 2026-11-04, vorher nur ganzzahlige Vergrößerung).
+
+**Warum 1280×800:** Mit 640×400 passt zu wenig Inhalt auf den Bildschirm. Außerdem braucht die geplante Live-Ansicht mit bis zu vier Spielen gleichzeitig Platz: Jedes Viertel hat dann 640×400.
+
+**Schriftgrößen** (in logischen Pixeln):
+
+| Schrift | Verwendung | vorher | jetzt | optisch |
+|---|---|---|---|---|
+| Press Start 2P | h1 | 16 | 32 | gleich groß |
+| Press Start 2P | h2 und alle übrigen Größen | 8 bzw. *n* | 16 bzw. 2·*n* | gleich groß |
+| VT323 | Fließtext, Tabellen, Knöpfe | 16 | 24 | etwa ein Viertel kleiner |
+| VT323 | alle übrigen Größen (13–20) | *n* | round(1,5·*n*) | etwa ein Viertel kleiner |
+
+Die Überschriften bleiben also optisch gleich, der Fließtext wird etwas kleiner. Dadurch passen in Listen und Tabellen rund ein Drittel mehr Zeilen und Spalten.
+
+**Umrechnung der übrigen Maße**
+
+- Alle anderen Pixelmaße werden verdoppelt, damit der Look optisch gleich bleibt: Rahmenstärken, Innen- und Außenabstände, Lücken, feste Breiten und Höhen, Rasenstreifen (80 statt 40 px), Scanlines (2 px Linie alle 6 px), Wappengröße.
+- Zeilenhöhen in Tabellen richten sich nach der Schrift, nicht nach dem Faktor 2. Daraus entsteht der Platzgewinn.
+- Wo durch die Umrechnung auf einem Bildschirm Leerraum entsteht, etwa im Hauptmenü oder in Dialogen, bleibt er als Abstand stehen. Ein neues Layout gibt es nicht.
+- Pixelgrafiken (Wappen, Rahmen) behalten ihre grobe Pixelgröße: Ein Grafikpixel ist 2×2 logische Pixel groß. Neue Grafiken wie Torszenen und Momentum-Balken dürfen die feine Auflösung voll nutzen.
+
+**Nicht Teil der Umstellung:** neue Funktionen, neue Bildschirme, ein anderer Spielablauf oder ein neues Seitenverhältnis.
 
 **Gestaltungselemente**
 

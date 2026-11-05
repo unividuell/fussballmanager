@@ -24,7 +24,7 @@
   <div class="center">
     <Panel>
       <div class="card">
-        {#if club}<Crest colors={club.colors} pattern={club.crest} size={48} />{/if}
+        {#if club}<Crest colors={club.colors} pattern={club.crest} size={96} />{/if}
         <h1>{controller.managerName(managerId).toUpperCase()} IST DRAN</h1>
         {#if club}<p>{club.name}</p>{/if}
         <button class="btn primary" onclick={() => controller.open("menu")}>Los geht's (Enter)</button>
@@ -39,7 +39,7 @@
 <style>
   .turn { display: flex; flex-direction: column; height: 100%; }
   .center { flex: 1; display: grid; place-items: center; }
-  .card { display: grid; justify-items: center; gap: 10px; padding: 12px 28px; }
-  p { margin: 0; font-size: 20px; }
-  .warn { font-size: 16px; color: var(--rust); }
+  .card { display: grid; justify-items: center; gap: 20px; padding: 24px 56px; }
+  p { margin: 0; font-size: 30px; }
+  .warn { font-size: 24px; color: var(--rust); }
 </style>

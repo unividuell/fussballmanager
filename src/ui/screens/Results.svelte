@@ -91,10 +91,10 @@
 </div>
 
 <style>
-  .results { display: flex; flex-direction: column; height: 100%; padding: 8px; box-sizing: border-box; gap: 6px; }
-  h1 { font-size: 8px; }
-  .cols { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; }
-  .result { display: grid; grid-template-columns: 1fr 70px 1fr; gap: 4px; font-size: 17px; }
+  .results { display: flex; flex-direction: column; height: 100%; padding: 16px; box-sizing: border-box; gap: 12px; }
+  h1 { font-size: 16px; }
+  .cols { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 16px; }
+  .result { display: grid; grid-template-columns: 1fr 140px 1fr; gap: 8px; font-size: 26px; }
   .home { text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .away { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .score { text-align: center; color: var(--gold); font-variant-numeric: tabular-nums; }
@@ -102,7 +102,7 @@
   .result.managed .away { color: var(--gold); }
   .notice,
   .event { margin: 0; }
-  .results :global(.capped) { flex: none; max-height: 84px; overflow-y: auto; }
-  .foot { display: flex; gap: 6px; }
+  .results :global(.capped) { flex: none; max-height: 168px; overflow-y: auto; }
+  .foot { display: flex; gap: 12px; }
   .spacer { flex: 1; }
 </style>

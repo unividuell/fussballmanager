@@ -94,13 +94,13 @@
 
 <style>
   .training { display: flex; flex-direction: column; height: 100%; }
-  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 220px 1fr; gap: 8px; padding: 8px; }
-  .side { display: flex; flex-direction: column; gap: 6px; }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 440px 1fr; gap: 16px; padding: 16px; }
+  .side { display: flex; flex-direction: column; gap: 12px; }
   .opt { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
-  .opt small { font-size: 13px; color: var(--leaf); }
+  .opt small { font-size: 20px; color: var(--leaf); }
   .scroll { overflow-y: auto; min-height: 0; flex: 1; }
   .name { all: unset; cursor: pointer; }
-  .name:focus-visible { outline: 1px solid var(--gold); }
+  .name:focus-visible { outline: 2px solid var(--gold); }
   .stars { color: var(--gold); }
-  .msg { margin: 0 8px 6px; }
+  .msg { margin: 0 16px 12px; }
 </style>

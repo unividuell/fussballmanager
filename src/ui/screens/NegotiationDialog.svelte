@@ -118,10 +118,10 @@
 </Dialog>
 
 <style>
-  p { margin: 0; font-size: 15px; }
+  p { margin: 0; font-size: 23px; }
   .note { color: var(--gold); }
   .warn { color: var(--rust); }
   .done { color: var(--leaf); }
-  .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-  input { font-family: var(--font-body); font-size: 16px; color: var(--cream); background: var(--wood-dark); border: 2px solid var(--wood-edge); }
+  .row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+  input { font-family: var(--font-body); font-size: 24px; color: var(--cream); background: var(--wood-dark); border: 4px solid var(--wood-edge); }
 </style>
