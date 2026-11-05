@@ -186,6 +186,19 @@ function bodyHTML(g) {
     <div class="c-stats"><span>◀ ${short(g.home[0])}</span><span>Chancen ${g.ch} : ${g.ca}</span><span>${short(g.away[0])} ▶</span></div>`;
 }
 
+function render() {
+  if (!stage.children.length) for (let i = 0; i < 4; i++) { const q = document.createElement("div"); q.className = "quad"; stage.appendChild(q); }
+  games.forEach((g, i) => {
+    const q = stage.children[i];
+    if (scene && scene.idx === i) {           // Viertel mit laufender Szene nur im Kopf aktualisieren
+      return;
+    }
+    q.innerHTML = quadHTML(g, i);
+    q.classList.toggle("flash", g.flash > 0);
+  });
+  document.getElementById("status").textContent = scene ? "Szene läuft – Uhr auf langsamem Tempo" : "";
+}
+
 {{szene.js}}
 
 function step() {
