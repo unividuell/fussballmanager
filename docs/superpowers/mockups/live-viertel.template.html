@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live-Viertel Entwürfe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --grass-1: #1f5c22; --grass-2: #246a27;
+    --wood: #3b2614; --wood-light: #5a3a1c; --wood-edge: #7a5230; --wood-dark: #1a1009;
+    --cream: #f3e7c9; --gold: #ffcc33; --leaf: #a8d08d; --rust: #b8401f; --ink: #0b0d0a;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--ink); color: var(--cream); font-family: "VT323", monospace; font-size: 20px; padding: 16px; }
+  .wrap { max-width: 1300px; margin: 0 auto; }
+  h1 { font-family: "Press Start 2P", monospace; font-size: 16px; color: var(--gold); margin: 0 0 8px; line-height: 1.5; }
+  p { margin: 4px 0 12px; color: var(--leaf); }
+  .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .tabs button, .ctl button {
+    font-family: "Press Start 2P", monospace; font-size: 11px; padding: 10px 12px; cursor: pointer;
+    background: var(--wood); color: var(--cream); border: 2px solid var(--wood-edge);
+  }
+  .tabs button.on { background: var(--gold); color: var(--ink); border-color: var(--gold); }
+  .ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 10px; }
+  #status { color: var(--gold); min-height: 1.2em; }
+  #desc { background: var(--wood); border: 2px solid var(--wood-edge); padding: 10px 14px; margin-top: 12px; color: var(--cream); }
+
+  /* Logische Fläche 640×400, wird ganzzahlig bzw. passend skaliert */
+  #holder { width: 100%; overflow: hidden; }
+  #stage {
+    position: relative; width: 640px; height: 400px; transform-origin: 0 0;
+    background: var(--wood-dark); image-rendering: pixelated;
+  }
+  .quad { position: absolute; width: 319px; height: 199px; overflow: hidden;
+    background: repeating-linear-gradient(90deg, var(--grass-1) 0 20px, var(--grass-2) 20px 40px); }
+  .quad:nth-child(1) { left: 0; top: 0; } .quad:nth-child(2) { left: 321px; top: 0; }
+  .quad:nth-child(3) { left: 0; top: 201px; } .quad:nth-child(4) { left: 321px; top: 201px; }
+
+  .hdr { position: absolute; left: 0; top: 0; width: 100%; height: 30px; background: var(--wood);
+    border-bottom: 2px solid var(--wood-edge); display: flex; align-items: center; padding: 0 6px; gap: 4px; }
+  .mgr { font-family: "Press Start 2P"; font-size: 7px; color: var(--ink); background: var(--leaf); padding: 2px 3px; }
+  .club { font-size: 17px; white-space: nowrap; display: flex; align-items: center; gap: 3px; }
+  .chip { width: 9px; height: 12px; display: inline-block; border: 1px solid var(--ink); }
+  .score { font-family: "Press Start 2P"; font-size: 11px; color: var(--gold); margin: 0 4px; }
+  .min { margin-left: auto; font-family: "Press Start 2P"; font-size: 9px; color: var(--cream); }
+  .flash .score { animation: blink .25s steps(1) 4; }
+  @keyframes blink { 50% { color: var(--cream); background: var(--rust); } }
+
+  .body { position: absolute; left: 8px; top: 38px; width: 303px; height: 104px; }
+  .tick { position: absolute; left: 0; bottom: 0; width: 100%; height: 52px; background: var(--wood);
+    border-top: 2px solid var(--wood-edge); padding: 2px 6px; font-size: 16px; line-height: 16px; overflow: hidden; }
+  .tick div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--leaf); }
+  .tick div:first-child { color: var(--cream); }
+  .tick .g { color: var(--gold) !important; }
+
+  /* Variante A: Tauziehen */
+  .a-names { display: flex; justify-content: space-between; font-size: 16px; margin-top: 6px; }
+  .a-bar { position: relative; height: 18px; margin-top: 4px; background: var(--wood-dark); border: 2px solid var(--wood-edge); }
+  .a-fill { position: absolute; top: 0; bottom: 0; transition: left .25s steps(4), width .25s steps(4); }
+  .a-mid { position: absolute; left: 50%; top: -4px; bottom: -4px; width: 2px; background: var(--cream); }
+  .a-label { text-align: center; font-family: "Press Start 2P"; font-size: 8px; margin-top: 10px; height: 12px; color: var(--gold); }
+  .a-stats { display: flex; justify-content: center; gap: 18px; font-size: 16px; margin-top: 8px; color: var(--cream); }
+
+  /* Variante B: Druckkurve */
+  .b-graph { position: relative; height: 84px; margin-top: 2px; background: rgba(11,13,10,.45); border: 2px solid var(--wood-edge); }
+  .b-axis { position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--cream); opacity: .6; }
+  .b-col { position: absolute; width: 3px; }
+  .b-mark { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--cream); border: 1px solid var(--ink); }
+  .b-mark.goal { width: 8px; height: 8px; background: var(--gold); }
+  .b-cursor { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--gold); }
+  .b-ht { position: absolute; top: 0; bottom: 0; width: 1px; left: 50%; border-left: 1px dashed var(--leaf); opacity: .6; }
+  .b-stats { display: flex; justify-content: space-between; font-size: 15px; color: var(--cream); margin-top: 1px; }
+
+  /* Variante C: Spielfeld */
+  .c-pitch { position: relative; height: 82px; margin: 2px auto 0; width: 260px; border: 2px solid var(--cream);
+    background: repeating-linear-gradient(90deg, #2a7a2d 0 26px, #31852f 26px 52px); }
+  .c-line { position: absolute; background: var(--cream); }
+  .c-box { position: absolute; top: 20px; width: 34px; height: 38px; border: 2px solid var(--cream); }
+  .c-zone { position: absolute; top: 0; bottom: 0; width: 70px; opacity: .45; transition: left .3s steps(3); }
+  .c-ball { position: absolute; width: 6px; height: 6px; background: #fff; border: 1px solid var(--ink); transition: left .3s steps(3), top .3s steps(3); }
+  .c-arrow { position: absolute; top: 28px; font-family: "Press Start 2P"; font-size: 10px; color: var(--gold); transition: left .3s steps(3); }
+  .c-stats { display: flex; justify-content: space-between; font-size: 15px; color: var(--cream); margin-top: 1px; padding: 0 22px; }
+
+  /* Szene */
+  .scene { position: absolute; inset: 0; display: none; background: var(--ink); }
+  .scene.on { display: block; }
+  .scene canvas { position: absolute; left: 0; top: 0; width: 320px; height: 200px; image-rendering: pixelated; }
+  .s-cap { position: absolute; left: 0; right: 0; top: 0; height: 22px; background: var(--wood); border-bottom: 2px solid var(--wood-edge);
+    font-size: 16px; padding: 2px 6px; white-space: nowrap; overflow: hidden; }
+  .s-cap b { font-family: "Press Start 2P"; font-size: 8px; color: var(--gold); font-weight: normal; }
+  .s-out { position: absolute; left: 0; right: 0; top: 118px; text-align: center; font-family: "Press Start 2P"; font-size: 18px;
+    color: var(--cream); text-shadow: 2px 2px 0 var(--ink); display: none; }
+  .s-out.goal { color: var(--gold); }
+  .s-out.on { display: block; animation: pop .3s steps(3); }
+  @keyframes pop { from { transform: scale(2.2); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Live-Viertel: drei Entwürfe für die Druckanzeige</h1>
+  <p>Vier Manager, jedes Spiel ein Viertel (320×200). Die Spiele laufen live. Bei einer Großchance wechselt das Viertel in die Torszene, und die Uhr fällt für alle auf das langsame Tempo zurück. Die Torszene nutzt jetzt die Pixelgrafiken aus ChatGPT, in den Vereinsfarben eingefärbt.</p>
+  <div class="tabs">
+    <button data-v="A">A · Tauziehen-Balken</button>
+    <button data-v="B" class="on">B · Druckkurve</button>
+    <button data-v="C">C · Mini-Spielfeld</button>
+  </div>
+  <div class="ctl">
+    <button id="force">Großchance auslösen</button>
+    <button id="restart">Neu anpfeifen</button>
+    <span id="status"></span>
+  </div>
+  <div id="holder"><div id="stage"></div></div>
+  <div id="desc"></div>
+</div>
+<script>
+const DESC = {
+  A: "<b>A · Tauziehen-Balken:</b> Ein Balken. Von der Mitte aus wächst er in der Farbe der Mannschaft, die gerade drückt. Ab starkem Druck steht darunter, wer drückt. Sehr ruhig und sofort lesbar, aber ohne Verlauf: Was vor fünf Minuten war, sieht man nicht mehr.",
+  B: "<b>B · Druckkurve:</b> Für jede Minute eine Säule, nach oben die Heim-, nach unten die Gastmannschaft. Punkte sind Chancen, gelbe Punkte Tore. Man sieht den ganzen Spielverlauf, also auch, wer seit der 60. Minute anrennt. Liest sich etwas technischer, eher wie eine moderne Statistik-App.",
+  C: "<b>C · Mini-Spielfeld:</b> Ein kleines Feld von oben, der Ball und eine farbige Zone wandern dorthin, wo gerade gespielt wird. Am meisten Gefühl von „live dabei“ und sehr nah am Retro-Vorbild, aber ohne Verlauf und etwas unruhiger."
+};
+const TEAMS = [
+  ["SV Eichental", "#c8102e", "#ffffff"], ["FC Rheinau", "#1d4fa3", "#ffffff"],
+  ["Germania Lübz", "#111111", "#ffcc33"], ["TuS Hagenbach", "#2e8b3d", "#ffffff"],
+  ["VfR Mühlberg", "#6b2c91", "#ffffff"], ["Union Kesselfeld", "#e07a10", "#111111"],
+  ["SC Altmark", "#7fb3e6", "#111111"], ["Eintr. Wolfsried", "#a01818", "#111111"]
+];
+const NAMES = ["Müller","Schmitz","Kowalski","Brandt","Yilmaz","Hoffmann","Becker","Wagner","Klose","Neumann","Richter","Lehmann"];
+const MISS = ["Schuss von %s, drüber","%s köpft, knapp vorbei","Schuss von %s, geblockt","%s zieht ab, Ecke","Flanke, %s verpasst"];
+
+let variant = "B", minute = 0, games = [], scene = null, timer = null;
+const stage = document.getElementById("stage");
+const rnd = (a, b) => a + Math.random() * (b - a);
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const short = (n) => n.length > 12 ? n.slice(0, 11) + "." : n;
+
+function newGames() {
+  const t = TEAMS.slice().sort(() => Math.random() - .5);
+  games = [0,1,2,3].map(i => ({
+    home: t[i*2], away: t[i*2+1], gh: 0, ga: 0, ch: 0, ca: 0,
+    m: 0, bias: rnd(-.12, .12), hist: [], marks: [], ticker: ["Anpfiff!"], flash: 0
+  }));
+  minute = 0;
+}
+
+function quadHTML(g, i) {
+  const club = (t) => `<span class="club"><span class="chip" style="background:linear-gradient(90deg,${t[1]} 50%,${t[2]} 50%)"></span>${short(t[0])}</span>`;
+  return `<div class="hdr"><span class="mgr">M${i+1}</span>${club(g.home)}<span class="score">${g.gh}:${g.ga}</span>${club(g.away)}<span class="min">${Math.min(minute,90)}'</span></div>
+    <div class="body">${bodyHTML(g)}</div>
+    <div class="tick">${g.ticker.slice(0,3).map(l => `<div class="${l.startsWith("TOR") ? "g" : ""}">${l}</div>`).join("")}</div>
+    ${sceneHTML()}`;
+}
+
+function bodyHTML(g) {
+  const hc = g.home[1], ac = g.away[1];
+  if (variant === "A") {
+    const w = Math.abs(g.m) * 50;
+    const fill = g.m >= 0 ? `left:${50 - w}%;width:${w}%;background:${hc}` : `left:50%;width:${w}%;background:${ac}`;
+    const who = Math.abs(g.m) > .55 ? `DRUCK: ${(g.m > 0 ? g.home : g.away)[0].toUpperCase()}` : "";
+    return `<div class="a-names"><span>◀ ${short(g.home[0])}</span><span>${short(g.away[0])} ▶</span></div>
+      <div class="a-bar"><div class="a-fill" style="${fill}"></div><div class="a-mid"></div></div>
+      <div class="a-label">${who}</div>
+      <div class="a-stats"><span>Chancen ${g.ch} : ${g.ca}</span></div>`;
+  }
+  if (variant === "B") {
+    const cols = g.hist.map((m, k) => {
+      const h = Math.round(Math.abs(m) * 38), x = 2 + k * 3.3;
+      return m >= 0 ? `<div class="b-col" style="left:${x}px;top:${41 - h}px;height:${h}px;background:${hc}"></div>`
+                    : `<div class="b-col" style="left:${x}px;top:41px;height:${h}px;background:${ac}"></div>`;
+    }).join("");
+    const marks = g.marks.map(mk => `<div class="b-mark ${mk.goal ? "goal" : ""}" style="left:${mk.min * 3.3}px;top:${mk.home ? 2 : 72}px"></div>`).join("");
+    return `<div class="b-graph"><div class="b-ht"></div><div class="b-axis"></div>${cols}${marks}<div class="b-cursor" style="left:${2 + minute * 3.3}px"></div></div>
+      <div class="b-stats"><span>▲ ${short(g.home[0])}</span><span>Chancen ${g.ch} : ${g.ca}</span><span>▼ ${short(g.away[0])}</span></div>`;
+  }
+  const cx = 130 - g.m * 95 - 35, bx = 127 - g.m * 105 + rnd(-6, 6), by = 38 + rnd(-24, 24);
+  const zc = g.m >= 0 ? hc : ac;
+  const arrow = Math.abs(g.m) > .5 ? (g.m > 0 ? "◀◀" : "▶▶") : "";
+  return `<div class="c-pitch">
+      <div class="c-zone" style="left:${Math.max(0, Math.min(190, cx))}px;background:radial-gradient(ellipse,${zc},transparent 70%)"></div>
+      <div class="c-line" style="left:128px;top:0;bottom:0;width:2px"></div>
+      <div class="c-box" style="left:-2px"></div><div class="c-box" style="right:-2px"></div>
+      <div class="c-ball" style="left:${bx}px;top:${by}px"></div>
+      <div class="c-arrow" style="left:${bx - 14}px">${arrow}</div>
+    </div>
+    <div class="c-stats"><span>◀ ${short(g.home[0])}</span><span>Chancen ${g.ch} : ${g.ca}</span><span>${short(g.away[0])} ▶</span></div>`;
+}
+
+{{szene.js}}
+
+function step() {
+  if (minute >= 90) { render(); clearTimeout(timer); timer = setTimeout(() => { newGames(); loop(); }, 4000); return; }
+  minute++;
+  games.forEach((g, i) => {
+    g.m = Math.max(-1, Math.min(1, g.m * .82 + g.bias + rnd(-.38, .38)));
+    g.hist.push(g.m);
+    if (g.flash > 0) g.flash--;
+    if (scene && scene.idx === i) return;
+    for (const home of [true, false]) {
+      const press = home ? g.m : -g.m;
+      if (Math.random() < .035 + .12 * Math.max(0, press)) {
+        if (home) g.ch++; else g.ca++;
+        if (!scene && Math.random() < .32) { startScene(i, home); return; }
+        g.marks.push({ min: minute, home, goal: false });
+        g.ticker.unshift(`${minute}' ` + pick(MISS).replace("%s", pick(NAMES)));
+      }
+    }
+  });
+  render();
+}
+
+function loop() {
+  clearTimeout(timer);
+  step();
+  if (minute < 90) timer = setTimeout(loop, scene ? 1000 : 300);
+}
+
+function fit() {
+  const w = document.getElementById("holder").clientWidth;
+  const s = w >= 1280 ? 2 : w / 640;
+  stage.style.transform = `scale(${s})`;
+  document.getElementById("holder").style.height = (400 * s) + "px";
+}
+
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
+  variant = b.dataset.v;
+  document.querySelectorAll(".tabs button").forEach(x => x.classList.toggle("on", x === b));
+  document.getElementById("desc").innerHTML = DESC[variant];
+  render();
+});
+document.getElementById("force").onclick = () => {
+  if (scene || minute >= 90) return;
+  const i = Math.floor(Math.random() * 4), home = Math.random() < .5;
+  if (home) games[i].ch++; else games[i].ca++;
+  startScene(i, home);
+};
+document.getElementById("restart").onclick = () => { newGames(); stage.innerHTML = ""; loop(); };
+window.addEventListener("resize", fit);
+document.getElementById("desc").innerHTML = DESC.B;
+newGames(); fit(); loop();
+</script>
+</body>
+</html>
