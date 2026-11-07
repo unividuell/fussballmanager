@@ -249,7 +249,7 @@ Die Haupt-Spec sieht 2–3 Minuten pro Spieltag für alle Manager zusammen vor. 
   - Laufen Szenen gleichzeitig, überlappen sie sich, und die Zeit verkürzt sich.
   - Im ungünstigsten Fall verlängert sich der Spieltag um etwa eine Minute.
 - **Gegenmittel:** Leertaste zum Überspringen, die Tempostufen und die Option „Torszenen aus“.
-- Ob das Budget verbindlich bleibt oder angepasst wird, entscheidet der Nutzer.
+- **Entscheidung des Nutzers (2026-11-07):** Der längere Spieltag ist in Ordnung, denn das Mitfiebern ist der Sinn der Sache. Szenen werden deshalb nicht gekürzt oder seltener gemacht, um das alte Budget zu halten. In der Haupt-Spec, Abschnitt 2, wird der Satz zur Konferenzdauer entsprechend angepasst.
 
 ## 13. Dem Umsetzer überlassen
 
