@@ -57,7 +57,8 @@ Die logische Fläche ist 1280×800 Pixel (Haupt-Spec Abschnitt 4).
   - Beispiel 2: Bei vier Managern mit zwei direkten Duellen gibt es zwei Viertel mit Spielen und zwei mit Tabelle.
 - **Reihenfolge der Viertel:** Die Spiele stehen in der Reihenfolge der Manager, links oben beginnend. Ein geteiltes Spiel steht an der Stelle seines ersten Managers.
 - **Live-Tabelle:**
-  - Sie zeigt die Liga des ersten Managers. Spielen die Manager in verschiedenen Ligen und sind zwei Viertel frei, zeigt das zweite freie Viertel die andere Liga.
+  - Sie zeigt die Liga des ersten Managers. Sind zwei Viertel frei, zeigt das zweite immer die andere Liga (zwei gleiche Tabellen wären sinnlos).
+  - Gibt es kein Spiel mit Manager, zeigt der Bildschirm die Tabelle der Liga des ersten Managers bildschirmfüllend.
   - Sie sortiert sich bei jedem Tor um. Bei Spielen ohne Manager zählt das Tor in seiner Ereignisminute. Bei Spielen mit Manager zählt es erst, wenn die Szene es auflöst.
   - Die Vereine der Manager sind hervorgehoben.
   - In der Relegation gibt es keine laufende Liga. Das freie Viertel zeigt dann die Abschlusstabelle der Liga des ersten Managers. *(Meine Entscheidung.)*
