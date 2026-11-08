@@ -67,12 +67,12 @@ test("kein Bildschirm ragt über den Rand", async ({ page }) => {
   }
 
   await page.keyboard.press("8");
-  await expect(page.getByText(/KONFERENZ/)).toBeVisible();
-  await expectNoOverflow(page, "Konferenz");
+  await expect(page.getByText(/1\. Halbzeit · /)).toBeVisible();
+  await expectNoOverflow(page, "Live");
 
   await page.keyboard.press(" ");
   await expect(page.getByText("HALBZEIT", { exact: true })).toBeVisible();
-  await expectNoOverflow(page, "Konferenz Halbzeitstand");
+  await expectNoOverflow(page, "Live Halbzeitstand");
 
   await page.getByRole("button", { name: "Weiter (Enter)" }).click();
   await expect(page.getByText("AUF DEM PLATZ")).toBeVisible();

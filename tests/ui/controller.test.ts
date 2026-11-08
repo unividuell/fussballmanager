@@ -51,18 +51,18 @@ describe("GameController", () => {
     expect(c.message).toBeNull();
   });
 
-  it("führt durch Konferenz, Halbzeit, Auswertung und zurück zu den Manager-Runden", async () => {
+  it("führt durch Live-Spiel, Halbzeit, Auswertung und zurück zu den Manager-Runden", async () => {
     const c = started();
     const [anna, ben] = c.snapshot!.state.managers;
     await c.endTurn(anna.id);
     await c.endTurn(ben.id);
-    expect(c.view).toEqual({ kind: "conference", half: 1 });
+    expect(c.view).toEqual({ kind: "live", half: 1 });
     c.advance();
     expect(c.view).toEqual({ kind: "halftime", managerId: anna.id });
     await c.endTurn(anna.id);
     expect(c.view).toEqual({ kind: "halftime", managerId: ben.id });
     await c.endTurn(ben.id);
-    expect(c.view).toEqual({ kind: "conference", half: 2 });
+    expect(c.view).toEqual({ kind: "live", half: 2 });
     c.advance();
     expect(c.view).toEqual({ kind: "results" });
     c.setResultsTables(true);

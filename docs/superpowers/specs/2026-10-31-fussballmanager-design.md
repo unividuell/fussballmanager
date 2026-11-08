@@ -37,7 +37,7 @@ Diese Spec beschreibt Schritt 1 vollständig und legt fest, welche Vorkehrungen 
 - Alle Einstellungen bleiben bestehen, bis man sie ändert: Aufstellung, Taktik, Training, Eintrittspreis.
 - Ein Spieltag ist im Normalfall mit „Weiter“ durchklickbar. Kein Menü muss zwingend besucht werden.
 - Nachrichten, die eine Entscheidung verlangen, erscheinen nur, wenn eine Entscheidung nötig ist, und brauchen dann einen Klick (Annehmen / Ablehnen / Gegenangebot).
-- Die Konferenz dauert in normaler Geschwindigkeit etwa 45 Sekunden. Sie lässt sich beschleunigen oder überspringen.
+- Das Live-Spiel (`2026-11-06-live-viertel-design.md`) dauert in normaler Geschwindigkeit etwa 45 Sekunden plus die Torszenen; mit vier Managern kann ein Spieltag dadurch bis zu etwa eine Minute länger werden (geändert am 2026-11-07, vom Nutzer so gewollt). Es lässt sich beschleunigen oder überspringen, und Torszenen lassen sich in den Optionen abschalten.
 - Eine Verhandlung hat höchstens 3 Runden.
 - Jedes Menü ist per Taste erreichbar.
 
@@ -54,9 +54,9 @@ Diese Spec beschreibt Schritt 1 vollständig und legt fest, welche Vorkehrungen 
 
 1. **Manager-Runden (Hot-Seat):** Reihum erscheint „Manager X ist dran“, danach das Hauptmenü des eigenen Vereins. „Weiter“ beendet die Runde dieses Managers.
 2. **Vor dem Anpfiff:** Die KI-Vereine stellen auf. Für jeden Manager wird geprüft, ob seine Aufstellung gültig ist (11 einsatzfähige Spieler, kein gesperrter oder verletzter Spieler). Ist sie es nicht, ergänzt das Spiel sie automatisch und zeigt einen Hinweis an.
-3. **Konferenz, 1. Halbzeit:** Alle Spiele beider Ligen werden simuliert und als Ticker abgespielt. Angezeigt wird die Liga des ersten Managers, mit TAB wechselt man die Liga.
+3. **Live, 1. Halbzeit:** Alle Spiele beider Ligen werden simuliert. Die Spiele der Manager laufen live in je einem Viertel mit Druckkurve und Torszenen (`2026-11-06-live-viertel-design.md`); freie Viertel zeigen die Live-Tabelle.
 4. **Halbzeit:** Jeder menschliche Manager, dessen Verein spielt, bekommt nacheinander die Halbzeitansicht mit Auswechseln, Formation und Spielweise. „Weiter“ überspringt sie.
-5. **Konferenz, 2. Halbzeit.**
+5. **Live, 2. Halbzeit.**
 6. **Auswertung:** Ergebnisse, Tabellen, Torschützen, Verletzungen und Sperren.
 7. **Verarbeitung im Hintergrund:** Finanzen buchen, Training und Entwicklung anwenden, Kondition und Form aktualisieren, Sperren und Verletzungen herunterzählen, KI-Transfers und -Verträge ausführen, Vorstandsvertrauen aktualisieren, Nachrichten erzeugen.
 8. **Autosave.**
@@ -64,7 +64,7 @@ Diese Spec beschreibt Schritt 1 vollständig und legt fest, welche Vorkehrungen 
 ### 3.3 Saisonende (nach dem 34. Spieltag)
 
 1. Meister und Absteiger werden ermittelt. Es gibt je 2 direkte Auf- und Absteiger.
-2. **Relegation:** Der 16. der 1. Liga spielt gegen den 3. der 2. Liga, in Hin- und Rückspiel als echte Spieltage mit Konferenz. Ist das Gesamtergebnis gleich, folgt direkt ein Elfmeterschießen, das als ein Ereignis simuliert wird. Es gibt weder Auswärtstorregel noch Verlängerung.
+2. **Relegation:** Der 16. der 1. Liga spielt gegen den 3. der 2. Liga, in Hin- und Rückspiel als echte Spieltage mit Live-Bildschirm. Ist das Gesamtergebnis gleich, folgt direkt ein Elfmeterschießen, das als ein Ereignis simuliert wird. Es gibt weder Auswärtstorregel noch Verlängerung.
 3. **Prämien** werden nach Tabellenplatz ausgezahlt.
 4. **Vorstandsbilanz** für jeden Manager: Ziel erreicht, verfehlt oder deutlich verfehlt (Abschnitt 8.5). Sie hat keine Entlassung und keine Angebote anderer Vereine zur Folge.
 5. **Sommerpause** (Details zu Nachwuchs und Karriereende in Abschnitt 8.4):
@@ -122,10 +122,7 @@ Die Überschriften bleiben also optisch gleich, der Fließtext wird etwas kleine
 
 - **Hauptmenü:** 8 Kacheln mit Symbol in einem 4×2-Raster: Mannschaft, Training, Verträge, Transfers, Finanzen, Tabelle, Nachrichten, Weiter. Darüber eine Kopfzeile mit Wappen, Vereinsname, Spieltag und Kontostand.
 - **Listen-Bildschirme** (Kader, Tabelle, Spielplan, Transfermarkt, Verträge): eine große Holztafel mit einer Tabelle. Ein Klick auf einen Spaltenkopf sortiert, die Liste scrollt innerhalb der Tafel.
-- **Konferenz:** eine Anzeigetafel aus Holz mit 9 Zeilen (Heim, Ergebnis, Gast, letztes Ereignis), oben die Spielminute. Bei einem Tor blinkt die Zeile 1 Sekunde lang auf. Die Tasten:
-  - **TAB** wechselt die Liga.
-  - **+** und **−** ändern das Tempo.
-  - **Leertaste** überspringt bis zur Halbzeit bzw. zum Ende.
+- **Live-Bildschirm:** ersetzt seit 2026-11-07 die Konferenz, siehe (`2026-11-06-live-viertel-design.md`). Tasten: **+** und **−** ändern das Tempo, **Leertaste** überspringt bis zur Halbzeit bzw. zum Ende, **Enter** geht weiter.
 - **Dialoge** (Verhandlung, Nachrichten, Bestätigungen): kleine Holztafeln, die über dem aktuellen Bildschirm liegen.
 
 **Bedienung**
@@ -136,7 +133,7 @@ Die Überschriften bleiben also optisch gleich, der Fließtext wird etwas kleine
   - **Esc** führt zurück.
   - **Enter** bestätigt bzw. heißt „Weiter“.
   - **Pfeiltasten** bewegen sich durch Listen.
-- **Optionen:** Scanlines (standardmäßig aus), Konferenz-Tempo, Ton an/aus. Ton ist für Schritt 1 optional: kurze Chiptune-Effekte für Tor und Abpfiff.
+- **Optionen:** Scanlines (standardmäßig aus), Spieltempo, Ton an/aus, Torszenen an/aus (standardmäßig an). Ton ist für Schritt 1 optional: kurze Chiptune-Effekte für Tor und Abpfiff.
 
 ## 5. Architektur
 
@@ -144,7 +141,7 @@ Die Überschriften bleiben also optisch gleich, der Fließtext wird etwas kleine
 ┌──────────────────────── Browser (Laptop / Host) ─────────────────────────┐
 │  UI (Svelte)                 Session                Engine (reines TS)    │
 │  ─ Bildschirme, Menüs  ──►  ─ nimmt Befehle an ──►  ─ Spielstand          │
-│  ─ Konferenz-Ticker    ◄──  ─ prüft Berechtigung    ─ Simulation, Regeln  │
+│  ─ Live-Viertel        ◄──  ─ prüft Berechtigung    ─ Simulation, Regeln  │
 │                              ─ verteilt Updates                           │
 │                         Transport (austauschbar)     Speicher (IndexedDB) │
 │                         Schritt 1: lokal             Autosave + 3 Slots   │
@@ -225,7 +222,7 @@ preseason ─► managerTurns ─► firstHalf ─► halftime ─► secondHalf
 - Eine Phase wartet auf alle Manager, die in ihr dran sind:
   - In Schritt 1 geht das reihum (Hot-Seat).
   - In Schritt 2 geht das parallel: Jeder tippt auf „Bereit“, und sobald alle bereit sind, wechselt die Session die Phase. Die Engine muss dafür nicht geändert werden.
-- Die Simulation einer Halbzeit läuft vollständig in der Engine. Die Konferenz spielt danach nur die fertige Ereignisliste mit Zeitstempeln ab.
+- Die Simulation einer Halbzeit läuft vollständig in der Engine. Der Live-Bildschirm spielt danach nur die fertige Ereignisliste mit Zeitstempeln ab.
 
 ## 6. Datenmodell (Kern)
 
@@ -547,7 +544,7 @@ Schritt 1 setzt das bereits um:
 - Alle Änderungen laufen über Befehle mit `managerId`.
 - Die Session prüft die Berechtigung und steuert die Phasen. Das Warten auf Manager ist als Menge von Managern gebaut, die noch nicht bereit sind. Hot-Seat behandelt diese Menge der Reihe nach, der Handy-Modus parallel.
 - `Transport` ist eine Schnittstelle.
-- Die Oberfläche ist in Ansichten für den großen Bildschirm (Konferenz, Tabelle, Auswertung) und Vereinsansichten getrennt. Die Vereinsansichten ziehen später auf das Handy um.
+- Die Oberfläche ist in Ansichten für den großen Bildschirm (Live-Spiel, Tabelle, Auswertung) und Vereinsansichten getrennt. Die Vereinsansichten ziehen später auf das Handy um.
 
 In Schritt 2 kommt Folgendes dazu (eigene Spec):
 

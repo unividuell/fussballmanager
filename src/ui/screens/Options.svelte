@@ -25,7 +25,7 @@
       <button class="btn" class:selected={!o.scanlines} aria-pressed={!o.scanlines} aria-label="Scanlines aus" onclick={() => controller.setOptions({ scanlines: false })}>Aus</button>
     </div>
     <div class="row">
-      <span class="label">Konferenz-Tempo</span>
+      <span class="label">Spieltempo</span>
       {#each TEMPO_LABELS as label, i (label)}
         <button class="btn" class:selected={o.tempo === i} aria-pressed={o.tempo === i} aria-label="Tempo {label}" onclick={() => controller.setOptions({ tempo: i })}>{label}</button>
       {/each}
@@ -34,6 +34,11 @@
       <span class="label">Ton</span>
       <button class="btn" class:selected={o.sound} aria-pressed={o.sound} aria-label="Ton an" onclick={() => controller.setOptions({ sound: true })}>An</button>
       <button class="btn" class:selected={!o.sound} aria-pressed={!o.sound} aria-label="Ton aus" onclick={() => controller.setOptions({ sound: false })}>Aus</button>
+    </div>
+    <div class="row">
+      <span class="label">Torszenen</span>
+      <button class="btn" class:selected={o.scenes} aria-pressed={o.scenes} aria-label="Torszenen an" onclick={() => controller.setOptions({ scenes: true })}>An</button>
+      <button class="btn" class:selected={!o.scenes} aria-pressed={!o.scenes} aria-label="Torszenen aus" onclick={() => controller.setOptions({ scenes: false })}>Aus</button>
     </div>
     <p class="hint">Ton: kurze Signale bei Toren der Manager-Vereine und beim Abpfiff.</p>
   </Panel>

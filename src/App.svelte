@@ -1,6 +1,6 @@
 <script lang="ts">
   import type { GameController } from "./ui/controller.svelte";
-  import Conference from "./ui/screens/Conference.svelte";
+  import LiveScreen from "./ui/screens/LiveScreen.svelte";
   import Contracts from "./ui/screens/Contracts.svelte";
   import FailureDialog from "./ui/screens/FailureDialog.svelte";
   import Finance from "./ui/screens/Finance.svelte";
@@ -44,8 +44,8 @@
     <Tables {controller} managerId={view.managerId} onBack={() => controller.open("menu")} />
   {:else if view.kind === "resultsTables"}
     <Tables {controller} managerId={controller.snapshot!.state.managers[0]?.id ?? null} onBack={() => controller.setResultsTables(false)} />
-  {:else if view.kind === "conference"}
-    {#key view.half}<Conference {controller} half={view.half} />{/key}
+  {:else if view.kind === "live"}
+    {#key view.half}<LiveScreen {controller} half={view.half} />{/key}
   {:else if view.kind === "halftime"}
     {#key view.managerId}<Halftime {controller} managerId={view.managerId} />{/key}
   {:else if view.kind === "results"}

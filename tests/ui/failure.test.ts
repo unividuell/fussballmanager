@@ -35,7 +35,7 @@ describe("Fehler am Spieltag", () => {
     c.advance();
     expect(c.failure).not.toBeNull();
     expect(c.snapshot).toBe(before);
-    expect(c.view).toEqual({ kind: "conference", half: 1 });
+    expect(c.view).toEqual({ kind: "live", half: 1 });
     c.retryFailure();
     expect(c.failure).toBeNull();
     expect(c.view.kind).toBe("halftime");
@@ -52,7 +52,7 @@ describe("Fehler am Spieltag", () => {
     expect(c.view).toEqual({ kind: "turnStart", managerId: anna.id });
     c.retryFailure();
     await new Promise((r) => setTimeout(r, 0));
-    expect(c.view).toEqual({ kind: "conference", half: 1 });
+    expect(c.view).toEqual({ kind: "live", half: 1 });
   });
 
   it("zeigt den Fehlerdialog und wiederholt per Klick", async () => {
@@ -83,7 +83,7 @@ describe("Fehler am Spieltag", () => {
     expect(advanceSpy).toHaveBeenCalledTimes(1);
     expect(c.failure).not.toBeNull();
     expect(c.snapshot).toBe(before);
-    expect(c.view).toEqual({ kind: "conference", half: 1 });
+    expect(c.view).toEqual({ kind: "live", half: 1 });
     c.retryFailure();
     expect(advanceSpy).toHaveBeenCalledTimes(2);
     expect(c.view.kind).toBe("halftime");

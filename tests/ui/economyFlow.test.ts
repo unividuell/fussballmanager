@@ -46,6 +46,6 @@ describe("Wirtschaft über die Oberfläche", () => {
     await key("Escape");
 
     await key("Enter"); // Weiter
-    expect(c.view).toEqual({ kind: "conference", half: 1 });
+    expect(c.view).toEqual({ kind: "live", half: 1 });
   });
 });
