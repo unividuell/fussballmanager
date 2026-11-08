@@ -9,7 +9,7 @@ from PIL import Image
 from scipy import ndimage
 
 RAW = Path(__file__).parent
-OUT = RAW.parent.parent / "docs/superpowers/mockups/szene"
+OUT = RAW.parent.parent / "src/ui/live/assets"
 OUT.mkdir(parents=True, exist_ok=True)
 
 KEYS = {"magenta": (255, 0, 255), "cyan": (0, 255, 255), "green": (0, 255, 0)}
@@ -129,7 +129,7 @@ print(json.dumps(meta))
 # damit sie als einzelne Datei funktioniert (Canvas darf file://-Bilder nicht auslesen).
 import base64
 
-MOCK = OUT.parent
+MOCK = RAW.parent.parent / "docs/superpowers/mockups"
 html = (MOCK / "live-viertel.template.html").read_text()
 html = html.replace("{{szene.js}}", (MOCK / "szene.js").read_text())
 html = html.replace("{{sprites.json}}", (OUT / "sprites.json").read_text())
