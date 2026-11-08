@@ -12,6 +12,8 @@ import {
 } from "../../src/engine/match/simulate";
 import type { GameState, Match } from "../../src/engine/model";
 import { Rng } from "../../src/engine/rng";
+import { generateWorld } from "../../src/engine/generator";
+import { finishMatchday, kickOff, playHalf, prepareMatchday, startNewGame } from "../../src/engine/season";
 import { makeState } from "./fixtures";
 
 function setup(hs = 70, as = 70): { s: GameState; match: Match } {
@@ -188,5 +190,50 @@ describe("penaltyShootout", () => {
       const p = penaltyShootout(rng);
       expect(p.home).not.toBe(p.away);
     }
+  });
+});
+
+describe("Chancen und Angriffsseite", () => {
+  it("hält für jede Minute die angreifende Seite fest", () => {
+    const { s, match } = setup();
+    const live = playFull(s, match, 5);
+    expect(live.attacks).toHaveLength(90);
+    expect(live.attacks.every((x) => x === "home" || x === "away")).toBe(true);
+  });
+
+  it("Chancen ohne Tor sind Ereignisse mit Verein und Schützen aus dem Kader", () => {
+    const { s, match } = setup();
+    const live = playFull(s, match, 5);
+    const chances = live.events.filter((e) => e.type === "chance");
+    expect(chances.length).toBeGreaterThan(0);
+    for (const c of chances) {
+      expect(["h", "a"]).toContain(c.club);
+      expect(s.clubs[c.club].squad).toContain(c.player);
+    }
+  });
+
+  // In einer echten Welt: Die Testkader aus makeState sind alle gleich stark, ihre
+  // Torwahrscheinlichkeit liegt fast immer auf demselben Wert und taugt nicht für die Schwelle.
+  it("im Schnitt 2–3 Großchancen ohne Tor pro Spiel", () => {
+    let big = 0;
+    let n = 0;
+    for (const seed of [1, 2, 3, 4, 5]) {
+      const world = generateWorld(seed);
+      const r = startNewGame(world, [{ name: "X", clubId: Object.keys(world.clubs)[0] }]);
+      if (!r.ok) throw new Error(r.error);
+      let st = r.state;
+      for (let md = 0; md < 6; md++) {
+        st = prepareMatchday(st).state;
+        const first = playHalf(st, kickOff(st), 1);
+        const second = playHalf(first.state, first.lives, 2);
+        st = finishMatchday(second.state, second.lives);
+        for (const l of second.lives) {
+          n++;
+          big += l.events.filter((e) => e.type === "chance" && e.big).length;
+        }
+      }
+    }
+    expect(big / n).toBeGreaterThanOrEqual(2);
+    expect(big / n).toBeLessThanOrEqual(3);
   });
 });

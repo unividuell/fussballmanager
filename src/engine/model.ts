@@ -225,6 +225,8 @@ export interface Score {
 
 export type MatchEvent =
   | { minute: number; type: "goal"; club: ClubId; player: PlayerId }
+  /** Chance ohne Tor; `big` = Großchance, die im Live-Bildschirm eine Torszene bekommt. */
+  | { minute: number; type: "chance"; club: ClubId; player: PlayerId; big: boolean }
   | { minute: number; type: "yellow"; club: ClubId; player: PlayerId }
   | { minute: number; type: "red"; club: ClubId; player: PlayerId; secondYellow: boolean }
   | { minute: number; type: "injury"; club: ClubId; player: PlayerId }
