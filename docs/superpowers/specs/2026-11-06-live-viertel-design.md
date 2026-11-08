@@ -39,7 +39,7 @@ Bisher läuft ein Spieltag als Konferenz ab: eine Anzeigetafel mit Ergebnissen, 
 
 Die Konferenz entfällt ersatzlos (Abschnitt 10). Das gilt auch für die Relegation: Hin- und Rückspiel laufen über den Live-Bildschirm.
 
-Ein nötiges Elfmeterschießen bleibt ein einzelnes Ereignis ohne Szene. Sein Ergebnis steht nach dem Abpfiff im Viertel und in der Ergebnisübersicht. *(Meine Entscheidung.)*
+Ein nötiges Elfmeterschießen bleibt ein einzelnes Ereignis ohne Szene. Sein Ergebnis steht in der Ergebnisübersicht, nicht im Viertel: Die Engine würfelt es erst nach dem Live-Bildschirm aus, und es vorzuziehen würde die Zufallsfolge und damit die Ergebnisse ändern (Abschnitt 2, Anti-Ziele). *(Meine Entscheidung, geändert am 2026-11-08.)*
 
 ## 4. Der Live-Bildschirm
 

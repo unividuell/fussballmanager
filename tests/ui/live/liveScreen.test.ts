@@ -21,11 +21,12 @@ beforeAll(() => {
 
 const world = generateWorld(3);
 
-async function atLive(clubs: ClubId[] = [Object.keys(world.clubs)[0]], sound?: Sound, scenes = true) {
+async function atLive(clubs: ClubId[] = [Object.keys(world.clubs)[0]], sound?: Sound, scenes = true, prepare?: (c: GameController) => void) {
   const controller = new GameController(sound ? { sound } : {});
   controller.setOptions({ scenes });
   controller.startGame(world, clubs.map((clubId, i) => ({ name: `M${i}`, clubId })));
   for (const m of controller.snapshot!.state.managers) await controller.endTurn(m.id);
+  prepare?.(controller);
   render(App, { controller });
   await tick();
   return controller;
@@ -36,6 +37,12 @@ function advance(ms: number, step = 100): void {
     vi.advanceTimersByTime(step);
     flushSync();
   }
+}
+
+/** Ersetzt die Ereignisse des Manager-Spiels: nur ein Heimtor in Minute 2, damit die Zeiten feststehen. */
+function onlyGoalAt2(c: GameController): void {
+  const l = managedLives(c)[0];
+  l.events = [{ minute: 2, type: "goal", club: l.home.club, player: l.home.played[9] }];
 }
 
 function managedLives(c: GameController): LiveMatch[] {
@@ -129,18 +136,33 @@ describe("Live-Bildschirm", () => {
     expect(document.querySelectorAll(".live-table")).toHaveLength(1);
   });
 
-  it("Torton erst bei der Auflösung der Szene", async () => {
+  it("Torton und Spielstand erst bei der Auflösung der Szene", async () => {
     const play = vi.fn();
-    const c = await atLive(undefined, { play });
-    const l = managedLives(c)[0];
-    const first = l.events.find((e) => e.type === "goal");
-    if (!first) return; // Halbzeit ohne Tor im Manager-Spiel: nichts zu prüfen
-    const busyBefore = l.events.some((e) => e.minute < first.minute && (e.type === "goal" || (e.type === "chance" && e.big)));
-    if (busyBefore) return; // eine frühere Szene verschiebt die Zeiten
-    advance(first.minute * 500);
+    await atLive(undefined, { play }, true, onlyGoalAt2);
+    advance(1000 + 100);                       // Minute 2 erreicht, Szene läuft
+    expect(document.querySelector(".scene")).toBeTruthy();
+    advance(SCENE_MS.reveal - 300);
     expect(play).not.toHaveBeenCalledWith("goal");
-    advance(SCENE_MS.reveal + 100);
+    advance(400);
     expect(play).toHaveBeenCalledWith("goal");
+    advance(SCENE_MS.end);
+    expect(screen.getByText("1:0")).toBeTruthy();
+  });
+
+  it("nach einer Tor-Szene blinkt der Spielstand", async () => {
+    await atLive(undefined, undefined, true, onlyGoalAt2);
+    advance(1000 + SCENE_MS.end + 100);
+    expect(document.querySelector(".scene")).toBeNull();
+    expect(document.querySelector(".score.flash")).toBeTruthy();
+  });
+
+  it("Leertaste mitten in der Tor-Szene: Torton und Spielstand sofort", async () => {
+    const play = vi.fn();
+    await atLive(undefined, { play }, true, onlyGoalAt2);
+    advance(1000 + 300);
+    await fireEvent.keyDown(window, { key: " " });
+    expect(play).toHaveBeenCalledWith("goal");
+    expect(screen.getByText("1:0")).toBeTruthy();
   });
 
   it("Option „Torszenen“ aus: keine Szene, Uhr läuft durch", async () => {

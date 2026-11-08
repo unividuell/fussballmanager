@@ -7,6 +7,7 @@
   import MatchPanel from "../live/MatchPanel.svelte";
   import { Playback, type ActiveScene } from "../live/playback";
   import { loadSceneImages } from "../live/sceneRender";
+  import { SCENE_MS } from "../live/scenes";
   import { TEMPOS, halfBounds, whistleDue } from "../logic/ticker";
 
   let { controller, half }: { controller: GameController; half: 1 | 2 } = $props();
@@ -21,7 +22,8 @@
   const bounds = untrack(() => halfBounds(half));
   const managed = managedMatchIds(gs, lives);
   const layout = liveLayout(gs, lives);
-  const playback = new Playback({ lives, managed, ...bounds, scenes: untrack(() => controller.options.scenes) });
+  const scenesOn = untrack(() => controller.options.scenes);
+  const playback = new Playback({ lives, managed, ...bounds, scenes: scenesOn });
   void loadSceneImages();
 
   let minute = $state(bounds.from);
@@ -33,14 +35,33 @@
   const tempo = $derived(controller.options.tempo);
   const now = () => Date.now();
 
-  function onRevealed(events: MatchEvent[], withEffects: boolean): void {
-    if (!withEffects) return;
+  const timers = new Set<ReturnType<typeof setTimeout>>();
+  function later(fn: () => void, ms: number): void {
+    const t = setTimeout(() => {
+      timers.delete(t);
+      fn();
+    }, ms);
+    timers.add(t);
+  }
+  $effect(() => () => {
+    for (const t of timers) clearTimeout(t);
+    timers.clear();
+  });
+
+  /**
+   * Torton und Blinken für aufgelöste Tore der Manager-Spiele. Kam das Tor aus einer Szene, blinkt
+   * der Spielstand erst, wenn die Szene vorbei ist – vorher verdeckt sie die Kopfzeile.
+   */
+  // Mit Torszenen kommt jedes Tor eines Manager-Spiels aus einer Szene (außer beim Überspringen).
+  function onRevealed(events: MatchEvent[], fromScene: boolean): void {
     const goals = events.filter((e) => e.type === "goal" && lives.some((l) => managed.includes(l.matchId) && (l.home.club === e.club || l.away.club === e.club)));
     if (goals.length === 0) return;
     controller.playSound("goal");
     const ids = lives.filter((l) => goals.some((g) => g.club === l.home.club || g.club === l.away.club)).map((l) => l.matchId);
-    flashing = [...flashing, ...ids];
-    setTimeout(() => (flashing = flashing.filter((id) => !ids.includes(id))), FLASH_MS);
+    later(() => {
+      flashing = [...flashing, ...ids];
+      later(() => (flashing = flashing.filter((id) => !ids.includes(id))), FLASH_MS);
+    }, fromScene ? SCENE_MS.end - SCENE_MS.reveal : 0);
   }
 
   function sync(): void {
@@ -51,7 +72,7 @@
 
   function stepClock(): void {
     const from = playback.minute;
-    onRevealed(playback.step(now()), true);
+    onRevealed(playback.step(now()), scenesOn);
     if (whistleDue(from, playback.minute, bounds.to)) controller.playSound("whistle");
     sync();
   }
@@ -59,7 +80,7 @@
   function skip(): void {
     if (playback.finished) return;
     const from = playback.minute;
-    playback.skipToEnd();
+    onRevealed(playback.skipToEnd(), false);
     if (whistleDue(from, playback.minute, bounds.to)) controller.playSound("whistle");
     sync();
   }
@@ -76,7 +97,7 @@
   $effect(() => {
     if (!sceneRunning) return;
     const timer = setInterval(() => {
-      onRevealed(playback.update(now()), true);
+      onRevealed(playback.update(now()), scenesOn);
       sync();
     }, FRAME_MS);
     return () => clearInterval(timer);
