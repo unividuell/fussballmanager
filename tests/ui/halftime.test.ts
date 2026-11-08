@@ -43,7 +43,7 @@ describe("Halbzeit", () => {
     expect(screen.getByText(`Wechsel übrig: ${5 - side().subsUsed - 1}`)).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Fertig (Enter)" }));
     await tick();
-    expect(controller.view).toEqual({ kind: "conference", half: 2 });
+    expect(controller.view).toEqual({ kind: "live", half: 2 });
     expect(side().played).toContain(inId);
   });
 
@@ -71,7 +71,7 @@ describe("Halbzeit", () => {
     expect(screen.getByText("Keine Wechsel mehr übrig.")).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Fertig (Enter)" }));
     await tick();
-    expect(controller.view.kind).toBe("conference");
+    expect(controller.view.kind).toBe("live");
   });
 
   it("im Hot-Seat kommt danach der zweite Manager mit leerem Entwurf", async () => {

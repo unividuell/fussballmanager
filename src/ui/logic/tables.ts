@@ -1,6 +1,6 @@
 import { matchesOfRound } from "../../engine/competition/schedule";
 import { computeStandings, type StandingRow } from "../../engine/competition/standings";
-import { COMP, type ClubId, type CompetitionId, type GameState } from "../../engine/model";
+import { COMP, type ClubId, type CompetitionId, type GameState, type MatchId, type Score } from "../../engine/model";
 import { leagueOf } from "../../engine/season";
 
 export type Zone = "champion" | "promotion" | "playoff" | "relegation" | null;
@@ -42,9 +42,15 @@ export function managerName(state: GameState, clubId: ClubId): string | null {
 }
 
 export function tableView(state: GameState, competitionId: CompetitionId): TableRowView[] {
+  return liveTableView(state, competitionId, {});
+}
+
+/** Tabelle mit den laufenden Spielständen der Live-Spiele, als wären sie schon beendet. */
+export function liveTableView(state: GameState, competitionId: CompetitionId, scores: Record<MatchId, Score>): TableRowView[] {
   const comp = state.competitions[competitionId];
   if (!comp) return [];
-  return computeStandings(comp).map((row, i) => ({
+  const live = { ...comp, matches: comp.matches.map((m) => (m.id in scores ? { ...m, result: scores[m.id] } : m)) };
+  return computeStandings(live).map((row, i) => ({
     ...row,
     rank: i + 1,
     name: state.clubs[row.club].name,

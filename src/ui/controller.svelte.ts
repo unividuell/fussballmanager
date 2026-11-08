@@ -28,7 +28,7 @@ export type TransferTab = "market" | "mine" | "offers";
 export type View =
   | { kind: StartScreen }
   | { kind: TurnScreen; managerId: ManagerId }
-  | { kind: "conference"; half: 1 | 2 }
+  | { kind: "live"; half: 1 | 2 }
   | { kind: "halftime"; managerId: ManagerId }
   | { kind: "results" }
   | { kind: "resultsTables" }
@@ -272,9 +272,9 @@ export class GameController {
       case "managerTurns":
         return { kind: this.screen, managerId: p.pending[0] };
       case "firstHalf":
-        return { kind: "conference", half: 1 };
+        return { kind: "live", half: 1 };
       case "secondHalf":
-        return { kind: "conference", half: 2 };
+        return { kind: "live", half: 2 };
       case "halftime":
         return { kind: "halftime", managerId: p.pending[0] };
       case "results":

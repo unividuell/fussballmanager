@@ -35,6 +35,23 @@ describe("Ergebnisse: Ereignisse", () => {
     else expect(document.body.textContent).not.toContain("EREIGNISSE");
   });
 
+  it("Chancen ohne Tor erscheinen nicht in der Ereignisliste", async () => {
+    const controller = new GameController();
+    const world = generateWorld(3);
+    const mgrClub = Object.keys(world.clubs)[0];
+    controller.startGame(world, [{ name: "Anna", clubId: mgrClub }]);
+    const id = controller.snapshot!.state.managers[0].id;
+    await controller.endTurn(id);
+    controller.advance();
+    await controller.endTurn(id);
+    controller.advance();
+    const live = controller.snapshot!.lives.find((l) => l.home.club === mgrClub || l.away.club === mgrClub)!;
+    live.events.push({ minute: 12, type: "chance", club: mgrClub, player: controller.snapshot!.state.clubs[mgrClub].squad[0], big: true });
+    render(App, { controller });
+    await tick();
+    expect(screen.queryByText(/Chance:/)).toBeNull();
+  });
+
   it("viele Ereignisse: die Tafel ist höhenbegrenzt, „Tabelle“ und „Weiter“ bleiben da", async () => {
     const controller = new GameController();
     const world = generateWorld(3);

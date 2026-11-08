@@ -6,9 +6,11 @@ export interface Options {
   /** Index in TEMPOS */
   tempo: number;
   sound: boolean;
+  /** Torszenen im Live-Bildschirm */
+  scenes: boolean;
 }
 
-export const DEFAULT_OPTIONS: Options = { scanlines: false, tempo: DEFAULT_TEMPO, sound: true };
+export const DEFAULT_OPTIONS: Options = { scanlines: false, tempo: DEFAULT_TEMPO, sound: true, scenes: true };
 export const OPTIONS_KEY = "fussballmanager.optionen";
 export const TEMPO_LABELS = ["langsam", "normal", "schnell"] as const;
 
@@ -28,6 +30,7 @@ export function loadOptions(prefs: PrefsStorage | null): Options {
     scanlines: typeof o.scanlines === "boolean" ? o.scanlines : DEFAULT_OPTIONS.scanlines,
     tempo: Number.isInteger(tempo) && (tempo as number) >= 0 && (tempo as number) < TEMPOS.length ? (tempo as number) : DEFAULT_OPTIONS.tempo,
     sound: typeof o.sound === "boolean" ? o.sound : DEFAULT_OPTIONS.sound,
+    scenes: typeof o.scenes === "boolean" ? o.scenes : DEFAULT_OPTIONS.scenes,
   };
 }
 

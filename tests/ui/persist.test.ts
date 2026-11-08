@@ -68,10 +68,10 @@ describe("Controller: Speichern und Laden", () => {
     expect(c.snapshot!.state.clubs[clubId].finance.ticketPrice).toBe(price);
   });
 
-  it("speichert nicht während der Konferenz", async () => {
+  it("speichert nicht während des Live-Spiels", async () => {
     const { c } = setup(["Anna"]);
     await c.endTurn(c.snapshot!.state.managers[0].id);
-    expect(c.view.kind).toBe("conference");
+    expect(c.view.kind).toBe("live");
     expect(await c.saveTo("slot1")).toBe(false);
     expect(c.message).toBe(SAVE_ONLY_BEFORE);
   });

@@ -28,6 +28,8 @@ export function eventText(state: GameState, e: MatchEvent): string {
   switch (e.type) {
     case "goal":
       return `${e.minute}' TOR! ${name(e.player)}`;
+    case "chance":
+      return `${e.minute}' Chance: ${name(e.player)}`;
     case "yellow":
       return `${e.minute}' Gelb: ${name(e.player)}`;
     case "red":

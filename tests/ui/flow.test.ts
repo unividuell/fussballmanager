@@ -34,7 +34,7 @@ describe("kompletter Ablauf über die Oberfläche", () => {
     await key("Enter");
     await key("Enter");
 
-    expect(controller.view).toEqual({ kind: "conference", half: 1 });
+    expect(controller.view).toEqual({ kind: "live", half: 1 });
     await key(" ");
     await key("Enter");
     expect(screen.getByText("HALBZEIT · Anna")).toBeTruthy();
@@ -42,7 +42,7 @@ describe("kompletter Ablauf über die Oberfläche", () => {
     expect(screen.getByText("HALBZEIT · Ben")).toBeTruthy();
     await key("Enter");
 
-    expect(controller.view).toEqual({ kind: "conference", half: 2 });
+    expect(controller.view).toEqual({ kind: "live", half: 2 });
     await key(" ");
     await key("Enter");
 

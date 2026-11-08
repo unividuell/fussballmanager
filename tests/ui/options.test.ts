@@ -29,24 +29,28 @@ const broken: PrefsStorage = {
 };
 
 describe("Optionen laden und speichern", () => {
-  it("Standard: Scanlines aus, normales Tempo, Ton an", () => {
-    expect(DEFAULT_OPTIONS).toEqual({ scanlines: false, tempo: 1, sound: true });
+  it("Standard: Scanlines aus, normales Tempo, Ton an, Torszenen an", () => {
+    expect(DEFAULT_OPTIONS).toEqual({ scanlines: false, tempo: 1, sound: true, scenes: true });
     expect(loadOptions(null)).toEqual(DEFAULT_OPTIONS);
     expect(loadOptions(memory())).toEqual(DEFAULT_OPTIONS);
   });
 
   it("liest gespeicherte Werte und ersetzt ungültige durch den Standard", () => {
-    const prefs = memory({ [OPTIONS_KEY]: JSON.stringify({ scanlines: true, tempo: 7, sound: "ja" }) });
-    expect(loadOptions(prefs)).toEqual({ scanlines: true, tempo: 1, sound: true });
+    const prefs = memory({ [OPTIONS_KEY]: JSON.stringify({ scanlines: true, tempo: 7, sound: "ja", scenes: false }) });
+    expect(loadOptions(prefs)).toEqual({ scanlines: true, tempo: 1, sound: true, scenes: false });
     expect(loadOptions(memory({ [OPTIONS_KEY]: "{kaputt" }))).toEqual(DEFAULT_OPTIONS);
   });
 
   it("speichert als JSON und übersteht einen gesperrten Speicher", () => {
     const prefs = memory();
-    saveOptions(prefs, { scanlines: true, tempo: 2, sound: false });
-    expect(loadOptions(prefs)).toEqual({ scanlines: true, tempo: 2, sound: false });
+    saveOptions(prefs, { scanlines: true, tempo: 2, sound: false, scenes: true });
+    expect(loadOptions(prefs)).toEqual({ scanlines: true, tempo: 2, sound: false, scenes: true });
     expect(() => saveOptions(broken, DEFAULT_OPTIONS)).not.toThrow();
     expect(loadOptions(broken)).toEqual(DEFAULT_OPTIONS);
+  });
+
+  it("lädt fehlendes `scenes` (alte Optionen) als an", () => {
+    expect(loadOptions(memory({ [OPTIONS_KEY]: JSON.stringify({ tempo: 1 }) })).scenes).toBe(true);
   });
 
   it("der Controller merkt sich Änderungen", () => {
@@ -87,7 +91,7 @@ describe("Optionen-Bildschirm", () => {
     expect(c.view.kind).toBe("menu");
   });
 
-  it("die Konferenz startet im eingestellten Tempo und merkt sich + und −", async () => {
+  it("der Live-Bildschirm startet im eingestellten Tempo und merkt sich + und −", async () => {
     const c = new GameController({ prefs: memory() });
     c.setOptions({ tempo: 0 });
     const world = generateWorld(3);

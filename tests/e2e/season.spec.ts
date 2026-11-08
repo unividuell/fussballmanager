@@ -8,7 +8,7 @@ test("zwei Manager: ein Spieltag mit Halbzeit, dann Saisonende im Schnellvorlauf
     await page.keyboard.press("Enter");
     await page.keyboard.press("8");
   }
-  await expect(page.getByText(/KONFERENZ/)).toBeVisible();
+  await expect(page.getByText(/1\. Halbzeit · /)).toBeVisible();
   await page.keyboard.press(" ");
   await expect(page.getByText("HALBZEIT", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Weiter (Enter)" }).click();

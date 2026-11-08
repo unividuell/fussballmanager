@@ -28,6 +28,8 @@ export const SIM = {
   redPerMin: 0.0009,
   injuryPerMin: 0.00167,
   fitnessDrain: 0.28,
+  /** Ab dieser Torwahrscheinlichkeit gilt eine Chance ohne Tor als Großchance (Ziel: 2–3 pro Spiel). */
+  bigChance: 0.31,
 };
 const HARDNESS_FACTOR: Record<Hardness, number> = { fair: 0.7, normal: 1, hard: 1.5 };
 const SHOOT_WEIGHT: Record<Position, number> = { GK: 0, DF: 0.5, MF: 2, FW: 5 };
@@ -58,6 +60,8 @@ export interface LiveMatch {
   away: LiveSide;
   events: MatchEvent[];
   minute: number;
+  /** attacks[m - 1] = Seite, die in Minute m angegriffen hat. Nur für die Live-Anzeige. */
+  attacks: Side[];
 }
 
 function liveSide(state: GameState, clubId: ClubId): LiveSide {
@@ -90,6 +94,7 @@ export function startMatch(state: GameState, match: Match): LiveMatch {
     away: liveSide(state, match.away),
     events: [],
     minute: 0,
+    attacks: [],
   };
 }
 
@@ -183,6 +188,8 @@ function attack(state: GameState, live: LiveMatch, att: LiveSide, attS: TeamStre
   if (rng.chance(pGoal)) {
     att.goals++;
     live.events.push({ minute, type: "goal", club: att.club, player: shooter.id });
+  } else {
+    live.events.push({ minute, type: "chance", club: att.club, player: shooter.id, big: pGoal >= SIM.bigChance });
   }
 }
 
@@ -209,7 +216,9 @@ function minuteStep(state: GameState, live: LiveMatch, minute: number, rng: Rng)
   drainFitness(live.away);
   const hs = strengthOf(state, live.home, true);
   const as = strengthOf(state, live.away, false);
-  if (rng.chance(hs.midfield / (hs.midfield + as.midfield))) attack(state, live, live.home, hs, as, true, minute, rng);
+  const homeAttacks = rng.chance(hs.midfield / (hs.midfield + as.midfield));
+  live.attacks[minute - 1] = homeAttacks ? "home" : "away";
+  if (homeAttacks) attack(state, live, live.home, hs, as, true, minute, rng);
   else attack(state, live, live.away, as, hs, false, minute, rng);
   discipline(state, live, "home", minute, rng);
   discipline(state, live, "away", minute, rng);

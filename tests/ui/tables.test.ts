@@ -78,3 +78,17 @@ describe("tableView und fixturesView", () => {
     expect(managerName(s, aiClub.id)).toBeNull();
   });
 });
+
+describe("liveTableView", () => {
+  it("rechnet laufende Spielstände mit ein", async () => {
+    const { kickOff } = await import("../../src/engine/season");
+    const { liveTableView } = await import("../../src/ui/logic/tables");
+    const state = newTestGame();
+    const live = kickOff(state).find((l) => l.competitionId === COMP.first)!;
+    const before = tableView(state, COMP.first).find((r) => r.club === live.home.club)!.points;
+    const rows = liveTableView(state, COMP.first, { [live.matchId]: { home: 1, away: 0 } });
+    expect(rows.find((r) => r.club === live.home.club)!.points).toBe(before + 3);
+    expect(rows.find((r) => r.club === live.away.club)!.played).toBe(1);
+    expect(tableView(state, COMP.first).find((r) => r.club === live.home.club)!.points).toBe(before);
+  });
+});
