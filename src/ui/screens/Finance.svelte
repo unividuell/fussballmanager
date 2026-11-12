@@ -1,6 +1,6 @@
 <script lang="ts">
   import { overdraftLimit } from "../../engine/economy/money";
-  import { STADIUM, optimalPrice } from "../../engine/economy/stadium";
+  import { STADIUM } from "../../engine/economy/stadium";
   import { formatEuro } from "../../engine/economy/util";
   import { clubOf, type ManagerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
@@ -61,7 +61,7 @@
     </Panel>
     <div class="side">
       <Panel title="EINTRITT">
-        <p>Preis: {formatEuro(f.ticketPrice)} · Richtwert: {formatEuro(optimalPrice(club.reputation))}</p>
+        <p>Preis: {formatEuro(f.ticketPrice)}</p>
         <p>Zuletzt {f.lastAttendance} von {STADIUM[f.stadiumStage].capacity} Plätzen</p>
         <div class="row">
           <input aria-label="Eintrittspreis" inputmode="numeric" size="4" bind:value={priceText} />

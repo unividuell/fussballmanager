@@ -145,7 +145,7 @@ export function expectedIncome(state: GameState, clubId: ClubId): number {
   const club = state.clubs[clubId];
   const league = clubLeague(state, clubId) ?? COMP.second;
   const sponsor = club.finance.sponsor?.perMatchday ?? club.reputation * 1000 * (league === COMP.second ? 0.6 : 1);
-  const tickets = (STADIUM[club.finance.stadiumStage].capacity * 0.6 * club.finance.ticketPrice) / 2;
+  const tickets = (STADIUM[club.finance.stadiumStage].capacity * 0.85 * club.finance.ticketPrice) / 2;
   return TV_PER_MATCHDAY[league] + sponsor + tickets;
 }
 

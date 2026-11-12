@@ -1,6 +1,6 @@
 import { START_CONFIDENCE } from "./economy/board";
 import { salaryFor, startBalance } from "./economy/money";
-import { initialStage, optimalPrice } from "./economy/stadium";
+import { initialStage, startPrice } from "./economy/stadium";
 import { autoLineup } from "./lineup";
 import {
   newId,
@@ -109,7 +109,7 @@ export function generateWorld(seed: number): GameState {
       tactics: { formation: "4-4-2", style: "normal", hardness: "normal" },
       finance: {
         balance: startBalance(reputation),
-        ticketPrice: optimalPrice(reputation),
+        ticketPrice: startPrice(reputation),
         stadiumStage: initialStage(reputation),
         building: null,
         sponsor: null,

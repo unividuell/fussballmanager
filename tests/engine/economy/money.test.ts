@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canAfford, book, isOverLimit, marketValue, overdraftLimit, salaryFor, startBalance, wageBill } from "../../../src/engine/economy/money";
-import { STADIUM, initialStage, optimalPrice, priceFactor, referencePrice } from "../../../src/engine/economy/stadium";
+import { STADIUM, initialStage, priceFactor, referencePrice, startPrice } from "../../../src/engine/economy/stadium";
 import { clubLeague, formatEuro, isLeagueMatchday, leagueRank, roundTo } from "../../../src/engine/economy/util";
 import { generateWorld } from "../../../src/engine/generator";
 import { COMP } from "../../../src/engine/model";
@@ -83,13 +83,14 @@ describe("stadium", () => {
     for (let i = 1; i < STADIUM.length; i++) expect(STADIUM[i].capacity).toBeGreaterThan(STADIUM[i - 1].capacity);
   });
 
-  it("Startstufe und optimaler Preis nach Reputation", () => {
-    expect(initialStage(90)).toBe(4);
+  it("Startstufe und Startpreis nach Reputation; die höchste Stufe muss man ausbauen", () => {
+    expect(initialStage(90)).toBe(3);
     expect(initialStage(50)).toBe(2);
     expect(initialStage(10)).toBe(0);
+    expect(initialStage(100)).toBe(4);
     expect(referencePrice(30)).toBeCloseTo(14.5);
-    expect(optimalPrice(30)).toBe(22);
-    expect(optimalPrice(90)).toBe(35);
+    expect(startPrice(30)).toBe(22);
+    expect(startPrice(90)).toBe(35);
   });
 
   it("Preisfaktor sinkt mit dem Preis und bleibt zwischen 0 und 1,5", () => {

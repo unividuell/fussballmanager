@@ -181,7 +181,7 @@ describe("Saisonwechsel", () => {
     expect(s.clubs[l1[1]].finance.ledger.some((e) => e.category === "bonus")).toBe(false);
   });
 
-  it("Saisonstart: Kassenbuch leer, neue Angebote, KI mit optimalem Preis", () => {
+  it("Saisonstart: Kassenbuch leer, neue Angebote, alle behalten ihren Preis", () => {
     const s = game();
     const any = Object.values(s.clubs);
     for (const c of any) {
@@ -194,8 +194,7 @@ describe("Saisonwechsel", () => {
       expect(c.finance.ledger).toEqual([]);
       expect(c.finance.sponsor).toBeNull();
       expect(c.finance.sponsorOffers).toHaveLength(3);
-      if (c.managerId === null) expect(c.finance.ticketPrice).not.toBe(99);
-      else expect(c.finance.ticketPrice).toBe(99);
+      expect(c.finance.ticketPrice).toBe(99);
     }
   });
 });

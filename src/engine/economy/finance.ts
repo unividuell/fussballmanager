@@ -3,7 +3,7 @@ import { COMP, newId, type ClubId, type CompetitionId, type GameState, type Spon
 import type { Rng } from "../rng";
 import { postToClub } from "./messages";
 import { book, isOverLimit, wageBill } from "./money";
-import { STADIUM, attendance, optimalPrice } from "./stadium";
+import { STADIUM, attendance } from "./stadium";
 import { clubLeague, formatEuro, isLeagueMatchday, roundTo } from "./util";
 
 export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 100_000, [COMP.second]: 30_000 };
@@ -95,7 +95,6 @@ export function startSeasonFinances(state: GameState, rng: Rng): void {
     f.ledger = [];
     f.sponsor = null;
     f.sponsorOffers = sponsorOffers(state, club.id, rng);
-    if (club.managerId === null) f.ticketPrice = optimalPrice(club.reputation);
-    else postToClub(state, club.id, "Neue Sponsorangebote liegen vor.", { type: "sponsor", id: f.sponsorOffers[0].id });
+    if (club.managerId !== null) postToClub(state, club.id, "Neue Sponsorangebote liegen vor.", { type: "sponsor", id: f.sponsorOffers[0].id });
   }
 }
