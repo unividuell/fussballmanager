@@ -77,7 +77,7 @@ function clubName(rng: Rng, town: string): string {
 export function generateWorld(seed: number): GameState {
   const rng = Rng.fromSeed(seed);
   const state: GameState = {
-    version: 2,
+    version: 3,
     rngState: rng.state(),
     season: 1,
     calendar: [],
@@ -118,7 +118,7 @@ export function generateWorld(seed: number): GameState {
         overdraftStreak: 0,
         lastAttendance: 0,
       },
-      board: { expectation: "mid", confidence: START_CONFIDENCE, warned: false },
+      board: { expectation: "mid", confidence: START_CONFIDENCE, warned: false, trend: [], seasons: [] },
       training: { intensity: "normal", focus: "technique", individual: [] },
       tacticsBonus: 1,
     };
