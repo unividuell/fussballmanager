@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   START_CONFIDENCE,
+  TREND_LENGTH,
   assignExpectations,
+  confidenceDelta,
   boardChecks,
   expectationLabel,
   expectationMet,
@@ -10,7 +12,7 @@ import {
 } from "../../../src/engine/economy/board";
 import { generateWorld } from "../../../src/engine/generator";
 import { COMP, type GameState } from "../../../src/engine/model";
-import { kickOff, startNewGame } from "../../../src/engine/season";
+import { finishSeason, isSeasonOver, kickOff, playMatchdayAuto, startNewGame } from "../../../src/engine/season";
 
 function game(index = 3): GameState {
   const world = generateWorld(51);
@@ -128,4 +130,70 @@ describe("seasonReview – nur Rückmeldung", () => {
   it("Ziel verfehlt: −10 und Enttäuschung", () => review(15, 40, "Der Vorstand ist enttäuscht: Saisonziel verfehlt."));
   it("Ziel deutlich verfehlt: −15, Nachricht, Manager bleibt beim Verein", () =>
     review(18, 35, "Der Vorstand ist sehr enttäuscht: Saisonziel deutlich verfehlt."));
+});
+
+describe("Vertrauen ausgewogen", () => {
+  it("Gewinn und Verlust sind symmetrisch", () => {
+    const good = confidenceDelta(12, 8, 1, 0);
+    const bad = confidenceDelta(12, 16, -1, 0);
+    expect(good).toBeGreaterThan(0);
+    expect(Math.abs(good + bad)).toBeLessThan(0.01);
+  });
+
+  it("knapp neben dem Ziel kostet wenig", () => {
+    const d = confidenceDelta(12, 13, 0, 0);
+    expect(d).toBeGreaterThanOrEqual(-0.5);
+    expect(d).toBeLessThanOrEqual(0);
+  });
+
+  it("eine halbe Saison deutlich unter dem Ziel: unter 30, aber nicht 0", () => {
+    let c = 60;
+    for (let i = 0; i < 17; i++) c = Math.max(0, Math.min(100, c + confidenceDelta(12, 18, i % 2 === 0 ? -1 : 0, 0)));
+    expect(c).toBeLessThan(30);
+    expect(c).toBeGreaterThan(0);
+  });
+
+  it("Verlauf hält die letzten 5 Werte nur für Manager-Vereine", () => {
+    const s = game();
+    for (let i = 0; i < 7; i++) {
+      s.calendarIndex = i;
+      updateConfidence(s, []);
+    }
+    expect(TREND_LENGTH).toBe(5);
+    expect(own(s).board.trend).toHaveLength(5);
+    expect(own(s).board.trend.at(-1)).toBe(own(s).board.confidence);
+    const ai = Object.values(s.clubs).find((c) => c.managerId === null)!;
+    expect(ai.board.trend).toEqual([]);
+  });
+
+  it("Relegationstage ändern weder Vertrauen noch Verlauf", () => {
+    const s = game();
+    s.calendarIndex = 34;
+    own(s).finance.overdraftStreak = 3;
+    const before = own(s).board.confidence;
+    updateConfidence(s, []);
+    expect(own(s).board.confidence).toBe(before);
+    expect(own(s).board.trend).toEqual([]);
+  });
+
+  it("Saisonhistorie mit alter Liga und altem Ziel", { timeout: 120_000 }, () => {
+    const world = generateWorld(51);
+    let s = startNewGame(world, [{ name: "Anna", clubId: Object.keys(world.clubs)[0] }]);
+    if (!s.ok) throw new Error(s.error);
+    let st = s.state;
+    while (!isSeasonOver(st)) st = playMatchdayAuto(st);
+    const club = st.clubs[st.managers[0].clubId];
+    const league = st.competitions[COMP.first].clubs.includes(club.id) ? COMP.first : COMP.second;
+    const expectation = club.board.expectation;
+    const fin = finishSeason(st);
+    const rec = fin.state.clubs[club.id].board.seasons;
+    expect(rec).toHaveLength(1);
+    expect(rec[0].season).toBe(1);
+    expect(rec[0].competitionId).toBe(league);
+    expect(rec[0].expectation).toBe(expectation);
+    expect(rec[0].rank).toBeGreaterThanOrEqual(1);
+    expect(rec[0].met).toBe(expectationMet(st, club.id, rec[0].rank));
+    const ai = Object.values(fin.state.clubs).find((c) => c.managerId === null)!;
+    expect(ai.board.seasons).toEqual([]);
+  });
 });
