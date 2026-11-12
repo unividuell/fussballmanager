@@ -1,5 +1,6 @@
 import { LEAGUE_MATCHDAYS, type ClubId, type GameState, type Player, type PlayerId } from "../model";
 import { postToClub } from "./messages";
+import { wageRoom } from "./finance";
 import { book, salaryFor } from "./money";
 import { removeFromClub } from "./roster";
 import { roundTo } from "./util";
@@ -128,7 +129,10 @@ export function aiRenewals(state: GameState): void {
       const p = state.players[pid];
       if (!p.contract || p.contract.endsSeason > state.season) continue;
       if (p.age > 31 || p.strength < avg - 5) continue;
-      signContract(state, pid, club.id, salaryDemand(state, p, club.id), desiredYears(p));
+      const salary = salaryDemand(state, p, club.id);
+      // nur wer im Minus steht, achtet beim Verlängern aufs Gehaltsbudget; sonst bleibt die Mannschaft zusammen
+      if (club.finance.balance <= 0 && !wageRoom(state, club.id, salary - p.contract.salary)) continue;
+      signContract(state, pid, club.id, salary, desiredYears(p));
     }
   }
 }

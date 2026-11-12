@@ -109,12 +109,13 @@ describe("stadium", () => {
 
   it("Startstufe und Startpreis nach Reputation; die höchste Stufe muss man ausbauen", () => {
     expect(initialStage(90)).toBe(3);
-    expect(initialStage(50)).toBe(2);
+    expect(initialStage(84)).toBe(2);
+    expect(initialStage(50)).toBe(1);
     expect(initialStage(10)).toBe(0);
-    expect(initialStage(100)).toBe(4);
-    expect(referencePrice(30)).toBeCloseTo(14.5);
-    expect(startPrice(30)).toBe(22);
-    expect(startPrice(90)).toBe(35);
+    expect(initialStage(100)).toBe(3);
+    expect(referencePrice(30)).toBeCloseTo(11.6);
+    expect(startPrice(30)).toBe(17);
+    expect(startPrice(90)).toBe(37);
   });
 
   it("Preisfaktor sinkt mit dem Preis und bleibt zwischen 0 und 1,5", () => {

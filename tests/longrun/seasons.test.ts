@@ -45,6 +45,9 @@ describe("Langzeittest: 10 Saisons", () => {
       for (const id of [COMP.first, COMP.second]) {
         for (const m of s.competitions[id].matches) {
           expect(m.result).not.toBeNull();
+          // Der passive Testmanager lässt alle Verträge auslaufen und spielt bald mit Amateuren (bis zu 10 Gegentore
+          // pro Spiel). Seine Spiele verzerren den Schnitt, die Kalibrierung prüfen wir an den übrigen Spielen.
+          if (m.home === start || m.away === start) continue;
           goals += m.result!.home + m.result!.away;
           matches++;
         }

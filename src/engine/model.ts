@@ -103,6 +103,7 @@ export type LedgerCategory =
   | "prizes"
   | "stadium"
   | "severance"
+  | "premiums"
   | "bonus";
 
 export interface LedgerEntry {

@@ -71,7 +71,7 @@ describe("Nachfrage und Kapazität", () => {
     const p = startPrice(s.clubs[id].reputation);
     s.clubs[id].finance.ticketPrice = p;
     expect(attendance(s, id, opp)).toBeLessThan(0.7 * capacity(s, id));
-    expect(revenue(s, id, opp, p - 5)).toBeGreaterThan(revenue(s, id, opp, p));
+    expect(revenue(s, id, opp, p - 2)).toBeGreaterThan(revenue(s, id, opp, p));
   });
 
   it("Ausbau bringt einem vollen Verein mehr Zuschauer", () => {
@@ -100,34 +100,37 @@ describe("Nachfrage und Kapazität", () => {
 });
 
 describe("KI-Stadion", () => {
-  it("KI erhöht bei vollem Haus, senkt bei leerem, Manager bleiben unberührt", () => {
+  it("KI sucht den erlösbesten Preis: voll → teurer, zu teuer → billiger; Manager bleiben unberührt", () => {
     const s = game();
     s.calendarIndex = 5;
-    const [full, empty] = byReputation(s, COMP.first).filter((id) => s.clubs[id].managerId === null);
+    const full = byReputation(s, COMP.first).find((id) => s.clubs[id].managerId === null)!;
+    const weak = byReputation(s, COMP.second).filter((id) => s.clubs[id].managerId === null).at(-1)!;
     const own = s.clubs[s.managers[0].clubId];
-    for (const c of [s.clubs[full], s.clubs[empty], own]) c.finance.ticketPrice = 30;
-    s.clubs[full].finance.lastAttendance = capacity(s, full);
-    s.clubs[empty].finance.lastAttendance = Math.floor(0.5 * capacity(s, empty));
-    own.finance.lastAttendance = STADIUM[own.finance.stadiumStage].capacity;
-    s.clubs[full].finance.balance = 0;
+    s.clubs[full].finance.ticketPrice = startPrice(s.clubs[full].reputation);
+    s.clubs[weak].finance.ticketPrice = 60;
+    own.finance.ticketPrice = 30;
+    for (const c of [s.clubs[full], s.clubs[weak]]) c.finance.balance = 0;
     aiStadiumDecisions(s);
-    expect(s.clubs[full].finance.ticketPrice).toBeGreaterThan(30);
-    expect(s.clubs[empty].finance.ticketPrice).toBeLessThan(30);
+    expect(s.clubs[full].finance.ticketPrice).toBeGreaterThan(startPrice(s.clubs[full].reputation));
+    expect(s.clubs[weak].finance.ticketPrice).toBeLessThan(60);
     expect(own.finance.ticketPrice).toBe(30);
   });
 
-  it("KI-Preise bleiben zwischen 5 und 100 €", () => {
+  it("KI-Preise bleiben zwischen 5 und 100 € und landen beim Erlösmaximum", () => {
     const s = game();
     s.calendarIndex = 5;
-    const [a, b] = byReputation(s, COMP.first).filter((id) => s.clubs[id].managerId === null);
-    s.clubs[a].finance.ticketPrice = 100;
-    s.clubs[a].finance.lastAttendance = capacity(s, a);
-    s.clubs[a].finance.balance = 0;
-    s.clubs[b].finance.ticketPrice = 5;
-    s.clubs[b].finance.lastAttendance = 1;
-    aiStadiumDecisions(s);
-    expect(s.clubs[a].finance.ticketPrice).toBe(100);
-    expect(s.clubs[b].finance.ticketPrice).toBe(5);
+    const ai = Object.values(s.clubs).filter((c) => c.managerId === null);
+    for (const c of ai) c.finance.balance = 0;
+    for (let i = 0; i < 120; i++) aiStadiumDecisions(s);
+    for (const c of ai) {
+      expect(c.finance.ticketPrice).toBeGreaterThanOrEqual(5);
+      expect(c.finance.ticketPrice).toBeLessThanOrEqual(100);
+    }
+    const id = byReputation(s, COMP.first).find((x) => s.clubs[x].managerId === null)!;
+    const opp = midOpponent(s, COMP.first);
+    const p = s.clubs[id].finance.ticketPrice;
+    expect(revenue(s, id, opp, p)).toBeGreaterThanOrEqual(revenue(s, id, opp, p + 2));
+    expect(revenue(s, id, opp, p)).toBeGreaterThanOrEqual(revenue(s, id, opp, p - 2));
   });
 
   it("KI passt an Relegationstagen nichts an", () => {

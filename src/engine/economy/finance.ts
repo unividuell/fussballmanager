@@ -2,13 +2,17 @@ import type { LiveMatch } from "../match/simulate";
 import { COMP, newId, type ClubId, type CompetitionId, type GameState, type Sponsor } from "../model";
 import type { Rng } from "../rng";
 import { postToClub } from "./messages";
-import { book, isOverLimit, wageBill } from "./money";
+import { book, isOverLimit, startBalance, wageBill } from "./money";
 import { STADIUM, attendance } from "./stadium";
 import { clubLeague, formatEuro, isLeagueMatchday, roundTo } from "./util";
 
-export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 100_000, [COMP.second]: 30_000 };
+export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 40_000, [COMP.second]: 45_000 };
 export const INTEREST_RATE = 0.01;
-export const PRIZE_POOL: Record<string, number> = { [COMP.first]: 3_000_000, [COMP.second]: 1_000_000 };
+/** Reiche KI-Vereine zahlen Spielerprämien: ab diesem Vielfachen des Startkapitals … */
+export const PREMIUM_FROM = 1.3;
+/** … pro Liga-Spieltag diesen Anteil des Überschusses. So horten KI-Vereine kein Geld. */
+export const PREMIUM_RATE = 0.05;
+export const PRIZE_POOL: Record<string, number> = { [COMP.first]: 6_000_000, [COMP.second]: 1_000_000 };
 
 const SPONSOR_NAMES = [
   "Brauerei Hopfenkrone", "Autohaus Kolbenring", "Stadtwerke Lichtblick", "Bäckerei Goldkorn",
@@ -46,6 +50,7 @@ export function processFinances(state: GameState, lives: LiveMatch[]): void {
     const league = clubLeague(state, club.id);
     if (!league) continue;
     const f = club.finance;
+    const excess = f.balance - PREMIUM_FROM * startBalance(club.reputation);
     if (!f.sponsor && f.sponsorOffers.length > 0) {
       f.sponsor =
         club.managerId === null
@@ -57,6 +62,7 @@ export function processFinances(state: GameState, lives: LiveMatch[]): void {
     if (f.sponsor) book(state, club.id, "sponsor", f.sponsor.perMatchday);
     const wages = wageBill(state, club.id);
     if (wages > 0) book(state, club.id, "salaries", -wages);
+    if (club.managerId === null && excess > 0) book(state, club.id, "premiums", -Math.round(excess * PREMIUM_RATE));
     book(state, club.id, "upkeep", -STADIUM[f.stadiumStage].upkeep);
     if (f.balance < 0) book(state, club.id, "interest", Math.round(f.balance * INTEREST_RATE));
     if (f.building) {
@@ -97,4 +103,22 @@ export function startSeasonFinances(state: GameState, rng: Rng): void {
     f.sponsorOffers = sponsorOffers(state, club.id, rng);
     if (club.managerId !== null) postToClub(state, club.id, "Neue Sponsorangebote liegen vor.", { type: "sponsor", id: f.sponsorOffers[0].id });
   }
+}
+
+/** Höchstens dieser Anteil der erwarteten Einnahmen geht bei der KI in Gehälter. */
+export const WAGE_SHARE = 0.8;
+
+/** Erwartete Einnahmen pro Spieltag: TV, Sponsor und die Hälfte eines Heimspiels. */
+export function expectedIncome(state: GameState, clubId: ClubId): number {
+  const club = state.clubs[clubId];
+  const league = clubLeague(state, clubId) ?? COMP.second;
+  const f = club.finance;
+  const sponsor = f.sponsor?.perMatchday ?? club.reputation * 1000 * (league === COMP.second ? 0.6 : 1);
+  const crowd = f.lastAttendance > 0 ? f.lastAttendance : STADIUM[f.stadiumStage].capacity * 0.85;
+  return TV_PER_MATCHDAY[league] + sponsor + (crowd * f.ticketPrice) / 2;
+}
+
+/** Passt ein zusätzliches Gehalt (pro Spieltag) noch ins Gehaltsbudget der KI? */
+export function wageRoom(state: GameState, clubId: ClubId, extra: number): boolean {
+  return wageBill(state, clubId) + extra <= WAGE_SHARE * expectedIncome(state, clubId);
 }

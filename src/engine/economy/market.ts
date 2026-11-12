@@ -1,11 +1,10 @@
 import { COMP, MAX_SQUAD, newId, type Club, type ClubId, type GameState, type ManagerId, type Player, type Position } from "../model";
 import type { Rng } from "../rng";
 import { desiredYears, salaryDemand, signContract } from "./contracts";
-import { TV_PER_MATCHDAY } from "./finance";
+import { wageRoom } from "./finance";
 import { postMessage } from "./messages";
 import { canAfford, marketValue, wageBill } from "./money";
 import { removeFromClub } from "./roster";
-import { STADIUM } from "./stadium";
 import { askingFee, executeTransfer, isTransferWindow } from "./transfers";
 import { clubLeague, formatEuro, roundTo } from "./util";
 
@@ -18,7 +17,6 @@ const AI_SQUAD_MIN = 22;
 const AI_SQUAD_MAX = 28;
 const EMERGENCY_SQUAD = 18;
 const SELLER_MIN_SQUAD = 22;
-const WAGE_SHARE = 0.8;
 
 export type OfferResponse = "accept" | "reject" | { counter: number };
 
@@ -139,18 +137,6 @@ export function expireOffers(state: GameState): void {
     }
   }
   state.transferOffers = state.transferOffers.filter((o) => o.status === "open");
-}
-
-export function expectedIncome(state: GameState, clubId: ClubId): number {
-  const club = state.clubs[clubId];
-  const league = clubLeague(state, clubId) ?? COMP.second;
-  const sponsor = club.finance.sponsor?.perMatchday ?? club.reputation * 1000 * (league === COMP.second ? 0.6 : 1);
-  const tickets = (STADIUM[club.finance.stadiumStage].capacity * 0.85 * club.finance.ticketPrice) / 2;
-  return TV_PER_MATCHDAY[league] + sponsor + tickets;
-}
-
-function wageRoom(state: GameState, clubId: ClubId, extra: number): boolean {
-  return wageBill(state, clubId) + extra <= WAGE_SHARE * expectedIncome(state, clubId);
 }
 
 function needs(state: GameState, club: Club): Position[] {

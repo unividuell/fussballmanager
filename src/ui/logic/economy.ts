@@ -25,6 +25,7 @@ export const LEDGER_LABEL: Record<LedgerCategory, string> = {
   prizes: "Prämien",
   stadium: "Stadionausbau",
   severance: "Abfindungen",
+  premiums: "Spielerprämien",
   bonus: "Sponsorprämie",
 };
 

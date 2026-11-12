@@ -149,6 +149,16 @@ describe("Verträge", () => {
     expect(s.players["c1-MF1"].contract!.endsSeason).toBe(1);
   });
 
+  it("eine KI im Minus verlängert nur, solange die Gehälter ins Budget passen", () => {
+    const s = withManager();
+    s.calendarIndex = 25;
+    s.clubs.c2.finance.balance = -1;
+    Object.assign(s.players["c2-MF1"], { contract: { salary: 1, endsSeason: 1 }, strength: 65 });
+    for (const id of s.clubs.c2.squad) if (id !== "c2-MF1") s.players[id].contract = { salary: 10_000_000, endsSeason: 9 };
+    aiRenewals(s);
+    expect(s.players["c2-MF1"].contract!.endsSeason).toBe(1);
+  });
+
   it("Sperrzeiten für Verhandlungen laufen ab", () => {
     const s = withManager();
     s.players["c1-MF1"].talkCooldown = 2;
