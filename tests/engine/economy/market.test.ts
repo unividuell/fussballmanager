@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { startContractTalk, respondNegotiation } from "../../../src/engine/economy/negotiations";
-import { aiTransferRound, expectedIncome, expireOffers, generateAiOffers, respondTransferOffer } from "../../../src/engine/economy/market";
+import { expectedIncome } from "../../../src/engine/economy/finance";
+import { aiTransferRound, expireOffers, generateAiOffers, respondTransferOffer } from "../../../src/engine/economy/market";
 import { salaryDemand } from "../../../src/engine/economy/contracts";
 import { wageBill } from "../../../src/engine/economy/money";
 import { removeFromClub } from "../../../src/engine/economy/roster";

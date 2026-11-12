@@ -1,10 +1,9 @@
 <script lang="ts">
   import { overdraftLimit } from "../../engine/economy/money";
-  import { STADIUM, optimalPrice } from "../../engine/economy/stadium";
   import { formatEuro } from "../../engine/economy/util";
   import { clubOf, type ManagerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
-  import { INVALID_AMOUNT, ledgerSummary, parseEuro } from "../logic/economy";
+  import { ledgerSummary } from "../logic/economy";
   import Panel from "../theme/Panel.svelte";
   import ClubHeader from "./ClubHeader.svelte";
 
@@ -14,24 +13,6 @@
   const club = $derived(clubOf(gs, managerId)!);
   const f = $derived(club.finance);
   const summary = $derived(ledgerSummary(club, gs.calendarIndex));
-  const next = $derived(STADIUM[f.stadiumStage + 1] ?? null);
-
-  function initialPrice(): string {
-    return String(clubOf(controller.snapshot!.state, managerId)?.finance.ticketPrice ?? 20);
-  }
-  let priceText = $state(initialPrice());
-
-  let note = $state<string | null>(null);
-
-  function setPrice(): void {
-    const price = parseEuro(priceText);
-    if (price === null) {
-      note = INVALID_AMOUNT;
-      return;
-    }
-    note = null;
-    void controller.send({ type: "setTicketPrice", managerId, price });
-  }
 
   function onKey(e: KeyboardEvent): void {
     if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
@@ -60,25 +41,6 @@
       <p>Kontostand: <b class:negative={f.balance < 0}>{formatEuro(f.balance)}</b> · Dispo-Limit: {formatEuro(overdraftLimit(club.reputation))}</p>
     </Panel>
     <div class="side">
-      <Panel title="EINTRITT">
-        <p>Preis: {formatEuro(f.ticketPrice)} · Richtwert: {formatEuro(optimalPrice(club.reputation))}</p>
-        <p>Zuletzt {f.lastAttendance} von {STADIUM[f.stadiumStage].capacity} Plätzen</p>
-        <div class="row">
-          <input aria-label="Eintrittspreis" inputmode="numeric" size="4" bind:value={priceText} />
-          <button class="btn" onclick={setPrice}>Preis setzen</button>
-        </div>
-      </Panel>
-      <Panel title="STADION">
-        <p>Stufe {f.stadiumStage + 1} von {STADIUM.length}: {STADIUM[f.stadiumStage].capacity} Plätze</p>
-        {#if f.building}<p>Ausbau läuft: noch {f.building.matchdaysLeft} Spieltage</p>{/if}
-        {#if next}
-          <button class="btn" disabled={f.building !== null} onclick={() => void controller.send({ type: "buildStadium", managerId })}>
-            Ausbauen: {next.capacity} Plätze für {formatEuro(next.cost)} ({next.buildMatchdays} Spieltage)
-          </button>
-        {:else}
-          <p>Höchste Ausbaustufe erreicht.</p>
-        {/if}
-      </Panel>
       <Panel title="SPONSOR">
         {#if f.sponsor}
           <p>{f.sponsor.name}: {formatEuro(f.sponsor.perMatchday)} pro Spieltag, Prämie {formatEuro(f.sponsor.bonus)}</p>
@@ -94,7 +56,7 @@
     </div>
   </div>
   <div class="foot">
-    {#if note}<span class="msg">{note}</span>{:else if controller.message}<span class="msg">{controller.message}</span>{/if}
+    {#if controller.message}<span class="msg">{controller.message}</span>{/if}
     <span class="spacer"></span>
     <button class="btn" onclick={() => controller.open("menu")}>Zurück (Esc)</button>
   </div>
@@ -106,7 +68,6 @@
   .side { display: flex; flex-direction: column; gap: 12px; }
   p { margin: 0; font-size: 23px; }
   .row { display: flex; align-items: center; gap: 12px; justify-content: space-between; font-size: 23px; }
-  input { width: 128px; font-family: var(--font-body); font-size: 24px; color: var(--cream); background: var(--wood-dark); border: 4px solid var(--wood-edge); }
   .sum td { color: var(--gold); border-top: 2px solid var(--wood-edge); }
   b { font-weight: normal; color: var(--leaf); }
   b.negative { color: var(--rust); }

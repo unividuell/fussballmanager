@@ -65,11 +65,23 @@ export interface TrainingPlan {
 }
 
 export type Expectation = "title" | "upper" | "mid" | "survival";
+export interface BoardSeason {
+  season: number;
+  competitionId: CompetitionId;
+  expectation: Expectation;
+  rank: number;
+  met: boolean;
+}
+
 export interface Board {
   expectation: Expectation;
   /** 0–100 */
   confidence: number;
   warned: boolean;
+  /** Vertrauen nach den letzten Liga-Spieltagen, nur bei Vereinen mit Manager */
+  trend: number[];
+  /** abgeschlossene Saisons, nur bei Vereinen mit Manager */
+  seasons: BoardSeason[];
 }
 
 export interface Sponsor {
@@ -91,6 +103,7 @@ export type LedgerCategory =
   | "prizes"
   | "stadium"
   | "severance"
+  | "premiums"
   | "bonus";
 
 export interface LedgerEntry {
@@ -267,7 +280,7 @@ export interface SeasonRecord {
 }
 
 export interface GameState {
-  version: 2;
+  version: 3;
   rngState: RngState;
   season: number;
   calendar: CalendarEntry[];

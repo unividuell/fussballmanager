@@ -10,6 +10,7 @@ import {
 } from "./board";
 import { aiRenewals, expireContracts, expiringNotices, tickCooldowns } from "./contracts";
 import { processFinances, seasonEndFinances, startSeasonFinances } from "./finance";
+import { aiStadiumDecisions } from "./stadium";
 import { aiTransferRound, expireOffers, generateAiOffers } from "./market";
 import { postToClub } from "./messages";
 import { cleanupNegotiations } from "./negotiations";
@@ -22,6 +23,7 @@ const WINTER_MARKET_AT = 17;
 export function processMatchday(state: GameState, lives: LiveMatch[], rng: Rng): void {
   processFinances(state, lives);
   if (isLeagueMatchday(state.calendarIndex)) {
+    aiStadiumDecisions(state);
     const played = new Set(lives.flatMap((l) => [...l.home.played, ...l.away.played]));
     for (const club of Object.values(state.clubs)) {
       if (!clubLeague(state, club.id)) continue;

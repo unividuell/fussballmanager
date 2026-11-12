@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { migrate } from "../../src/storage/migrate";
 import { v1ToV2 } from "../../src/storage/migrations";
+import { generateWorld } from "../../src/engine/generator";
+import { startNewGame } from "../../src/engine/season";
 import { decodeSave } from "../../src/storage/savefile";
 import { validateState } from "../../src/storage/validate";
 import savedV1 from "./fixtures/save-v1.json?raw";
@@ -10,11 +12,11 @@ function v1State(): Record<string, any> {
 }
 
 describe("Migration v1 → v2", () => {
-  it("die eingefrorene v1-Datei lädt als v2 ohne Jobfelder", () => {
+  it("die eingefrorene v1-Datei lädt als v3 ohne Jobfelder", () => {
     const r = decodeSave(savedV1);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.file.state.version).toBe(2);
+    expect(r.file.state.version).toBe(3);
     for (const m of r.file.state.managers) expect(Object.keys(m).sort()).toEqual(["clubId", "id", "name"]);
   });
 
@@ -129,5 +131,36 @@ describe("Migration v1 → v2", () => {
       });
       expect(validateState(r.state)).toBeNull();
     });
+  });
+});
+
+describe("Migration v2 → v3", () => {
+  it("ergänzt trend und seasons leer, sonst unverändert", () => {
+    const s = v1State();
+    const id = Object.keys(s.clubs)[0];
+    const balance = s.clubs[id].finance.balance;
+    const stage = s.clubs[id].finance.stadiumStage;
+    const r = migrate(s);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.state.version).toBe(3);
+    for (const c of Object.values(r.state.clubs)) {
+      expect(c.board.trend).toEqual([]);
+      expect(c.board.seasons).toEqual([]);
+    }
+    expect(r.state.clubs[id].finance.balance).toBe(balance);
+    expect(r.state.clubs[id].finance.stadiumStage).toBe(stage);
+    expect(validateState(r.state)).toBeNull();
+  });
+
+  it("ein neues Spiel hat Version 3 und leere Board-Historie", () => {
+    const world = generateWorld(11);
+    const r = startNewGame(world, [{ name: "Anna", clubId: Object.keys(world.clubs)[0] }]);
+    if (!r.ok) throw new Error(r.error);
+    expect(r.state.version).toBe(3);
+    for (const c of Object.values(r.state.clubs)) {
+      expect(c.board.trend).toEqual([]);
+      expect(c.board.seasons).toEqual([]);
+    }
   });
 });

@@ -17,6 +17,8 @@ export type TurnScreen =
   | "contracts"
   | "transfers"
   | "finance"
+  | "stadium"
+  | "board"
   | "messages"
   | "save"
   | "options";

@@ -34,7 +34,7 @@ describe("Wirtschaft über die Oberfläche", () => {
     await key("Escape"); // → Menü
     expect(club().squad.length).toBe(squadBefore + 1);
 
-    await key("5"); // → Finanzen
+    await key("6"); // → Stadion
     await fireEvent.input(screen.getByLabelText("Eintrittspreis"), { target: { value: "25" } });
     await fireEvent.click(screen.getByRole("button", { name: "Preis setzen" }));
     expect(club().finance.ticketPrice).toBe(25);

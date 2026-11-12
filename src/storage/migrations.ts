@@ -67,3 +67,18 @@ export const v1ToV2: Migration = (raw) => {
   }
   return { ...raw, version: 2 };
 };
+
+/**
+ * v2 → v3 (2026-11-12): Vorstandsseite.
+ * Jeder Verein bekommt einen leeren Vertrauensverlauf und eine leere Saisonhistorie.
+ * Geld, Stadien, Preise und Verträge bleiben, wie sie sind.
+ */
+export const v2ToV3: Migration = (raw) => {
+  const clubs = (isObject(raw.clubs) ? raw.clubs : {}) as Record<string, Record<string, unknown>>;
+  for (const c of Object.values(clubs)) {
+    if (!isObject(c) || !isObject(c.board)) continue;
+    if (!Array.isArray(c.board.trend)) c.board.trend = [];
+    if (!Array.isArray(c.board.seasons)) c.board.seasons = [];
+  }
+  return { ...raw, version: 3 };
+};

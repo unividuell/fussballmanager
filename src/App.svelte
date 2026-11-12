@@ -4,6 +4,8 @@
   import Contracts from "./ui/screens/Contracts.svelte";
   import FailureDialog from "./ui/screens/FailureDialog.svelte";
   import Finance from "./ui/screens/Finance.svelte";
+  import Stadium from "./ui/screens/Stadium.svelte";
+  import Board from "./ui/screens/Board.svelte";
   import Halftime from "./ui/screens/Halftime.svelte";
   import MainMenu from "./ui/screens/MainMenu.svelte";
   import Messages from "./ui/screens/Messages.svelte";
@@ -56,6 +58,10 @@
     <Training {controller} managerId={view.managerId} />
   {:else if view.kind === "finance"}
     <Finance {controller} managerId={view.managerId} />
+  {:else if view.kind === "stadium"}
+    <Stadium {controller} managerId={view.managerId} />
+  {:else if view.kind === "board"}
+    <Board {controller} managerId={view.managerId} />
   {:else if view.kind === "contracts"}
     <Contracts {controller} managerId={view.managerId} />
   {:else if view.kind === "transfers"}

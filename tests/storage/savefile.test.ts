@@ -54,7 +54,7 @@ describe("Spielstand-Datei", () => {
   });
 
   it("lehnt Spielstände aus einer neueren Version ab", () => {
-    const s = { ...newTestGame(), version: 3 } as unknown as GameState;
+    const s = { ...newTestGame(), version: 4 } as unknown as GameState;
     expect(decodeSave(encodeSave(s, META))).toEqual({ ok: false, error: TOO_NEW });
   });
 
@@ -128,7 +128,7 @@ describe("v1-Testdatei", () => {
     const r = decodeSave(savedV1);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
-    expect(r.file.state.version).toBe(2);
+    expect(r.file.state.version).toBe(3);
     expect(r.file.meta).toEqual({ managers: ["Anna", "Ben"], season: 1, label: "2. Spieltag", savedAt: "2026-11-04T12:00:00.000Z" });
     expect(r.file.state.calendarIndex).toBe(1);
     const session = new Session(r.file.state);

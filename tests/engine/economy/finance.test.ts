@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  PREMIUM_FROM,
+  PREMIUM_RATE,
   PRIZE_POOL,
   TV_PER_MATCHDAY,
   chooseSponsor,
@@ -8,7 +10,7 @@ import {
   sponsorOffers,
   startSeasonFinances,
 } from "../../../src/engine/economy/finance";
-import { wageBill } from "../../../src/engine/economy/money";
+import { startBalance, wageBill } from "../../../src/engine/economy/money";
 import { STADIUM, attendance, startBuilding, validateTicketPrice } from "../../../src/engine/economy/stadium";
 import { generateWorld } from "../../../src/engine/generator";
 import { COMP, type GameState } from "../../../src/engine/model";
@@ -181,7 +183,7 @@ describe("Saisonwechsel", () => {
     expect(s.clubs[l1[1]].finance.ledger.some((e) => e.category === "bonus")).toBe(false);
   });
 
-  it("Saisonstart: Kassenbuch leer, neue Angebote, KI mit optimalem Preis", () => {
+  it("Saisonstart: Kassenbuch leer, neue Angebote, alle behalten ihren Preis", () => {
     const s = game();
     const any = Object.values(s.clubs);
     for (const c of any) {
@@ -194,8 +196,38 @@ describe("Saisonwechsel", () => {
       expect(c.finance.ledger).toEqual([]);
       expect(c.finance.sponsor).toBeNull();
       expect(c.finance.sponsorOffers).toHaveLength(3);
-      if (c.managerId === null) expect(c.finance.ticketPrice).not.toBe(99);
-      else expect(c.finance.ticketPrice).toBe(99);
+      expect(c.finance.ticketPrice).toBe(99);
     }
+  });
+});
+
+describe("Spielerprämien reicher KI-Vereine", () => {
+  it("ein reicher KI-Verein zahlt einen Teil seines Überschusses, ein Manager-Verein nie", () => {
+    const s = game();
+    s.calendarIndex = 5;
+    const ai = Object.values(s.clubs).find((c) => c.managerId === null)!;
+    const own = s.clubs[s.managers[0].clubId];
+    const start = startBalance(ai.reputation);
+    ai.finance.balance = PREMIUM_FROM * start + 10_000_000;
+    own.finance.balance = 100_000_000;
+    processFinances(s, []);
+    const premium = (c: typeof ai) => c.finance.ledger.filter((e) => e.category === "premiums").reduce((a, e) => a + e.amount, 0);
+    expect(premium(ai)).toBe(-Math.round(10_000_000 * PREMIUM_RATE));
+    expect(premium(own)).toBe(0);
+  });
+
+  it("ein KI-Verein unter der Schwelle zahlt nichts", () => {
+    const s = game();
+    s.calendarIndex = 5;
+    const ai = Object.values(s.clubs).find((c) => c.managerId === null)!;
+    ai.finance.balance = PREMIUM_FROM * startBalance(ai.reputation) - 1;
+    processFinances(s, []);
+    expect(ai.finance.ledger.some((e) => e.category === "premiums")).toBe(false);
+  });
+});
+
+describe("TV-Geld", () => {
+  it("die 1. Liga bringt mindestens so viel TV-Geld wie die 2. Liga", () => {
+    expect(TV_PER_MATCHDAY[COMP.first]).toBeGreaterThanOrEqual(TV_PER_MATCHDAY[COMP.second]);
   });
 });

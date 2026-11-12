@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { canAfford, book, isOverLimit, marketValue, overdraftLimit, salaryFor, startBalance, wageBill } from "../../../src/engine/economy/money";
-import { STADIUM, initialStage, optimalPrice, priceFactor, referencePrice } from "../../../src/engine/economy/stadium";
+import { STADIUM, initialStage, priceFactor, referencePrice, startPrice } from "../../../src/engine/economy/stadium";
 import { clubLeague, formatEuro, isLeagueMatchday, leagueRank, roundTo } from "../../../src/engine/economy/util";
 import { generateWorld } from "../../../src/engine/generator";
 import { COMP } from "../../../src/engine/model";
@@ -36,11 +36,35 @@ describe("util", () => {
 });
 
 describe("money", () => {
-  it("Gehalt wächst exponentiell mit der Stärke", () => {
+  it("Gehalt wächst exponentiell mit der Stärke, oben steiler", () => {
     expect(salaryFor(40)).toBe(1_700);
     expect(salaryFor(50)).toBe(3_500);
     expect(salaryFor(70)).toBe(14_900);
     expect(salaryFor(80)).toBeGreaterThan(salaryFor(70));
+    expect(salaryFor(90) / salaryFor(80)).toBeGreaterThan(salaryFor(70) / salaryFor(60));
+  });
+
+  it("Spitze kostet 15–25 Mio", () => {
+    for (const seed of [11, 2027, 4242]) {
+      const world = generateWorld(seed);
+      const r = startNewGame(world, [{ name: "A", clubId: Object.keys(world.clubs)[0] }]);
+      if (!r.ok) throw new Error(r.error);
+      const values = Object.values(r.state.players)
+        .filter((p) => p.clubId !== null)
+        .map((p) => marketValue(p, r.state.season))
+        .sort((a, b) => b - a);
+      const over15 = values.filter((v) => v > 15_000_000).length;
+      expect(over15, `Seed ${seed}`).toBeGreaterThanOrEqual(5);
+      // Spec: etwa 5–10; die Welten streuen, Seed 11 hat besonders viele starke Spieler.
+      expect(over15, `Seed ${seed}`).toBeLessThanOrEqual(14);
+      expect(values[0], `Seed ${seed}`).toBeGreaterThanOrEqual(20_000_000);
+      expect(values[0], `Seed ${seed}`).toBeLessThanOrEqual(25_000_000);
+    }
+  });
+
+  it("schwache Spieler bleiben billig", () => {
+    const p = makePlayer("s", "MF", 50, { age: 25, potential: 50, contract: { salary: 1, endsSeason: 4 } });
+    expect(marketValue(p, 1)).toBeLessThanOrEqual(300_000);
   });
 
   it("Startkapital und Dispo hängen an der Reputation", () => {
@@ -83,13 +107,15 @@ describe("stadium", () => {
     for (let i = 1; i < STADIUM.length; i++) expect(STADIUM[i].capacity).toBeGreaterThan(STADIUM[i - 1].capacity);
   });
 
-  it("Startstufe und optimaler Preis nach Reputation", () => {
-    expect(initialStage(90)).toBe(4);
-    expect(initialStage(50)).toBe(2);
+  it("Startstufe und Startpreis nach Reputation; die höchste Stufe muss man ausbauen", () => {
+    expect(initialStage(90)).toBe(3);
+    expect(initialStage(84)).toBe(2);
+    expect(initialStage(50)).toBe(1);
     expect(initialStage(10)).toBe(0);
-    expect(referencePrice(30)).toBeCloseTo(14.5);
-    expect(optimalPrice(30)).toBe(22);
-    expect(optimalPrice(90)).toBe(35);
+    expect(initialStage(100)).toBe(3);
+    expect(referencePrice(30)).toBeCloseTo(11.6);
+    expect(startPrice(30)).toBe(17);
+    expect(startPrice(90)).toBe(37);
   });
 
   it("Preisfaktor sinkt mit dem Preis und bleibt zwischen 0 und 1,5", () => {

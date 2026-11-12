@@ -8,7 +8,13 @@ export const START_CONFIDENCE = 60;
 export const WARN_BELOW = 30;
 export const WARN_RESET = 40;
 export const CLEARLY_MISSED_BY = 5;
+export const TREND_LENGTH = 5;
 const RANK_FROM = 3;
+/** Pro Platz Abstand zum Ziel, der erste Platz daneben ist frei. */
+const PER_PLACE = 0.35;
+const RANK_CAP = 2;
+const RESULT = 0.8;
+const OVERDRAFT_PENALTY = 5;
 const BY_RANK: Expectation[] = ["title", "title", "upper", "upper", "upper", "upper", "mid", "mid", "mid", "mid", "mid", "mid"];
 
 const clamp = (x: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, x));
@@ -42,26 +48,31 @@ export function expectationMet(state: GameState, clubId: ClubId, rank: number): 
   return rank <= TARGET_RANK[state.clubs[clubId].board.expectation];
 }
 
+/** Änderung des Vertrauens an einem Liga-Spieltag. Gewinn und Verlust sind gleich groß. rank = null: Tabellenplatz zählt noch nicht. */
+export function confidenceDelta(target: number, rank: number | null, result: -1 | 0 | 1, overdraftStreak: number): number {
+  let delta = result * RESULT;
+  if (rank !== null) {
+    const diff = target - rank;
+    delta += Math.sign(diff) * Math.min(RANK_CAP, Math.max(0, Math.abs(diff) - 1) * PER_PLACE);
+  }
+  if (overdraftStreak >= 3) delta -= OVERDRAFT_PENALTY;
+  return delta;
+}
+
 export function updateConfidence(state: GameState, lives: LiveMatch[]): void {
   if (!isLeagueMatchday(state.calendarIndex)) return;
-  const results = new Map<ClubId, number>();
+  const results = new Map<ClubId, -1 | 0 | 1>();
   for (const l of lives) {
-    results.set(l.home.club, Math.sign(l.home.goals - l.away.goals));
-    results.set(l.away.club, Math.sign(l.away.goals - l.home.goals));
+    results.set(l.home.club, Math.sign(l.home.goals - l.away.goals) as -1 | 0 | 1);
+    results.set(l.away.club, Math.sign(l.away.goals - l.home.goals) as -1 | 0 | 1);
   }
   for (const league of [COMP.first, COMP.second]) {
     for (const id of state.competitions[league]?.clubs ?? []) {
       const club = state.clubs[id];
-      let delta = 0;
-      if (state.calendarIndex >= RANK_FROM) {
-        const rank = leagueRank(state, id) ?? 18;
-        delta += clamp((TARGET_RANK[club.board.expectation] - rank) * 0.3, -2.5, 1.5);
-      }
-      const r = results.get(id);
-      if (r === 1) delta += 0.8;
-      else if (r === -1) delta -= 0.8;
-      if (club.finance.overdraftStreak >= 3) delta -= 5;
+      const rank = state.calendarIndex >= RANK_FROM ? (leagueRank(state, id) ?? 18) : null;
+      const delta = confidenceDelta(TARGET_RANK[club.board.expectation], rank, results.get(id) ?? 0, club.finance.overdraftStreak);
       club.board.confidence = clamp(club.board.confidence + delta, 0, 100);
+      if (club.managerId) club.board.trend = [...club.board.trend, club.board.confidence].slice(-TREND_LENGTH);
     }
   }
 }
@@ -88,6 +99,7 @@ export function seasonReview(state: GameState, tables: Record<CompetitionId, Clu
       const rank = i + 1;
       const target = TARGET_RANK[club.board.expectation];
       const b = club.board;
+      b.seasons = [...b.seasons, { season: state.season, competitionId: league, expectation: b.expectation, rank, met: rank <= target }];
       if (rank <= target) {
         b.confidence = Math.min(100, b.confidence + 15);
         postMessage(state, club.managerId, "Der Vorstand ist zufrieden: Saisonziel erreicht.");

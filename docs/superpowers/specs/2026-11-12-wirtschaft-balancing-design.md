@@ -148,3 +148,25 @@ Die genaue Formel entscheidet der Umsetzer. *(Meine Entscheidung.)* Die Folgen d
 - Die Texte des Vorstands und die Hinweise zum Eintrittspreis
 - Die Symbole der neuen Kacheln und die genaue Anordnung innerhalb der Seiten, im Stil des Spiels und nach Entwurf B
 - Ob Sponsor- und Prämienbeträge mit angepasst werden müssen, um die Zielgrößen zu treffen
+
+## 9. Ergebnis der Abstimmung (2026-11-12)
+
+Gemessen mit `tests/longrun/measure.ts`: 3 Spielwelten (Seeds 11, 2027, 4242) × 5 Saisons, 4 passive Manager wie in der Testsaison aus Abschnitt 1 (Ruf-Rang 3 und 16 der 1. Liga, Rang 2 und 17 der 2. Liga).
+
+| Größe | Vorher (Testsaison) | Nachher |
+|---|---|---|
+| Median der KI-Kontostände | 3,5 → 5–11 Mio in 3 Saisons, steigend | 3,0 → 5,3–7,1 Mio nach 5 Saisons, flach |
+| Reichster KI-Verein | bis 96 Mio | 20–40 Mio, einmal 54 Mio (Saison 2, Seed 11) |
+| KI-Vereine über dem Dispo-Limit | 0 | 0 |
+| Auslastung der 3 größten Erstligisten | 45–65 % | 85–92 % |
+| Auslastung der 3 Letzten der 1. Liga | – | 81–83 % |
+| Teuerster Spieler | 13,5 Mio | 25 Mio |
+| Großer Erstligist, gut geführt, nach 2 Saisons | – | 29,8–34,9 Mio (Königstransfer möglich) |
+
+Ergebnis vor Transfers bei Referenzvereinen mit vernünftigem Manager (3 Welten × 4 Saisons, Langzeittest): groß Ø 12,0 Mio, mittel Ø 4,8 Mio, Zweitliga-Mitte Ø 2,2 Mio, Zweitliga-klein Ø 0,4 Mio.
+
+**Passive Manager:** Ihr Verein verliert Spieler durch auslaufende Verträge, die Gehälter sinken, die Einnahmen bleiben. Ein passiver großer Erstligist hat nach 5 Saisons 51–78 Mio, ein kleiner Zweitligist 6–10 Mio. Das ist ungefähr so viel wie ein gut geführter Verein derselben Größe (Abschnitt 4.2 erfüllt). KI-Vereine bleiben wegen der Spielerprämien deutlich darunter.
+
+**Wichtigste Mechanik:** Reiche KI-Vereine zahlen Spielerprämien (5 % des Überschusses über 1,3× Startkapital pro Liga-Spieltag). Transfers zwischen KI-Vereinen verschieben Geld nur. Ohne diesen Abfluss wächst die Geldmenge um die Summe aller Gewinne.
+
+**Offen, nicht Teil dieser Spec:** Die Stärke der besten Spieler wächst über die Saisons von etwa 89 auf 99, schon vor dieser Änderung (Training und Nachwuchs). Gehälter und Marktwerte sind dagegen oben weich gedeckelt. Die Torquote steigt dadurch langsam über das Kalibrierungsziel von 3,0.

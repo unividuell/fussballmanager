@@ -1,6 +1,6 @@
 import { START_CONFIDENCE } from "./economy/board";
 import { salaryFor, startBalance } from "./economy/money";
-import { initialStage, optimalPrice } from "./economy/stadium";
+import { initialStage, startPrice } from "./economy/stadium";
 import { autoLineup } from "./lineup";
 import {
   newId,
@@ -77,7 +77,7 @@ function clubName(rng: Rng, town: string): string {
 export function generateWorld(seed: number): GameState {
   const rng = Rng.fromSeed(seed);
   const state: GameState = {
-    version: 2,
+    version: 3,
     rngState: rng.state(),
     season: 1,
     calendar: [],
@@ -109,7 +109,7 @@ export function generateWorld(seed: number): GameState {
       tactics: { formation: "4-4-2", style: "normal", hardness: "normal" },
       finance: {
         balance: startBalance(reputation),
-        ticketPrice: optimalPrice(reputation),
+        ticketPrice: startPrice(reputation),
         stadiumStage: initialStage(reputation),
         building: null,
         sponsor: null,
@@ -118,7 +118,7 @@ export function generateWorld(seed: number): GameState {
         overdraftStreak: 0,
         lastAttendance: 0,
       },
-      board: { expectation: "mid", confidence: START_CONFIDENCE, warned: false },
+      board: { expectation: "mid", confidence: START_CONFIDENCE, warned: false, trend: [], seasons: [] },
       training: { intensity: "normal", focus: "technique", individual: [] },
       tacticsBonus: 1,
     };

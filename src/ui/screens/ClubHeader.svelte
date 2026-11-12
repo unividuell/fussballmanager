@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { expectationLabel } from "../../engine/economy/board";
   import { formatEuro } from "../../engine/economy/util";
   import { clubOf, type ManagerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
@@ -17,7 +18,10 @@
     <Crest colors={club.colors} pattern={club.crest} size={40} />
     <strong>{club.name}</strong>
     <span>Saison {state.season} · {matchdayLabel(state)}</span>
-    {#if place}<span class="place">{place.rank}. Platz · {state.competitions[place.competitionId].name}</span>{/if}
+    {#if place}
+      <span class="place">{place.rank}. Platz · {state.competitions[place.competitionId].name}</span>
+      <span class="goal">Ziel: {expectationLabel(club.board.expectation, place.competitionId)}</span>
+    {/if}
     <span class="money" class:negative={club.finance.balance < 0}>{formatEuro(club.finance.balance)}</span>
     {#if controller.autosaveFailed}<span class="negative">Autosave aus</span>{/if}
     <span class="mgr">{controller.managerName(managerId)}</span>
@@ -35,6 +39,7 @@
   }
   strong { font-family: var(--font-display); font-weight: normal; font-size: 16px; color: var(--gold); }
   .place { color: var(--leaf); }
+  .goal { color: var(--cream); border: 4px solid var(--wood-edge); background: var(--wood-dark); padding: 0 8px; }
   .money { color: var(--leaf); font-variant-numeric: tabular-nums; }
   .money.negative { color: var(--rust); }
   .negative { color: var(--rust); }
