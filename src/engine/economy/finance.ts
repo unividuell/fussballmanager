@@ -6,7 +6,7 @@ import { book, isOverLimit, startBalance, wageBill } from "./money";
 import { STADIUM, attendance } from "./stadium";
 import { clubLeague, formatEuro, isLeagueMatchday, roundTo } from "./util";
 
-export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 40_000, [COMP.second]: 45_000 };
+export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 45_000, [COMP.second]: 45_000 };
 export const INTEREST_RATE = 0.01;
 /** Reiche KI-Vereine zahlen Spielerprämien: ab diesem Vielfachen des Startkapitals … */
 export const PREMIUM_FROM = 1.3;

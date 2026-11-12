@@ -14,6 +14,7 @@ describe("Hinweis zum Eintrittspreis", () => {
     expect(priceHint(27_500, 28_000)).toBe("Ausverkauft – ein höherer Preis bringt vermutlich mehr.");
     expect(priceHint(10_000, 28_000)).toBe("Viele freie Plätze – ein niedrigerer Preis lockt mehr Zuschauer.");
     expect(priceHint(0, 28_000)).toBeNull();
+    expect(priceHint(0, 28_000, true)).toBe("Viele freie Plätze – ein niedrigerer Preis lockt mehr Zuschauer.");
     expect(priceHint(25_000, 28_000)).toBeNull();
   });
 });
@@ -41,12 +42,29 @@ describe("Stadion", () => {
     const { c, club } = await stadiumScreen();
     const f = club().finance;
     const capacity = STADIUM[f.stadiumStage].capacity;
-    f.lastAttendance = capacity; // Testaufbau
+    f.lastAttendance = capacity; // Testaufbau: ein ausverkauftes Heimspiel
+    const gs = c.snapshot!.state;
+    const league = gs.competitions.L1.clubs.includes(club().id) ? "L1" : "L2";
+    gs.competitions[league].matches.find((m) => m.home === club().id)!.result = { home: 1, away: 0 };
     await reopen(c);
     expect(screen.getByText("STADION")).toBeTruthy();
     expect(screen.getByText(new RegExp(`Stufe ${f.stadiumStage + 1} von ${STADIUM.length}`))).toBeTruthy();
     expect(screen.getByText(/100 %/)).toBeTruthy();
     expect(screen.getByText("Ausverkauft – ein höherer Preis bringt vermutlich mehr.")).toBeTruthy();
+  });
+
+  it("0 Zuschauer nach einem Heimspiel heißt nicht „noch kein Heimspiel“", async () => {
+    const { c, club } = await stadiumScreen();
+    const gs = c.snapshot!.state;
+    const id = club().id;
+    const league = gs.competitions.L1.clubs.includes(id) ? "L1" : "L2";
+    const home = gs.competitions[league].matches.find((m) => m.home === id)!;
+    home.result = { home: 0, away: 1 }; // Testaufbau: ein Heimspiel ohne Zuschauer
+    club().finance.lastAttendance = 0;
+    await reopen(c);
+    expect(screen.queryByText("Noch kein Heimspiel in dieser Saison.")).toBeNull();
+    expect(screen.getByText(/0 %/)).toBeTruthy();
+    expect(screen.getByText("Viele freie Plätze – ein niedrigerer Preis lockt mehr Zuschauer.")).toBeTruthy();
   });
 
   it("setzt den Eintrittspreis und meldet ungültige Preise", async () => {

@@ -86,7 +86,7 @@
 
 <style>
   .boardscreen { display: flex; flex-direction: column; height: 100%; }
-  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 3fr 2fr; gap: 16px; padding: 16px; align-content: start; overflow-y: auto; }
+  .body { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px; align-content: start; overflow-y: auto; }
   p { margin: 0; font-size: 23px; }
   .row { display: flex; justify-content: space-between; gap: 12px; font-size: 23px; flex-wrap: wrap; }
   .goal { color: var(--gold); }

@@ -225,3 +225,9 @@ describe("Spielerprämien reicher KI-Vereine", () => {
     expect(ai.finance.ledger.some((e) => e.category === "premiums")).toBe(false);
   });
 });
+
+describe("TV-Geld", () => {
+  it("die 1. Liga bringt mindestens so viel TV-Geld wie die 2. Liga", () => {
+    expect(TV_PER_MATCHDAY[COMP.first]).toBeGreaterThanOrEqual(TV_PER_MATCHDAY[COMP.second]);
+  });
+});

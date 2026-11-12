@@ -4,7 +4,7 @@
   import { clubOf, type ManagerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
   import { INVALID_AMOUNT, parseEuro } from "../logic/economy";
-  import { priceHint } from "../logic/stadium";
+  import { hasPlayedHome, priceHint } from "../logic/stadium";
   import Panel from "../theme/Panel.svelte";
   import ClubHeader from "./ClubHeader.svelte";
 
@@ -15,7 +15,8 @@
   const f = $derived(club.finance);
   const capacity = $derived(STADIUM[f.stadiumStage].capacity);
   const next = $derived(STADIUM[f.stadiumStage + 1] ?? null);
-  const hint = $derived(priceHint(f.lastAttendance, capacity));
+  const playedHome = $derived(hasPlayedHome(gs, club.id));
+  const hint = $derived(priceHint(f.lastAttendance, capacity, playedHome));
   const seats = (n: number) => n.toLocaleString("de-DE");
 
   function initialPrice(): string {
@@ -50,7 +51,7 @@
   <div class="body">
     <Panel title="STADION">
       <p>Stufe {f.stadiumStage + 1} von {STADIUM.length}: {seats(capacity)} Plätze</p>
-      {#if f.lastAttendance > 0}
+      {#if playedHome}
         <p>Letztes Heimspiel: {seats(f.lastAttendance)} von {seats(capacity)} ({Math.round((100 * f.lastAttendance) / capacity)} %)</p>
       {:else}
         <p>Noch kein Heimspiel in dieser Saison.</p>
