@@ -21,9 +21,11 @@
     { key: "3", icon: "§", label: "Verträge", action: () => controller.open("contracts") },
     { key: "4", icon: "<>", label: count("Transfers", offerCount), action: () => controller.openTransfers("market") },
     { key: "5", icon: "$", label: "Finanzen", action: () => controller.open("finance") },
-    { key: "6", icon: "#", label: "Tabelle", action: () => controller.open("tables") },
-    { key: "7", icon: "@", label: count("Nachrichten", newMessages), action: () => controller.open("messages") },
-    { key: "8", icon: ">>", label: "Weiter", action: () => void controller.endTurn(managerId) },
+    { key: "6", icon: "[]", label: "Stadion", action: () => controller.open("stadium") },
+    { key: "7", icon: "^", label: "Vorstand", action: () => controller.open("board") },
+    { key: "8", icon: "#", label: "Tabelle", action: () => controller.open("tables") },
+    { key: "9", icon: "@", label: count("Nachrichten", newMessages), action: () => controller.open("messages") },
+    { key: "0", icon: ">>", label: "Weiter", action: () => void controller.endTurn(managerId) },
   ]);
 
   function onKey(e: KeyboardEvent): void {
@@ -39,7 +41,7 @@
       controller.open("save");
       return;
     }
-    const key = e.key === "Enter" ? "8" : e.key;
+    const key = e.key === "Enter" ? "0" : e.key;
     const tile = tiles.find((t) => t.key === key);
     if (tile?.action) {
       e.preventDefault();
@@ -69,7 +71,7 @@
   .grid {
     flex: 1;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(2, 1fr);
     gap: 20px;
     padding: 24px;

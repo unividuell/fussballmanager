@@ -6,7 +6,7 @@ test("zwei Manager: ein Spieltag mit Halbzeit, dann Saisonende im Schnellvorlauf
   for (const name of ["ANNA", "BEN"]) {
     await expect(page.getByText(`${name} IST DRAN`)).toBeVisible();
     await page.keyboard.press("Enter");
-    await page.keyboard.press("8");
+    await page.keyboard.press("0");
   }
   await expect(page.getByText(/1\. Halbzeit · /)).toBeVisible();
   await page.keyboard.press(" ");

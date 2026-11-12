@@ -55,8 +55,10 @@ test("kein Bildschirm ragt über den Rand", async ({ page }) => {
     ["3", "VERTRÄGE"],
     ["4", "Meine Spieler"],
     ["5", "BILANZ"],
-    ["6", "TABELLE"],
-    ["7", "NACHRICHTEN"],
+    ["6", "STADION"],
+    ["7", "VORSTAND"],
+    ["8", "TABELLE"],
+    ["9", "NACHRICHTEN"],
   ];
   for (const [key, marker] of kacheln) {
     await page.keyboard.press(key);
@@ -66,7 +68,7 @@ test("kein Bildschirm ragt über den Rand", async ({ page }) => {
     await expect(page.getByText("Mannschaft", { exact: true })).toBeVisible();
   }
 
-  await page.keyboard.press("8");
+  await page.keyboard.press("0");
   await expect(page.getByText(/1\. Halbzeit · /)).toBeVisible();
   await expectNoOverflow(page, "Live");
 
