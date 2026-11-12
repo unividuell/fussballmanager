@@ -36,11 +36,35 @@ describe("util", () => {
 });
 
 describe("money", () => {
-  it("Gehalt wächst exponentiell mit der Stärke", () => {
+  it("Gehalt wächst exponentiell mit der Stärke, oben steiler", () => {
     expect(salaryFor(40)).toBe(1_700);
     expect(salaryFor(50)).toBe(3_500);
     expect(salaryFor(70)).toBe(14_900);
     expect(salaryFor(80)).toBeGreaterThan(salaryFor(70));
+    expect(salaryFor(90) / salaryFor(80)).toBeGreaterThan(salaryFor(70) / salaryFor(60));
+  });
+
+  it("Spitze kostet 15–25 Mio", () => {
+    for (const seed of [11, 2027, 4242]) {
+      const world = generateWorld(seed);
+      const r = startNewGame(world, [{ name: "A", clubId: Object.keys(world.clubs)[0] }]);
+      if (!r.ok) throw new Error(r.error);
+      const values = Object.values(r.state.players)
+        .filter((p) => p.clubId !== null)
+        .map((p) => marketValue(p, r.state.season))
+        .sort((a, b) => b - a);
+      const over15 = values.filter((v) => v > 15_000_000).length;
+      expect(over15, `Seed ${seed}`).toBeGreaterThanOrEqual(5);
+      // Spec: etwa 5–10; die Welten streuen, Seed 11 hat besonders viele starke Spieler.
+      expect(over15, `Seed ${seed}`).toBeLessThanOrEqual(14);
+      expect(values[0], `Seed ${seed}`).toBeGreaterThanOrEqual(20_000_000);
+      expect(values[0], `Seed ${seed}`).toBeLessThanOrEqual(25_000_000);
+    }
+  });
+
+  it("schwache Spieler bleiben billig", () => {
+    const p = makePlayer("s", "MF", 50, { age: 25, potential: 50, contract: { salary: 1, endsSeason: 4 } });
+    expect(marketValue(p, 1)).toBeLessThanOrEqual(300_000);
   });
 
   it("Startkapital und Dispo hängen an der Reputation", () => {
