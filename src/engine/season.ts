@@ -3,8 +3,10 @@ import { createLeague, matchesOfRound } from "./competition/schedule";
 import { computeStandings } from "./competition/standings";
 import { repairLineup, validateLineup } from "./lineup";
 import { finalScore, penaltyShootout, simulateHalf, startMatch, type LiveMatch, type LiveSide } from "./match/simulate";
+import { CLUBS } from "./clubs";
 import {
-  COMP,
+  BOUNDARIES,
+  LEAGUES,
   LEAGUE_SIZE,
   YELLOW_LIMIT,
   newId,
@@ -16,6 +18,8 @@ import {
   type Match,
   type Player,
   type PlayerId,
+  type CalendarEntry,
+  type Movement,
   type SeasonRecord,
 } from "./model";
 import { afterAdvance, processMatchday, seasonEndEconomy, startSeasonEconomy, summerMarket } from "./economy/processing";
@@ -31,16 +35,14 @@ export function withRng<T>(state: GameState, fn: (rng: Rng) => T): T {
   return out;
 }
 
-export function startSeason(state: GameState, firstClubs: ClubId[], secondClubs: ClubId[]): void {
+const LEAGUE_NAMES: Record<CompetitionId, string> = { L1: "1. Liga", L2: "2. Liga", L3: "3. Liga" };
+
+export function startSeason(state: GameState, leagues: Record<CompetitionId, ClubId[]>): void {
   withRng(state, (rng) => {
-    const l1 = createLeague(state, COMP.first, "1. Liga", firstClubs, rng);
-    const l2 = createLeague(state, COMP.second, "2. Liga", secondClubs, rng);
-    state.competitions = { [l1.id]: l1, [l2.id]: l2 };
-    state.calendar = Array.from({ length: l1.rounds }, (_, i) => ({
-      fixtures: [
-        { competitionId: l1.id, round: i + 1 },
-        { competitionId: l2.id, round: i + 1 },
-      ],
+    const comps = LEAGUES.map((id) => createLeague(state, id, LEAGUE_NAMES[id], leagues[id], rng));
+    state.competitions = Object.fromEntries(comps.map((c) => [c.id, c]));
+    state.calendar = Array.from({ length: comps[0].rounds }, (_, i) => ({
+      fixtures: comps.map((c) => ({ competitionId: c.id, round: i + 1 })),
     }));
     state.calendarIndex = 0;
   });
@@ -64,11 +66,18 @@ export function startNewGame(world: GameState, managers: { name: string; clubId:
     state.managers.push({ id, name: m.name.trim(), clubId: m.clubId });
     state.clubs[m.clubId].managerId = id;
   }
-  const byReputation = Object.values(state.clubs)
-    .sort((a, b) => b.reputation - a.reputation || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
-    .map((c) => c.id);
-  startSeason(state, byReputation.slice(0, LEAGUE_SIZE), byReputation.slice(LEAGUE_SIZE, 2 * LEAGUE_SIZE));
+  startSeason(state, startingLeagues(state));
   return { ok: true, state };
+}
+
+/** Startligen aus dem Vereinsdatensatz, zugeordnet über den Vereinsnamen. */
+export function startingLeagues(state: GameState): Record<CompetitionId, ClubId[]> {
+  const out: Record<CompetitionId, ClubId[]> = Object.fromEntries(LEAGUES.map((l) => [l, []]));
+  for (const club of Object.values(state.clubs)) {
+    const seed = CLUBS.find((c) => c.name === club.name);
+    if (seed) out[seed.league].push(club.id);
+  }
+  return out;
 }
 
 export function currentFixtures(state: GameState): Match[] {
@@ -78,7 +87,7 @@ export function currentFixtures(state: GameState): Match[] {
 }
 
 export function leagueOf(state: GameState, clubId: ClubId): CompetitionId | null {
-  for (const id of [COMP.first, COMP.second]) {
+  for (const id of LEAGUES) {
     if (state.competitions[id]?.clubs.includes(clubId)) return id;
   }
   return null;
@@ -203,30 +212,37 @@ function applySide(state: GameState, live: LiveMatch, side: LiveSide, ownGoals: 
   for (const pid of side.injured) state.players[pid].injury = { matchesLeft: rng.pick(INJURY_LENGTHS) };
 }
 
-function scheduleRelegation(state: GameState): void {
-  const sixteenth = computeStandings(state.competitions[COMP.first])[15].club;
-  const third = computeStandings(state.competitions[COMP.second])[2].club;
-  const mk = (round: number, home: ClubId, away: ClubId): Match => ({
-    id: newId(state, "m"),
-    competitionId: COMP.relegation,
-    round,
-    home,
-    away,
-    result: null,
-    events: [],
-    penalties: null,
-  });
-  const rel: Competition = {
-    id: COMP.relegation,
-    name: "Relegation",
-    format: "knockout",
-    clubs: [sixteenth, third],
-    rounds: 2,
-    matches: [mk(1, third, sixteenth), mk(2, sixteenth, third)],
-  };
-  state.competitions[rel.id] = rel;
-  state.calendar.push({ fixtures: [{ competitionId: rel.id, round: 1 }] }, { fixtures: [{ competitionId: rel.id, round: 2 }] });
+/** Beide Relegationen (16. der oberen gegen 3. der unteren Liga) an denselben zwei Kalendertagen. */
+function scheduleRelegations(state: GameState): void {
+  const days: CalendarEntry["fixtures"][] = [[], []];
+  for (const b of BOUNDARIES) {
+    const sixteenth = computeStandings(state.competitions[b.upper])[15].club;
+    const third = computeStandings(state.competitions[b.lower])[2].club;
+    const mk = (round: number, home: ClubId, away: ClubId): Match => ({
+      id: newId(state, "m"),
+      competitionId: b.relegation,
+      round,
+      home,
+      away,
+      result: null,
+      events: [],
+      penalties: null,
+    });
+    state.competitions[b.relegation] = {
+      id: b.relegation,
+      name: "Relegation",
+      format: "knockout",
+      clubs: [sixteenth, third],
+      rounds: 2,
+      matches: [mk(1, third, sixteenth), mk(2, sixteenth, third)],
+    };
+    days[0].push({ competitionId: b.relegation, round: 1 });
+    days[1].push({ competitionId: b.relegation, round: 2 });
+  }
+  state.calendar.push({ fixtures: days[0] }, { fixtures: days[1] });
 }
+
+const isRelegation = (id: CompetitionId) => BOUNDARIES.some((b) => b.relegation === id);
 
 /** Gesamtergebnis aus Sicht des Rückspiel-Gastgebers (Erstligist). */
 function relegationAggregate(rel: Competition): { first: number; second: number } | null {
@@ -247,14 +263,14 @@ export function finishMatchday(state: GameState, lives: LiveMatch[]): GameState 
       match.events = [...live.events];
       applySide(draft, live, live.home, score.home, score.away, rng);
       applySide(draft, live, live.away, score.away, score.home, rng);
-      if (match.competitionId === COMP.relegation && match.round === 2) {
-        const agg = relegationAggregate(draft.competitions[COMP.relegation]);
+      if (isRelegation(match.competitionId) && match.round === 2) {
+        const agg = relegationAggregate(draft.competitions[match.competitionId]);
         if (agg && agg.first === agg.second) match.penalties = penaltyShootout(rng);
       }
     }
     processMatchday(draft, lives, rng);
     draft.calendarIndex++;
-    if (draft.calendarIndex === LEAGUE_ROUNDS && !draft.competitions[COMP.relegation]) scheduleRelegation(draft);
+    if (draft.calendarIndex === LEAGUE_ROUNDS && !draft.competitions[BOUNDARIES[0].relegation]) scheduleRelegations(draft);
     afterAdvance(draft, rng);
   });
   return draft;
@@ -269,8 +285,8 @@ export function playMatchdayAuto(state: GameState): GameState {
   return finishMatchday(s, lives);
 }
 
-export function relegationWinner(state: GameState): ClubId | null {
-  const rel = state.competitions[COMP.relegation];
+export function relegationWinner(state: GameState, relegationId: CompetitionId): ClubId | null {
+  const rel = state.competitions[relegationId];
   if (!rel) return null;
   const agg = relegationAggregate(rel);
   if (!agg) return null;
@@ -281,7 +297,7 @@ export function relegationWinner(state: GameState): ClubId | null {
 }
 
 export function isSeasonOver(state: GameState): boolean {
-  return state.competitions[COMP.relegation] !== undefined && state.calendarIndex >= state.calendar.length;
+  return BOUNDARIES.every((b) => state.competitions[b.relegation] !== undefined) && state.calendarIndex >= state.calendar.length;
 }
 
 export function topScorer(c: Competition): { player: PlayerId; goals: number } | null {
@@ -297,31 +313,35 @@ export function topScorer(c: Competition): { player: PlayerId; goals: number } |
 export function finishSeason(state: GameState): { state: GameState; record: SeasonRecord } {
   if (!isSeasonOver(state)) throw new Error("Die Saison ist noch nicht vorbei.");
   const draft = structuredClone(state);
-  const l1 = draft.competitions[COMP.first];
-  const l2 = draft.competitions[COMP.second];
-  const t1 = computeStandings(l1).map((r) => r.club);
-  const t2 = computeStandings(l2).map((r) => r.club);
-  const relegated = [t1[16], t1[17]];
-  const promoted = [t2[0], t2[1]];
-  if (relegationWinner(draft) === t2[2]) {
-    relegated.push(t1[15]);
-    promoted.push(t2[2]);
-  }
+  const tables: Record<CompetitionId, ClubId[]> = Object.fromEntries(
+    LEAGUES.map((l) => [l, computeStandings(draft.competitions[l]).map((r) => r.club)]),
+  );
+  const movements: Movement[] = BOUNDARIES.map((b) => {
+    const up = tables[b.upper];
+    const low = tables[b.lower];
+    const relegated = [up[16], up[17]];
+    const promoted = [low[0], low[1]];
+    if (relegationWinner(draft, b.relegation) === low[2]) {
+      relegated.push(up[15]);
+      promoted.push(low[2]);
+    }
+    return { upper: b.upper, lower: b.lower, promoted, relegated };
+  });
   const record: SeasonRecord = {
     season: draft.season,
-    champions: { [COMP.first]: t1[0], [COMP.second]: t2[0] },
-    promoted,
-    relegated,
-    topScorers: { [COMP.first]: topScorer(l1), [COMP.second]: topScorer(l2) },
+    champions: Object.fromEntries(LEAGUES.map((l) => [l, tables[l][0]])),
+    movements,
+    topScorers: Object.fromEntries(LEAGUES.map((l) => [l, topScorer(draft.competitions[l])])),
   };
   draft.history.push(record);
-  withRng(draft, (rng) => seasonEndEconomy(draft, { [COMP.first]: t1, [COMP.second]: t2 }, rng));
+  withRng(draft, (rng) => seasonEndEconomy(draft, tables, rng));
   draft.season++;
-  startSeason(
-    draft,
-    t1.filter((c) => !relegated.includes(c)).concat(promoted),
-    t2.filter((c) => !promoted.includes(c)).concat(relegated),
-  );
+  const next: Record<CompetitionId, ClubId[]> = Object.fromEntries(LEAGUES.map((l) => [l, [...tables[l]]]));
+  for (const m of movements) {
+    next[m.upper] = next[m.upper].filter((c) => !m.relegated.includes(c)).concat(m.promoted);
+    next[m.lower] = next[m.lower].filter((c) => !m.promoted.includes(c)).concat(m.relegated);
+  }
+  startSeason(draft, next);
   withRng(draft, (rng) => summerMarket(draft, rng));
   return { state: draft, record };
 }

@@ -65,10 +65,10 @@ describe("kompletter Spieltag", () => {
     expect(m.events).toHaveLength(n);
   });
 
-  it("setzt alle 18 Ergebnisse, zählt Einsätze und schaltet den Kalender weiter", () => {
+  it("setzt alle 27 Ergebnisse, zählt Einsätze und schaltet den Kalender weiter", () => {
     let s = prepareMatchday(newGame()).state;
     let lives = kickOff(s);
-    expect(lives).toHaveLength(18);
+    expect(lives).toHaveLength(27);
     ({ state: s, lives } = playHalf(s, lives, 1));
     expect(lives.every((l) => l.minute === 45)).toBe(true);
     lives = aiHalftimeAll(s, lives);
@@ -81,9 +81,9 @@ describe("kompletter Spieltag", () => {
     expect(l1.matches.filter((m) => m.result !== null)).toHaveLength(9);
     expect(computeStandings(l1).every((r) => r.played === 1)).toBe(true);
     const apps = Object.values(after.players).filter((p) => p.stats.apps === 1).length;
-    expect(apps).toBeGreaterThanOrEqual(36 * 11);
+    expect(apps).toBeGreaterThanOrEqual(54 * 11);
     const goals = Object.values(after.players).reduce((x, p) => x + p.stats.goals, 0);
-    const scored = l1.matches.concat(after.competitions[COMP.second].matches).reduce((x, m) => x + (m.result ? m.result.home + m.result.away : 0), 0);
+    const scored = l1.matches.concat(after.competitions[COMP.second].matches, after.competitions[COMP.third].matches).reduce((x, m) => x + (m.result ? m.result.home + m.result.away : 0), 0);
     expect(goals).toBe(scored);
   });
 
@@ -154,11 +154,11 @@ describe("Relegation", () => {
     expect(rel.matches[1]).toMatchObject({ round: 2, home: sixteenth, away: third });
     expect(s.calendar).toHaveLength(36);
     expect(isSeasonOver(s)).toBe(false);
-    expect(relegationWinner(s)).toBeNull();
+    expect(relegationWinner(s, COMP.relegation)).toBeNull();
     s = playMatchdayAuto(s);
     s = playMatchdayAuto(s);
     expect(isSeasonOver(s)).toBe(true);
-    expect([sixteenth, third]).toContain(relegationWinner(s));
+    expect([sixteenth, third]).toContain(relegationWinner(s, COMP.relegation));
   });
 
   it("bei gleichem Gesamtergebnis entscheidet das Elfmeterschießen", () => {
@@ -175,6 +175,6 @@ describe("Relegation", () => {
     expect(second.penalties).not.toBeNull();
     expect(second.penalties!.home).not.toBe(second.penalties!.away);
     const winner = second.penalties!.home > second.penalties!.away ? second.home : second.away;
-    expect(relegationWinner(after)).toBe(winner);
+    expect(relegationWinner(after, COMP.relegation)).toBe(winner);
   });
 });

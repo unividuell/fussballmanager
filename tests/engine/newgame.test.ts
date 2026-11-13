@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CLUBS } from "../../src/engine/clubs";
 import { generateWorld } from "../../src/engine/generator";
 import { COMP, LEAGUE_SIZE } from "../../src/engine/model";
 import { currentFixtures, leagueOf, startNewGame } from "../../src/engine/season";
@@ -7,21 +8,19 @@ describe("startNewGame", () => {
   const world = generateWorld(77);
   const ids = Object.keys(world.clubs);
 
-  it("verteilt die 18 Vereine mit der höchsten Reputation auf die 1. Liga", () => {
+  it("jeder Verein startet in der Liga aus dem Datensatz, drei Ligen mit je 18", () => {
     const r = startNewGame(world, [{ name: "Markus", clubId: ids[0] }]);
     if (!r.ok) throw new Error(r.error);
     const s = r.state;
-    const l1 = s.competitions[COMP.first];
-    const l2 = s.competitions[COMP.second];
-    expect(l1.clubs).toHaveLength(LEAGUE_SIZE);
-    expect(l2.clubs).toHaveLength(LEAGUE_SIZE);
-    const minL1 = Math.min(...l1.clubs.map((c) => s.clubs[c].reputation));
-    const maxL2 = Math.max(...l2.clubs.map((c) => s.clubs[c].reputation));
-    expect(minL1).toBeGreaterThanOrEqual(maxL2);
+    for (const l of [COMP.first, COMP.second, COMP.third]) expect(s.competitions[l].clubs).toHaveLength(LEAGUE_SIZE);
+    for (const c of Object.values(s.clubs)) expect(leagueOf(s, c.id), c.name).toBe(CLUBS.find((x) => x.name === c.name)!.league);
+    const fortuna = Object.values(s.clubs).find((c) => c.name === "Fortuna Düsseldorf")!;
+    expect(leagueOf(s, fortuna.id)).toBe(COMP.third);
+    const minL2 = Math.min(...s.competitions[COMP.second].clubs.map((id) => s.clubs[id].reputation));
+    expect(fortuna.reputation).toBeGreaterThan(minL2);
     expect(s.calendar).toHaveLength(34);
     expect(s.calendarIndex).toBe(0);
-    expect(currentFixtures(s)).toHaveLength(18);
-    expect(leagueOf(s, l2.clubs[0])).toBe(COMP.second);
+    expect(currentFixtures(s)).toHaveLength(27);
   });
 
   it("lehnt Prototyp-Namen als Verein ab", () => {

@@ -19,7 +19,7 @@ describe("ticker", () => {
   it("zu Minute 0 steht es überall 0:0 ohne Ereignis", () => {
     const { state, lives } = firstHalf();
     const rows = tickerRows(state, lives, 0);
-    expect(rows).toHaveLength(18);
+    expect(rows).toHaveLength(27);
     expect(rows.every((r) => r.homeGoals === 0 && r.awayGoals === 0 && r.last === null && !r.goalNow)).toBe(true);
   });
 
@@ -71,7 +71,8 @@ describe("ticker", () => {
 
   it("listet Wettbewerbe in Reihenfolge und benennt sie", () => {
     const { state, lives } = firstHalf();
-    expect(competitionsOf(lives)).toEqual([COMP.first, COMP.second]);
+    expect(competitionsOf(lives)).toEqual([COMP.first, COMP.second, COMP.third]);
+    expect(competitionName(state, COMP.third)).toBe("3. Liga");
     expect(competitionName(state, COMP.first)).toBe("1. Liga");
     expect(competitionName(state, "XYZ")).toBe("XYZ");
   });

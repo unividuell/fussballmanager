@@ -1,18 +1,18 @@
 import type { LiveMatch } from "../match/simulate";
-import { COMP, newId, type ClubId, type CompetitionId, type GameState, type Sponsor } from "../model";
+import { COMP, LEAGUES, newId, type ClubId, type CompetitionId, type GameState, type Sponsor } from "../model";
 import type { Rng } from "../rng";
 import { postToClub } from "./messages";
 import { book, isOverLimit, startBalance, wageBill } from "./money";
 import { STADIUM, attendance } from "./stadium";
 import { clubLeague, formatEuro, isLeagueMatchday, roundTo } from "./util";
 
-export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 45_000, [COMP.second]: 45_000 };
+export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 45_000, [COMP.second]: 45_000, [COMP.third]: 25_000 };
 export const INTEREST_RATE = 0.01;
 /** Reiche KI-Vereine zahlen Spielerprämien: ab diesem Vielfachen des Startkapitals … */
 export const PREMIUM_FROM = 1.3;
 /** … pro Liga-Spieltag diesen Anteil des Überschusses. So horten KI-Vereine kein Geld. */
 export const PREMIUM_RATE = 0.05;
-export const PRIZE_POOL: Record<string, number> = { [COMP.first]: 6_000_000, [COMP.second]: 1_000_000 };
+export const PRIZE_POOL: Record<string, number> = { [COMP.first]: 6_000_000, [COMP.second]: 1_000_000, [COMP.third]: 300_000 };
 
 const SPONSOR_NAMES = [
   "Brauerei Hopfenkrone", "Autohaus Kolbenring", "Stadtwerke Lichtblick", "Bäckerei Goldkorn",
@@ -81,7 +81,7 @@ export function processFinances(state: GameState, lives: LiveMatch[]): void {
 }
 
 export function seasonEndFinances(state: GameState, tables: Record<CompetitionId, ClubId[]>, met: (clubId: ClubId) => boolean): void {
-  for (const league of [COMP.first, COMP.second]) {
+  for (const league of LEAGUES) {
     (tables[league] ?? []).forEach((clubId, i) => {
       book(state, clubId, "prizes", roundTo((PRIZE_POOL[league] * (18 - i)) / 18, 10_000));
     });

@@ -74,7 +74,7 @@ describe("Session", () => {
     const anna = s.managers[0];
     endAll(session);
     let snap = session.snapshot;
-    expect(snap.lives).toHaveLength(18);
+    expect(snap.lives).toHaveLength(27);
     expect(snap.lives.every((l) => l.minute === 45)).toBe(true);
     session.advance();
     snap = session.snapshot;
@@ -127,7 +127,7 @@ describe("Session", () => {
     const session = new Session(s);
     for (let i = 0; i < 34; i++) playMatchday(session);
     endAll(session);
-    expect(session.snapshot.lives).toHaveLength(1);
+    expect(session.snapshot.lives).toHaveLength(2); // je ein Relegationsspiel an beiden Grenzen
     session.advance();
     const snap = session.snapshot;
     const playing = s.managers.filter((m) => findLiveFor(snap.state, snap.lives, m.id) !== null).map((m) => m.id);

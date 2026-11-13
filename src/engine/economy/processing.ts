@@ -1,5 +1,5 @@
 import type { LiveMatch } from "../match/simulate";
-import { COMP, type ClubId, type CompetitionId, type GameState } from "../model";
+import { COMP, LEAGUES, type ClubId, type CompetitionId, type GameState } from "../model";
 import type { Rng } from "../rng";
 import {
   assignExpectations,
@@ -51,7 +51,7 @@ export function afterAdvance(state: GameState, rng: Rng): void {
 
 export function seasonEndEconomy(state: GameState, tables: Record<CompetitionId, ClubId[]>, rng: Rng): void {
   const met = (clubId: ClubId) => {
-    const league = tables[COMP.first]?.includes(clubId) ? COMP.first : COMP.second;
+    const league = LEAGUES.find((l) => tables[l]?.includes(clubId)) ?? COMP.second;
     return expectationMet(state, clubId, (tables[league] ?? []).indexOf(clubId) + 1);
   };
   seasonEndFinances(state, tables, met);

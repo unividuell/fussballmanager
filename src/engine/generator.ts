@@ -6,17 +6,16 @@ import {
   newId,
   type Club,
   type ClubId,
-  type CrestPattern,
   type GameState,
   type Player,
   type Position,
 } from "./model";
-import { CLUB_COLORS, CLUB_PREFIXES, FIRST_NAMES, LAST_NAMES, TOWNS } from "./names";
+import { CLUBS } from "./clubs";
+import { FIRST_NAMES, LAST_NAMES } from "./names";
 import { Rng } from "./rng";
 
-export const CLUB_COUNT = 36;
+export const CLUB_COUNT = CLUBS.length;
 const SQUAD_PLAN: [Position, number][] = [["GK", 3], ["DF", 8], ["MF", 8], ["FW", 6]];
-const CRESTS: CrestPattern[] = ["plain", "stripes", "sash", "split", "hoops"];
 
 const FREE_AGENTS_START = 30;
 const FREE_AGENT_POSITIONS: Position[] = ["GK", "DF", "DF", "MF", "MF", "FW"];
@@ -68,16 +67,10 @@ export function generatePlayer(
   return p;
 }
 
-function clubName(rng: Rng, town: string): string {
-  const prefix = rng.pick(CLUB_PREFIXES);
-  const suffix = rng.chance(0.3) ? ` ${String(rng.int(0, 99)).padStart(2, "0")}` : "";
-  return `${prefix} ${town}${suffix}`;
-}
-
 export function generateWorld(seed: number): GameState {
   const rng = Rng.fromSeed(seed);
   const state: GameState = {
-    version: 3,
+    version: 4,
     rngState: rng.state(),
     season: 1,
     calendar: [],
@@ -92,16 +85,14 @@ export function generateWorld(seed: number): GameState {
     messages: [],
     nextId: 1,
   };
-  const towns = rng.shuffle(TOWNS).slice(0, CLUB_COUNT);
-  for (let i = 0; i < CLUB_COUNT; i++) {
-    const reputation = clamp(Math.round(92 - i * 1.8 + rng.int(-3, 3)), 1, 100);
-    const [c1, c2] = rng.shuffle(CLUB_COLORS);
+  for (const seed of CLUBS) {
+    const reputation = seed.reputation;
     const club: Club = {
       id: newId(state, "c"),
-      name: clubName(rng, towns[i]),
-      shortName: towns[i],
-      colors: [c1, c2],
-      crest: rng.pick(CRESTS),
+      name: seed.name,
+      shortName: seed.shortName,
+      colors: [...seed.colors],
+      crest: seed.crest,
       reputation,
       managerId: null,
       squad: [],
@@ -123,7 +114,8 @@ export function generateWorld(seed: number): GameState {
       tacticsBonus: 1,
     };
     state.clubs[club.id] = club;
-    const base = baseStrengthFor(reputation);
+    // Kaderstärke kommt aus dem Datensatz, unabhängig vom Ruf (Spec 2026-11-13, Abschnitt 3)
+    const base = baseStrengthFor(seed.strength);
     for (const [pos, n] of SQUAD_PLAN) {
       for (let k = 0; k < n; k++) club.squad.push(generatePlayer(state, rng, club.id, pos, base).id);
     }

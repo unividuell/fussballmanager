@@ -43,8 +43,8 @@
       <Panel title="CHRONIK">
         <p>Meister 1. Liga: <b>{gs.clubs[record.champions[COMP.first]].name}</b></p>
         <p>Meister 2. Liga: <b>{gs.clubs[record.champions[COMP.second]].name}</b></p>
-        <p>Aufsteiger: {names(record.promoted)}</p>
-        <p>Absteiger: {names(record.relegated)}</p>
+        <p>Aufsteiger: {names(record.movements.flatMap((m) => m.promoted))}</p>
+        <p>Absteiger: {names(record.movements.flatMap((m) => m.relegated))}</p>
         <p>Torschützenkönig 1. Liga: {scorer(COMP.first)}</p>
         <p>Torschützenkönig 2. Liga: {scorer(COMP.second)}</p>
       </Panel>

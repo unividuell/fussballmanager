@@ -15,7 +15,7 @@ import { STADIUM, attendance, startBuilding, validateTicketPrice } from "../../.
 import { generateWorld } from "../../../src/engine/generator";
 import { COMP, type GameState } from "../../../src/engine/model";
 import { Rng } from "../../../src/engine/rng";
-import { kickOff, startNewGame } from "../../../src/engine/season";
+import { finishSeason, isSeasonOver, kickOff, playMatchdayAuto, startNewGame } from "../../../src/engine/season";
 
 function game(): GameState {
   const world = generateWorld(12);
@@ -42,9 +42,9 @@ describe("Zuschauer", () => {
     expect(attendance(s, l1a, l1b)).toBe(STADIUM[0].capacity);
     const l2 = s.competitions[COMP.second].clubs[0];
     s.clubs[l2].reputation = club.reputation;
-    Object.assign(s.clubs[l2].finance, { stadiumStage: 4, ticketPrice: 20 });
+    Object.assign(s.clubs[l2].finance, { stadiumStage: 4, ticketPrice: 60 });
     club.finance.stadiumStage = 4;
-    club.finance.ticketPrice = 20;
+    club.finance.ticketPrice = 60;
     expect(attendance(s, l2, l1b)).toBeLessThan(attendance(s, l1a, l1b));
   });
 });
@@ -229,5 +229,17 @@ describe("Spielerprämien reicher KI-Vereine", () => {
 describe("TV-Geld", () => {
   it("die 1. Liga bringt mindestens so viel TV-Geld wie die 2. Liga", () => {
     expect(TV_PER_MATCHDAY[COMP.first]).toBeGreaterThanOrEqual(TV_PER_MATCHDAY[COMP.second]);
+  });
+});
+
+describe("3. Liga", () => {
+  it("alle Kontostände bleiben nach Spieltagen und Saisonende endliche Zahlen", { timeout: 120_000 }, () => {
+    const world = generateWorld(12);
+    const r = startNewGame(world, [{ name: "Anna", clubId: Object.keys(world.clubs)[0] }]);
+    if (!r.ok) throw new Error(r.error);
+    let s = r.state;
+    while (!isSeasonOver(s)) s = playMatchdayAuto(s);
+    s = finishSeason(s).state;
+    for (const c of Object.values(s.clubs)) expect(Number.isFinite(c.finance.balance), c.name).toBe(true);
   });
 });

@@ -3,7 +3,7 @@ import savedV1 from "./fixtures/save-v1.json?raw";
 import type { GameState } from "../../src/engine/model";
 import { Session } from "../../src/session/session";
 import { migrate, type Migration } from "../../src/storage/migrate";
-import { DAMAGED, decodeSave, encodeSave, makeMeta, NOT_A_SAVE, parseMeta, TOO_NEW } from "../../src/storage/savefile";
+import { DAMAGED, decodeSave, encodeSave, makeMeta, NOT_A_SAVE, parseMeta, TOO_NEW, TOO_OLD } from "../../src/storage/savefile";
 import { validateState } from "../../src/storage/validate";
 import { newTestGame } from "../ui/game";
 
@@ -54,7 +54,7 @@ describe("Spielstand-Datei", () => {
   });
 
   it("lehnt Spielstände aus einer neueren Version ab", () => {
-    const s = { ...newTestGame(), version: 4 } as unknown as GameState;
+    const s = { ...newTestGame(), version: 5 } as unknown as GameState;
     expect(decodeSave(encodeSave(s, META))).toEqual({ ok: false, error: TOO_NEW });
   });
 
@@ -101,7 +101,7 @@ describe("Migration", () => {
       1: (s) => (order.push(1), { ...s, version: 2, eins: true }),
       2: (s) => (order.push(2), { ...s, version: 3, zwei: s.eins === true }),
     };
-    const r = migrate({ ...raw(), version: 1 }, steps, 3);
+    const r = migrate({ ...raw(), version: 1 }, steps, 3, 1);
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(order).toEqual([1, 2]);
@@ -110,11 +110,11 @@ describe("Migration", () => {
   });
 
   it("meldet einen fehlenden Migrationsschritt", () => {
-    expect(migrate({ ...raw(), version: 1 }, {}, 2)).toEqual({ ok: false, error: "Für Version 1 gibt es keine Migration." });
+    expect(migrate({ ...raw(), version: 1 }, {}, 2, 1)).toEqual({ ok: false, error: "Für Version 1 gibt es keine Migration." });
   });
 
   it("meldet einen Schritt, der die Version nicht erhöht", () => {
-    expect(migrate({ ...raw(), version: 1 }, { 1: (s) => s }, 2)).toEqual({ ok: false, error: "Die Migration von Version 1 ist fehlerhaft." });
+    expect(migrate({ ...raw(), version: 1 }, { 1: (s) => s }, 2, 1)).toEqual({ ok: false, error: "Die Migration von Version 1 ist fehlerhaft." });
   });
 
   it("meldet einen Stand ohne gültige Version als beschädigt", () => {
@@ -123,17 +123,17 @@ describe("Migration", () => {
   });
 });
 
-describe("v1-Testdatei", () => {
-  it("lässt sich laden und weiterspielen", () => {
-    const r = decodeSave(savedV1);
+describe("alte Spielstände", () => {
+  it("die v1-Testdatei mit erfundenen Vereinen wird mit Begründung abgelehnt", () => {
+    expect(decodeSave(savedV1)).toEqual({ ok: false, error: TOO_OLD });
+  });
+
+  it("ein v3-Spielstand wird abgelehnt, ein frisches Spiel speichert und lädt als Version 4", () => {
+    const fresh = newTestGame();
+    expect(fresh.version).toBe(4);
+    const old = { ...fresh, version: 3 } as unknown as GameState;
+    expect(decodeSave(encodeSave(old, META))).toEqual({ ok: false, error: TOO_OLD });
+    const r = decodeSave(encodeSave(fresh, META));
     expect(r.ok).toBe(true);
-    if (!r.ok) return;
-    expect(r.file.state.version).toBe(3);
-    expect(r.file.meta).toEqual({ managers: ["Anna", "Ben"], season: 1, label: "2. Spieltag", savedAt: "2026-11-04T12:00:00.000Z" });
-    expect(r.file.state.calendarIndex).toBe(1);
-    const session = new Session(r.file.state);
-    playMatchday(session);
-    expect(session.snapshot.state.calendarIndex).toBe(2);
-    expect(validateState(session.snapshot.state)).toBeNull();
   });
 });

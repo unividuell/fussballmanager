@@ -67,7 +67,12 @@ describe("Nachfrage und Kapazität", () => {
   it("leer: niedrigerer Preis bringt mehr Erlös", () => {
     const s = game();
     const opp = midOpponent(s, COMP.second);
-    const id = byReputation(s, COMP.second).at(-1)!;
+    // der Verein mit der geringsten Auslastung zum Startpreis
+    const load = (x: ClubId) => {
+      s.clubs[x].finance.ticketPrice = startPrice(s.clubs[x].reputation);
+      return attendance(s, x, opp) / capacity(s, x);
+    };
+    const id = [...s.competitions[COMP.first].clubs, ...s.competitions[COMP.second].clubs].sort((a, b) => load(a) - load(b))[0];
     const p = startPrice(s.clubs[id].reputation);
     s.clubs[id].finance.ticketPrice = p;
     expect(attendance(s, id, opp)).toBeLessThan(0.7 * capacity(s, id));

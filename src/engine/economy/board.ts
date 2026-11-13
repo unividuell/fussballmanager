@@ -1,5 +1,5 @@
 import type { LiveMatch } from "../match/simulate";
-import { COMP, type ClubId, type CompetitionId, type Expectation, type GameState } from "../model";
+import { COMP, LEAGUES, type ClubId, type CompetitionId, type Expectation, type GameState } from "../model";
 import { postMessage, postToClub } from "./messages";
 import { isLeagueMatchday, leagueRank } from "./util";
 
@@ -33,7 +33,7 @@ export function expectationLabel(e: Expectation, competitionId: CompetitionId): 
 }
 
 export function assignExpectations(state: GameState): void {
-  for (const league of [COMP.first, COMP.second]) {
+  for (const league of LEAGUES) {
     const comp = state.competitions[league];
     if (!comp) continue;
     [...comp.clubs]
@@ -66,7 +66,7 @@ export function updateConfidence(state: GameState, lives: LiveMatch[]): void {
     results.set(l.home.club, Math.sign(l.home.goals - l.away.goals) as -1 | 0 | 1);
     results.set(l.away.club, Math.sign(l.away.goals - l.home.goals) as -1 | 0 | 1);
   }
-  for (const league of [COMP.first, COMP.second]) {
+  for (const league of LEAGUES) {
     for (const id of state.competitions[league]?.clubs ?? []) {
       const club = state.clubs[id];
       const rank = state.calendarIndex >= RANK_FROM ? (leagueRank(state, id) ?? 18) : null;
@@ -92,7 +92,7 @@ export function boardChecks(state: GameState): void {
 
 /** Saisonbilanz für die Vereine der Manager: Vertrauen und eine Nachricht, sonst nichts. */
 export function seasonReview(state: GameState, tables: Record<CompetitionId, ClubId[]>): void {
-  for (const league of [COMP.first, COMP.second]) {
+  for (const league of LEAGUES) {
     (tables[league] ?? []).forEach((clubId, i) => {
       const club = state.clubs[clubId];
       if (!club.managerId) return;

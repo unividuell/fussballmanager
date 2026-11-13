@@ -47,7 +47,7 @@ describe("kompletter Ablauf über die Oberfläche", () => {
     await key("Enter");
 
     expect(screen.getByText("ERGEBNISSE · 1. Spieltag")).toBeTruthy();
-    expect(document.querySelectorAll(".result")).toHaveLength(18);
+    expect(document.querySelectorAll(".result")).toHaveLength(27);
     await fireEvent.click(screen.getByRole("button", { name: "Tabelle" }));
     await tick();
     expect(screen.getByRole("table", { name: "Tabelle" })).toBeTruthy();

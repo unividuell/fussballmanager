@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { computeStandings } from "../../src/engine/competition/standings";
 import { generateWorld } from "../../src/engine/generator";
 import { validateLineup } from "../../src/engine/lineup";
-import { COMP, isAvailable, type GameState } from "../../src/engine/model";
+import { LEAGUES, isAvailable, type GameState } from "../../src/engine/model";
 import {
   aiHalftimeAll,
   currentFixtures,
@@ -42,7 +42,7 @@ describe("Langzeittest: 10 Saisons", () => {
         ({ state: s, lives } = playHalf(s, lives, 2));
         s = finishMatchday(s, lives);
       }
-      for (const id of [COMP.first, COMP.second]) {
+      for (const id of LEAGUES) {
         for (const m of s.competitions[id].matches) {
           expect(m.result).not.toBeNull();
           // Der passive Testmanager lässt alle Verträge auslaufen und spielt bald mit Amateuren (bis zu 10 Gegentore
@@ -59,13 +59,13 @@ describe("Langzeittest: 10 Saisons", () => {
 
       const { state: next, record } = finishSeason(s);
       expect(record.season).toBe(season);
-      expect(record.promoted.length).toBe(record.relegated.length);
-      expect([2, 3]).toContain(record.promoted.length);
-      const l1 = next.competitions[COMP.first].clubs;
-      const l2 = next.competitions[COMP.second].clubs;
-      expect(l1).toHaveLength(18);
-      expect(l2).toHaveLength(18);
-      expect(new Set([...l1, ...l2]).size).toBe(36);
+      expect(record.movements).toHaveLength(2);
+      for (const m of record.movements) {
+        expect(m.promoted.length).toBe(m.relegated.length);
+        expect([2, 3]).toContain(m.promoted.length);
+      }
+      for (const l of LEAGUES) expect(next.competitions[l].clubs).toHaveLength(18);
+      expect(new Set(LEAGUES.flatMap((l) => next.competitions[l].clubs)).size).toBe(54);
       expect(validateState(next)).toBeNull();
       expect(next.managers[0].clubId).toBe(start);
       s = next;
