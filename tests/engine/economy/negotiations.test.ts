@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { desiredYears, salaryDemand } from "../../../src/engine/economy/contracts";
 import {
   cleanupNegotiations,
+  isDownwardMove,
   openNegotiationFor,
   respondNegotiation,
   startContractTalk,
@@ -215,5 +216,20 @@ describe("cleanupNegotiations", () => {
     s.calendarIndex = 2;
     cleanupNegotiations(s);
     expect(s.negotiations).toHaveLength(0);
+  });
+});
+
+describe("Wechsel in eine niedrigere Liga", () => {
+  it("gilt von der 1. in die 2. und von der 2. in die 3. Liga, nicht umgekehrt", () => {
+    const world = generateWorld(8);
+    const r = startNewGame(world, [{ name: "A", clubId: Object.keys(world.clubs)[0] }]);
+    if (!r.ok) throw new Error(r.error);
+    const s = r.state;
+    const [a, b, c] = [COMP.first, COMP.second, COMP.third].map((l) => s.competitions[l].clubs[3]);
+    expect(isDownwardMove(s, b, a)).toBe(true);
+    expect(isDownwardMove(s, c, b)).toBe(true);
+    expect(isDownwardMove(s, c, a)).toBe(true);
+    expect(isDownwardMove(s, a, b)).toBe(false);
+    expect(isDownwardMove(s, b, c)).toBe(false);
   });
 });

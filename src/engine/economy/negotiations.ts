@@ -1,4 +1,4 @@
-import { COMP, MAX_SQUAD, newId, type ClubId, type GameState, type ManagerId, type Negotiation, type Player, type PlayerId } from "../model";
+import { MAX_SQUAD, leagueLevel, newId, type ClubId, type GameState, type ManagerId, type Negotiation, type Player, type PlayerId } from "../model";
 import {
   TALK_COOLDOWN,
   desiredYears,
@@ -61,10 +61,17 @@ function buyerOf(state: GameState, n: Negotiation): ClubId | null {
   return state.managers.find((m) => m.id === n.managerId)?.clubId ?? null;
 }
 
+/** Wechselt ein Spieler zu einem Verein in einer niedrigeren Liga? */
+export function isDownwardMove(state: GameState, buyerId: ClubId, sellerId: ClubId): boolean {
+  const buyer = leagueLevel(clubLeague(state, buyerId));
+  const seller = leagueLevel(clubLeague(state, sellerId));
+  return buyer >= 0 && seller >= 0 && buyer > seller;
+}
+
 function reluctance(state: GameState, buyerId: ClubId, sellerId: ClubId): number {
   const buyer = state.clubs[buyerId];
   const seller = state.clubs[sellerId];
-  const downward = clubLeague(state, buyerId) === COMP.second && clubLeague(state, sellerId) === COMP.first;
+  const downward = isDownwardMove(state, buyerId, sellerId);
   return buyer.reputation <= seller.reputation - 15 || downward ? 1.3 : 1;
 }
 

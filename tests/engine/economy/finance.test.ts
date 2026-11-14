@@ -243,3 +243,21 @@ describe("3. Liga", () => {
     for (const c of Object.values(s.clubs)) expect(Number.isFinite(c.finance.balance), c.name).toBe(true);
   });
 });
+
+describe("Wirtschaft nach Ligastufe", () => {
+  it("TV-Geld und Prämien sinken nach unten", () => {
+    expect(TV_PER_MATCHDAY[COMP.first]).toBeGreaterThanOrEqual(TV_PER_MATCHDAY[COMP.second]);
+    expect(TV_PER_MATCHDAY[COMP.second]).toBeGreaterThan(TV_PER_MATCHDAY[COMP.third]);
+    expect(PRIZE_POOL[COMP.first]).toBeGreaterThan(PRIZE_POOL[COMP.second]);
+    expect(PRIZE_POOL[COMP.second]).toBeGreaterThan(PRIZE_POOL[COMP.third]);
+  });
+
+  it("Sponsorangebote der 3. Liga sind bei gleichem Ruf niedriger als die der 2. Liga", () => {
+    const s = game();
+    const l2 = s.competitions[COMP.second].clubs.find((id) => s.clubs[id].managerId === null)!;
+    const l3 = s.competitions[COMP.third].clubs.find((id) => s.clubs[id].managerId === null)!;
+    s.clubs[l3].reputation = s.clubs[l2].reputation;
+    const sum = (id: string) => sponsorOffers(s, id, Rng.fromSeed(5)).reduce((a, o) => a + o.perMatchday, 0);
+    expect(sum(l3)).toBeLessThan(sum(l2));
+  });
+});

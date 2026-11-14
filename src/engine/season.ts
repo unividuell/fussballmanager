@@ -22,6 +22,7 @@ import {
   type Movement,
   type SeasonRecord,
 } from "./model";
+import { applyRelegationClauses } from "./economy/contracts";
 import { afterAdvance, processMatchday, seasonEndEconomy, startSeasonEconomy, summerMarket } from "./economy/processing";
 import { Rng } from "./rng";
 import { ensureMinimumSquad } from "./squad";
@@ -143,7 +144,9 @@ export function kickOff(state: GameState): LiveMatch[] {
 }
 
 export function playHalf(state: GameState, lives: LiveMatch[], half: 1 | 2): { state: GameState; lives: LiveMatch[] } {
-  const draft = structuredClone(state);
+  // Die Simulation liest den Spielstand nur und schreibt in die Live-Spiele; neu ist allein der Zufallszustand.
+  // Eine flache Kopie genügt und spart pro Halbzeit eine Kopie aller Spieler.
+  const draft = { ...state };
   const out = structuredClone(lives);
   withRng(draft, (rng) => {
     for (const live of out) simulateHalf(draft, live, half, rng);
@@ -335,6 +338,7 @@ export function finishSeason(state: GameState): { state: GameState; record: Seas
   };
   draft.history.push(record);
   withRng(draft, (rng) => seasonEndEconomy(draft, tables, rng));
+  applyRelegationClauses(draft, movements);
   draft.season++;
   const next: Record<CompetitionId, ClubId[]> = Object.fromEntries(LEAGUES.map((l) => [l, [...tables[l]]]));
   for (const m of movements) {

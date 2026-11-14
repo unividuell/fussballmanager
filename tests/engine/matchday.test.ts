@@ -178,3 +178,15 @@ describe("Relegation", () => {
     expect(relegationWinner(after, COMP.relegation)).toBe(winner);
   });
 });
+
+describe("playHalf", () => {
+  it("ändert am Spielstand nur den Zufallszustand und lässt den alten Stand unverändert", () => {
+    const s = prepareMatchday(newGame()).state;
+    const before = JSON.stringify(s);
+    const lives = kickOff(s);
+    const { state: after } = playHalf(s, lives, 1);
+    expect(JSON.stringify(s)).toBe(before);
+    expect(after.rngState).not.toEqual(s.rngState);
+    expect(JSON.stringify({ ...after, rngState: null })).toBe(JSON.stringify({ ...s, rngState: null }));
+  });
+});

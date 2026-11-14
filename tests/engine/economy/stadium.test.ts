@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { computeStandings } from "../../../src/engine/competition/standings";
 import { processMatchday } from "../../../src/engine/economy/processing";
-import { AI_BUILD_RESERVE, STADIUM, aiStadiumDecisions, attendance, startPrice } from "../../../src/engine/economy/stadium";
+import { AI_BUILD_RESERVE, STADIUM, aiStadiumDecisions, attendance, startPrice, upkeepFor } from "../../../src/engine/economy/stadium";
 import { generateWorld } from "../../../src/engine/generator";
 import { COMP, type ClubId, type GameState } from "../../../src/engine/model";
 import { Rng } from "../../../src/engine/rng";
@@ -40,9 +40,10 @@ describe("Nachfrage und Kapazität", () => {
 
   it("kleine Vereine haben im Startstadion Lücken", () => {
     const s = game();
-    const opp = midOpponent(s, COMP.second);
-    for (const id of byReputation(s, COMP.second).slice(-3)) {
-      s.clubs[id].finance.ticketPrice = startPrice(s.clubs[id].reputation);
+    // mit echten Vereinen sind die kleinsten Vereine die kleinsten Drittligisten
+    const opp = midOpponent(s, COMP.third);
+    for (const id of byReputation(s, COMP.third).slice(-3)) {
+      s.clubs[id].finance.ticketPrice = startPrice(s.clubs[id].reputation, 2);
       expect(attendance(s, id, opp)).toBeLessThan(0.9 * capacity(s, id));
     }
   });
@@ -164,5 +165,32 @@ describe("KI-Stadion", () => {
     aiStadiumDecisions(s);
     expect(f.building).not.toBeNull();
     expect(f.balance).toBe(AI_BUILD_RESERVE);
+  });
+});
+
+describe("3. Liga", () => {
+  it("bei gleichem Ruf weniger Zuschauer als in der 2. Liga", () => {
+    const s = game();
+    const l2 = s.competitions[COMP.second].clubs[0];
+    const l3 = s.competitions[COMP.third].clubs[0];
+    for (const id of [l2, l3]) Object.assign(s.clubs[id], { reputation: 60 });
+    for (const id of [l2, l3]) Object.assign(s.clubs[id].finance, { stadiumStage: 4, ticketPrice: 20 });
+    const opp = midOpponent(s, COMP.second);
+    expect(attendance(s, l3, opp)).toBeLessThan(attendance(s, l2, opp));
+  });
+
+  it("Traditionsverein der 3. Liga ist zum Start fast voll", () => {
+    const s = game();
+    const id = Object.values(s.clubs).find((c) => c.name === "Fortuna Düsseldorf")!.id;
+    s.clubs[id].finance.ticketPrice = startPrice(s.clubs[id].reputation, 2);
+    expect(attendance(s, id, midOpponent(s, COMP.third)) / capacity(s, id)).toBeGreaterThanOrEqual(0.9);
+  });
+});
+
+describe("Stadionunterhalt", () => {
+  it("ist in unteren Ligen günstiger", () => {
+    expect(upkeepFor(3, 1)).toBeLessThan(upkeepFor(3, 0));
+    expect(upkeepFor(3, 2)).toBeLessThan(upkeepFor(3, 1));
+    expect(upkeepFor(3, 0)).toBe(STADIUM[3].upkeep);
   });
 });

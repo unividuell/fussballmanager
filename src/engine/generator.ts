@@ -1,8 +1,10 @@
 import { START_CONFIDENCE } from "./economy/board";
-import { salaryFor, startBalance } from "./economy/money";
+import { WAGE_FACTOR, salaryFor, startBalance } from "./economy/money";
+import { roundTo } from "./economy/util";
 import { initialStage, startPrice } from "./economy/stadium";
 import { autoLineup } from "./lineup";
 import {
+  LEAGUES,
   newId,
   type Club,
   type ClubId,
@@ -34,6 +36,7 @@ export function generatePlayer(
   position: Position,
   baseStrength: number,
   age = rng.int(17, 34),
+  wageFactor = 1,
 ): Player {
   let strength = rng.normal(baseStrength, 5);
   if (age <= 20) strength -= 6;
@@ -57,7 +60,7 @@ export function generatePlayer(
     yellowCards: 0,
     clubId,
     stats: { apps: 0, goals: 0 },
-    contract: clubId ? { salary: salaryFor(strength), endsSeason: state.season + rng.int(0, 3) } : null,
+    contract: clubId ? { salary: roundTo(salaryFor(strength) * wageFactor, 100), endsSeason: state.season + rng.int(0, 3) } : null,
     morale: 60,
     transferListed: null,
     talkCooldown: 0,
@@ -100,8 +103,8 @@ export function generateWorld(seed: number): GameState {
       tactics: { formation: "4-4-2", style: "normal", hardness: "normal" },
       finance: {
         balance: startBalance(reputation),
-        ticketPrice: startPrice(reputation),
-        stadiumStage: initialStage(reputation),
+        ticketPrice: startPrice(reputation, LEAGUES.indexOf(seed.league)),
+        stadiumStage: initialStage(reputation, LEAGUES.indexOf(seed.league)),
         building: null,
         sponsor: null,
         sponsorOffers: [],
@@ -116,8 +119,9 @@ export function generateWorld(seed: number): GameState {
     state.clubs[club.id] = club;
     // Kaderstärke kommt aus dem Datensatz, unabhängig vom Ruf (Spec 2026-11-13, Abschnitt 3)
     const base = baseStrengthFor(seed.strength);
+    const wage = WAGE_FACTOR[LEAGUES.indexOf(seed.league)];
     for (const [pos, n] of SQUAD_PLAN) {
-      for (let k = 0; k < n; k++) club.squad.push(generatePlayer(state, rng, club.id, pos, base).id);
+      for (let k = 0; k < n; k++) club.squad.push(generatePlayer(state, rng, club.id, pos, base, rng.int(17, 34), wage).id);
     }
     club.lineup = autoLineup(state, club.id, club.tactics.formation);
   }

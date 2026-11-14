@@ -34,13 +34,13 @@ const c = (
 /** Teilnehmer 2026/27 laut Wikipedia (Stand 8. November 2026); 3. Liga ohne die Zweitvertretungen von Hoffenheim und Stuttgart. */
 export const CLUBS: readonly ClubSeed[] = [
   // Bundesliga
-  c("FC Bayern München", "Bayern", ["#dc052d", W], "plain", 98, 96, "L1"),
-  c("Borussia Dortmund", "Dortmund", ["#fde100", B], "plain", 92, 88, "L1"),
+  c("FC Bayern München", "Bayern", ["#dc052d", W], "plain", 93, 96, "L1"),
+  c("Borussia Dortmund", "Dortmund", ["#fde100", B], "plain", 91, 88, "L1"),
   c("SC Freiburg", "Freiburg", [RED, B], "split", 76, 80, "L1"),
   c("RB Leipzig", "Leipzig", ["#dd0741", W], "sash", 84, 86, "L1"),
   c("Bayer 04 Leverkusen", "Leverkusen", [RED, B], "hoops", 86, 87, "L1"),
-  c("Werder Bremen", "Bremen", ["#1d9053", W], "plain", 84, 76, "L1"),
-  c("SV Elversberg", "Elversberg", [B, W], "stripes", 40, 68, "L1"),
+  c("Werder Bremen", "Bremen", ["#1d9053", W], "plain", 82, 76, "L1"),
+  c("SV Elversberg", "Elversberg", [B, W], "stripes", 48, 68, "L1"),
   c("VfB Stuttgart", "Stuttgart", [W, RED], "hoops", 82, 82, "L1"),
   c("TSG 1899 Hoffenheim", "Hoffenheim", ["#1c63b7", W], "split", 74, 79, "L1"),
   c("Eintracht Frankfurt", "Frankfurt", [RED, B], "stripes", 84, 81, "L1"),
@@ -48,10 +48,10 @@ export const CLUBS: readonly ClubSeed[] = [
   c("1. FSV Mainz 05", "Mainz", ["#c3141e", W], "plain", 68, 74, "L1"),
   c("SC Paderborn 07", "Paderborn", [BLUE, B], "stripes", 52, 66, "L1"),
   c("FC Augsburg", "Augsburg", ["#ba3733", "#46714d"], "stripes", 64, 71, "L1"),
-  c("1. FC Köln", "Köln", [RED, W], "split", 84, 71, "L1"),
+  c("1. FC Köln", "Köln", [RED, W], "split", 82, 71, "L1"),
   c("1. FC Union Berlin", "Union", ["#eb1923", "#ffd700"], "plain", 70, 72, "L1"),
-  c("FC Schalke 04", "Schalke", ["#004d9d", W], "hoops", 90, 70, "L1"),
-  c("Borussia Mönchengladbach", "Gladbach", [B, "#00a650"], "sash", 84, 72, "L1"),
+  c("FC Schalke 04", "Schalke", ["#004d9d", W], "hoops", 89, 70, "L1"),
+  c("Borussia Mönchengladbach", "Gladbach", [B, "#00a650"], "sash", 82, 72, "L1"),
   // 2. Bundesliga
   c("Hertha BSC", "Hertha", [BLUE, W], "stripes", 86, 58, "L2"),
   c("1. FC Nürnberg", "Nürnberg", ["#a6192e", B], "split", 80, 52, "L2"),
