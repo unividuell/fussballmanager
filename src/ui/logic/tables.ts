@@ -28,9 +28,13 @@ export function zoneFor(competitionId: CompetitionId, rank: number): Zone {
     if (rank >= 17) return "relegation";
     return null;
   }
-  if (competitionId === COMP.second) {
+  if (competitionId === COMP.second || competitionId === COMP.third) {
     if (rank <= 2) return "promotion";
     if (rank === 3) return "playoff";
+  }
+  if (competitionId === COMP.second) {
+    if (rank === 16) return "playoff";
+    if (rank >= 17) return "relegation";
   }
   return null;
 }

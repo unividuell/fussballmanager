@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { COMP, type ClubId } from "../../engine/model";
+  import { LEAGUES, leagueLevel, type ClubId, type CompetitionId } from "../../engine/model";
   import { leagueOf } from "../../engine/season";
   import type { GameController } from "../controller.svelte";
   import Panel from "../theme/Panel.svelte";
@@ -11,6 +11,7 @@
   const gs = $derived(snap.state);
   const record = $derived(snap.phase.kind === "seasonEnd" ? snap.phase.record : null);
   const names = (ids: ClubId[]) => ids.map((id) => gs.clubs[id].name).join(", ");
+  const leagueName = (id: CompetitionId) => `${leagueLevel(id) + 1}. Liga`;
 
   function scorer(competitionId: string): string {
     const s = record?.topScorers[competitionId];
@@ -40,13 +41,14 @@
   <div class="seasonend">
     <h1>SAISON {record.season} BEENDET</h1>
     <div class="cols">
-      <Panel title="CHRONIK">
-        <p>Meister 1. Liga: <b>{gs.clubs[record.champions[COMP.first]].name}</b></p>
-        <p>Meister 2. Liga: <b>{gs.clubs[record.champions[COMP.second]].name}</b></p>
-        <p>Aufsteiger: {names(record.movements.flatMap((m) => m.promoted))}</p>
-        <p>Absteiger: {names(record.movements.flatMap((m) => m.relegated))}</p>
-        <p>Torschützenkönig 1. Liga: {scorer(COMP.first)}</p>
-        <p>Torschützenkönig 2. Liga: {scorer(COMP.second)}</p>
+      <Panel title="CHRONIK" class="chronik">
+        {#each LEAGUES as l, i (l)}
+          <p>Meister {i + 1}. Liga: <b>{gs.clubs[record.champions[l]].name}</b> · Torschützenkönig {i + 1}. Liga: {scorer(l)}</p>
+        {/each}
+        {#each record.movements as m (m.upper)}
+          <p>Aufsteiger in die {leagueName(m.upper)}: {names(m.promoted)}</p>
+          <p>Absteiger in die {leagueName(m.lower)}: {names(m.relegated)}</p>
+        {/each}
       </Panel>
       <Panel title="MANAGER">
         {#each gs.managers as m (m.id)}
@@ -65,7 +67,8 @@
 <style>
   .seasonend { display: flex; flex-direction: column; height: 100%; padding: 24px; box-sizing: border-box; gap: 16px; }
   .cols { flex: 1; display: grid; grid-template-columns: 3fr 2fr; gap: 16px; min-height: 0; }
-  p { margin: 0; font-size: 26px; }
+  p { margin: 0; font-size: 24px; }
+  :global(.chronik) { overflow-y: auto; }
   b { color: var(--gold); font-weight: normal; }
   .foot { display: flex; }
   .spacer { flex: 1; }

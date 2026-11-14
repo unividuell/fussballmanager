@@ -24,7 +24,19 @@ describe("zoneFor", () => {
     expect(zoneFor(COMP.second, 1)).toBe("promotion");
     expect(zoneFor(COMP.second, 2)).toBe("promotion");
     expect(zoneFor(COMP.second, 3)).toBe("playoff");
-    expect(zoneFor(COMP.second, 18)).toBeNull();
+  });
+  it("die 2. Liga hat auch Relegation und Abstieg nach unten", () => {
+    expect(zoneFor(COMP.second, 15)).toBeNull();
+    expect(zoneFor(COMP.second, 16)).toBe("playoff");
+    expect(zoneFor(COMP.second, 17)).toBe("relegation");
+    expect(zoneFor(COMP.second, 18)).toBe("relegation");
+  });
+  it("die 3. Liga hat Aufstieg und Relegation oben, keinen Abstieg", () => {
+    expect(zoneFor(COMP.third, 1)).toBe("promotion");
+    expect(zoneFor(COMP.third, 2)).toBe("promotion");
+    expect(zoneFor(COMP.third, 3)).toBe("playoff");
+    expect(zoneFor(COMP.third, 16)).toBeNull();
+    expect(zoneFor(COMP.third, 18)).toBeNull();
   });
 });
 

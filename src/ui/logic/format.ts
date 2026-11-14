@@ -1,4 +1,4 @@
-import { COMP, type GameState, type Hardness, type MatchEvent, type Player, type Position, type Style } from "../../engine/model";
+import { isRelegation, type GameState, type Hardness, type MatchEvent, type Player, type Position, type Style } from "../../engine/model";
 
 export const POSITION_LABEL: Record<Position, string> = { GK: "TW", DF: "ABW", MF: "MF", FW: "ST" };
 export const STYLE_LABEL: Record<Style, string> = { defensive: "defensiv", normal: "normal", offensive: "offensiv" };
@@ -44,7 +44,7 @@ export function eventText(state: GameState, e: MatchEvent): string {
 /** Beschriftung des nächsten bzw. laufenden Kalendereintrags. */
 export function matchdayLabel(state: GameState): string {
   const entry = state.calendar[state.calendarIndex];
-  const rel = entry?.fixtures.find((f) => f.competitionId === COMP.relegation);
+  const rel = entry?.fixtures.find((f) => isRelegation(f.competitionId));
   if (rel) return rel.round === 1 ? "Relegation – Hinspiel" : "Relegation – Rückspiel";
   return `${Math.min(state.calendarIndex + 1, 34)}. Spieltag`;
 }

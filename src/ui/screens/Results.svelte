@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { COMP } from "../../engine/model";
+  import { isRelegation } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
   import { competitionName, competitionsOf, tickerRows } from "../logic/ticker";
   import { eventText } from "../logic/format";
@@ -27,7 +27,7 @@
   const title = $derived.by(() => {
     const l = snap.lives[0];
     if (!l) return "";
-    if (l.competitionId === COMP.relegation) return "Relegation";
+    if (isRelegation(l.competitionId)) return "Relegation";
     const m = gs.competitions[l.competitionId].matches.find((x) => x.id === l.matchId);
     return `${m?.round ?? "?"}. Spieltag`;
   });

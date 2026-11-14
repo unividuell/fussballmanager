@@ -1,6 +1,7 @@
 <script lang="ts">
   import { generateWorld } from "../../engine/generator";
-  import { LEAGUE_SIZE, type ClubId, type GameState } from "../../engine/model";
+  import { LEAGUES, type ClubId, type GameState } from "../../engine/model";
+  import { startingLeagues } from "../../engine/season";
   import type { GameController } from "../controller.svelte";
   import { clubRating } from "../logic/tables";
   import Crest from "../theme/Crest.svelte";
@@ -19,9 +20,14 @@
   let confirmOverwrite = $state(false);
   const canContinue = $derived(controller.slots.some((s) => s.slot === "auto" && s.meta !== null));
 
-  const ranked = $derived(Object.values(world.clubs).sort((a, b) => b.reputation - a.reputation || (a.id < b.id ? -1 : 1)));
-  const first = $derived(ranked.slice(0, LEAGUE_SIZE));
-  const second = $derived(ranked.slice(LEAGUE_SIZE));
+  /** Vereine nach Startliga, innerhalb der Liga nach Ruf */
+  const groups = $derived.by(() => {
+    const leagues = startingLeagues(world);
+    return LEAGUES.map((id, i) => ({
+      label: `${i + 1}. Liga`,
+      clubs: leagues[id].map((c) => world.clubs[c]).sort((a, b) => b.reputation - a.reputation || (a.id < b.id ? -1 : 1)),
+    }));
+  });
 
   function newWorld(): void {
     const seed = Number.parseInt(seedText, 10);
@@ -80,12 +86,11 @@
         <input aria-label="Name Manager {i + 1}" bind:value={names[i]} maxlength="16" />
         <select aria-label="Verein Manager {i + 1}" bind:value={picks[i]}>
           <option value="">– Verein wählen –</option>
-          <optgroup label="1. Liga">
-            {#each first as club (club.id)}<option value={club.id}>{club.name} ({clubRating(world, club.id)})</option>{/each}
-          </optgroup>
-          <optgroup label="2. Liga">
-            {#each second as club (club.id)}<option value={club.id}>{club.name} ({clubRating(world, club.id)})</option>{/each}
-          </optgroup>
+          {#each groups as g (g.label)}
+            <optgroup label={g.label}>
+              {#each g.clubs as club (club.id)}<option value={club.id}>{club.name} ({clubRating(world, club.id)})</option>{/each}
+            </optgroup>
+          {/each}
         </select>
         {#if picks[i]}
           {@const club = world.clubs[picks[i]]}

@@ -320,6 +320,10 @@ export const BOUNDARIES: readonly Boundary[] = [
   { upper: COMP.second, lower: COMP.third, relegation: COMP.relegation2 },
 ];
 
+export function isRelegation(id: CompetitionId): boolean {
+  return BOUNDARIES.some((b) => b.relegation === id);
+}
+
 /** 0 für die 1. Liga, 1 für die 2., 2 für die 3.; -1 für alles andere */
 export function leagueLevel(id: CompetitionId | null): number {
   return id === null ? -1 : LEAGUES.indexOf(id);

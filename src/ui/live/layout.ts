@@ -1,5 +1,5 @@
 import type { LiveMatch } from "../../engine/match/simulate";
-import { COMP, type CompetitionId, type GameState, type MatchId } from "../../engine/model";
+import { COMP, LEAGUES, type CompetitionId, type GameState, type MatchId } from "../../engine/model";
 import { leagueOf } from "../../engine/season";
 
 export type LiveSlot = { kind: "match"; matchId: MatchId } | { kind: "table"; competitionId: CompetitionId };
@@ -23,10 +23,12 @@ export function managedMatchIds(state: GameState, lives: LiveMatch[]): MatchId[]
 export function liveLayout(state: GameState, lives: LiveMatch[]): LiveLayout {
   const matches = managedMatchIds(state, lives);
   const first = (state.managers[0] && leagueOf(state, state.managers[0].clubId)) ?? COMP.first;
-  const other = first === COMP.first ? COMP.second : COMP.first;
+  // freie Viertel: zuerst die Ligen der Manager in ihrer Reihenfolge, dann die übrigen Ligen von oben
+  const managed = state.managers.map((m) => leagueOf(state, m.clubId)).filter((l): l is CompetitionId => l !== null);
+  const order = [...new Set([first, ...managed, ...LEAGUES])];
   if (matches.length === 0) return { full: true, slots: [{ kind: "table", competitionId: first }] };
   if (matches.length === 1) return { full: true, slots: [{ kind: "match", matchId: matches[0] }] };
   const slots: LiveSlot[] = matches.map((matchId) => ({ kind: "match", matchId }));
-  for (let free = 0; slots.length < 4; free++) slots.push({ kind: "table", competitionId: free % 2 === 0 ? first : other });
+  for (let free = 0; slots.length < 4; free++) slots.push({ kind: "table", competitionId: order[free % order.length] });
   return { full: false, slots };
 }
