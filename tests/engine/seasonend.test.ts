@@ -79,6 +79,8 @@ describe("Relegationen", () => {
     let s = r.state;
     for (let i = 0; i < 34; i++) s = playMatchdayAuto(s);
     expect(s.calendar).toHaveLength(36);
+    expect(s.competitions[COMP.relegation].name).toBe("Relegation 1./2. Liga");
+    expect(s.competitions[COMP.relegation2].name).toBe("Relegation 2./3. Liga");
     for (const [index, round] of [[34, 1], [35, 2]]) {
       const ids = s.calendar[index].fixtures.map((f) => `${f.competitionId}/${f.round}`).sort();
       expect(ids).toEqual([`${COMP.relegation}/${round}`, `${COMP.relegation2}/${round}`]);

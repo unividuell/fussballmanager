@@ -126,3 +126,12 @@ Ergebnis vor Transfers bei Referenzvereinen mit vernünftigem Manager (Langzeitt
 - Dispozins 0,3 % statt 1 % pro Liga-Spieltag (etwa 10 % pro Saison statt 34 %), damit verschuldete Vereine nicht in einer Zinsfalle landen.
 - Stadionunterhalt in unteren Ligen günstiger (85 % bzw. 70 %).
 - Startpreis und Startstadion der 3. Liga passen zur geringeren Nachfrage.
+
+**Weitere Wertänderungen beim Abstimmen** (gegenüber der Wirtschafts-Spec vom 2026-11-12):
+- TV-Geld pro Liga-Spieltag: 1. Liga 50.000 €, 2. Liga 50.000 €, 3. Liga 25.000 €.
+- Platzprämien gesamt: 1. Liga 6 Mio, 2. Liga 1 Mio, 3. Liga 0,3 Mio.
+- Sponsor nach Liga: 100 % / 50 % / 15 % des Erstliga-Niveaus.
+- Grundnachfrage im Stadion nach Liga: 100 % / 50 % / 45 %, Zahlungsbereitschaft 100 % / 65 % / 45 %.
+- Stadionunterhalt: Stufe 1 4.000 € (vorher 8.000 €), Stufe 4 90.000 € (vorher 80.000 €) pro Spieltag.
+- Spielerprämien reicher KI-Vereine: 8 % statt 5 % des Überschusses pro Liga-Spieltag.
+- Ruf angepasst: Bayern 93, Dortmund 91, Schalke 89, Bremen, Köln und Gladbach 82, Elversberg 48.

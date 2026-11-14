@@ -7,6 +7,7 @@ import { CLUBS } from "./clubs";
 import {
   BOUNDARIES,
   LEAGUES,
+  leagueLevel,
   LEAGUE_SIZE,
   YELLOW_LIMIT,
   newId,
@@ -233,7 +234,7 @@ function scheduleRelegations(state: GameState): void {
     });
     state.competitions[b.relegation] = {
       id: b.relegation,
-      name: "Relegation",
+      name: `Relegation ${leagueLevel(b.upper) + 1}./${leagueLevel(b.lower) + 1}. Liga`,
       format: "knockout",
       clubs: [sixteenth, third],
       rounds: 2,
