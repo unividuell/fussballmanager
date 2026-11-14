@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { COMP } from "../../engine/model";
+  import { isRelegation } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
   import { competitionName, competitionsOf, tickerRows } from "../logic/ticker";
   import { eventText } from "../logic/format";
@@ -27,7 +27,7 @@
   const title = $derived.by(() => {
     const l = snap.lives[0];
     if (!l) return "";
-    if (l.competitionId === COMP.relegation) return "Relegation";
+    if (isRelegation(l.competitionId)) return "Relegation";
     const m = gs.competitions[l.competitionId].matches.find((x) => x.id === l.matchId);
     return `${m?.round ?? "?"}. Spieltag`;
   });
@@ -94,7 +94,8 @@
   .results { display: flex; flex-direction: column; height: 100%; padding: 16px; box-sizing: border-box; gap: 12px; }
   h1 { font-size: 16px; }
   .cols { flex: 1; min-height: 0; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 16px; }
-  .result { display: grid; grid-template-columns: 1fr 140px 1fr; gap: 8px; font-size: 26px; }
+  /* drei Ligen nebeneinander: schmalere Ergebnisspalte und 22 px, damit Kurznamen bis 13 Zeichen ganz passen */
+  .result { display: grid; grid-template-columns: 1fr 96px 1fr; gap: 8px; font-size: 22px; }
   .home { text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .away { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .score { text-align: center; color: var(--gold); font-variant-numeric: tabular-nums; }

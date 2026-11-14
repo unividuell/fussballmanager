@@ -15,7 +15,7 @@
       {#each rows as r (r.club)}
         <tr class:managed={r.manager !== null}>
           <td>{r.rank}</td>
-          <td class="club">{r.name}</td>
+          <td class="club">{state.clubs[r.club].shortName}</td>
           <td>{r.played}</td>
           <td>{r.goalsFor}:{r.goalsAgainst}</td>
           <td>{r.points}</td>

@@ -45,6 +45,16 @@ describe("Tabelle und Spielplan", () => {
     expect(within(screen.getByRole("list", { name: "Spielplan" })).getAllByRole("listitem")).toHaveLength(9);
   });
 
+  it("Umschalter mit drei Ligen, ein Drittliga-Manager sieht zuerst die 3. Liga", () => {
+    const world = generateWorld(5);
+    const havelse = Object.values(world.clubs).find((c) => c.name === "TSV Havelse")!.id;
+    const controller = new GameController();
+    controller.startGame(world, [{ name: "Anna", clubId: havelse }]);
+    render(Tables, { controller, managerId: controller.snapshot!.state.managers[0].id, onBack: vi.fn() });
+    for (const name of ["1. Liga", "2. Liga", "3. Liga"]) expect(screen.getByRole("button", { name })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "3. Liga" }).classList.contains("selected")).toBe(true);
+  });
+
   it("Esc und „Zurück“ rufen onBack", async () => {
     const { onBack } = setup(0);
     await fireEvent.keyDown(window, { key: "Escape" });

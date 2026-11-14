@@ -3,7 +3,8 @@ import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { describe, expect, it } from "vitest";
 import App from "../../src/App.svelte";
-import { STADIUM } from "../../src/engine/economy/stadium";
+import { STADIUM, upkeepFor } from "../../src/engine/economy/stadium";
+import { formatEuro } from "../../src/engine/economy/util";
 import { generateWorld } from "../../src/engine/generator";
 import { GameController } from "../../src/ui/controller.svelte";
 import { priceHint } from "../../src/ui/logic/stadium";
@@ -86,6 +87,20 @@ describe("Stadion", () => {
     await fireEvent.click(screen.getByRole("button", { name: /^Ausbauen/ }));
     expect(club().finance.building).toEqual({ stage: stage + 1, matchdaysLeft: STADIUM[stage + 1].buildMatchdays });
     expect(screen.getByText(/Ausbau läuft: noch/)).toBeTruthy();
+  });
+
+  it("zeigt den Unterhalt, der in dieser Liga wirklich gebucht wird", async () => {
+    const c = new GameController();
+    const world = generateWorld(29);
+    const clubId = Object.values(world.clubs).find((x) => x.name === "SV Meppen")!.id;
+    c.startGame(world, [{ name: "Anna", clubId }]);
+    render(App, { controller: c });
+    c.open("stadium");
+    await tick();
+    const stage = c.snapshot!.state.clubs[clubId].finance.stadiumStage;
+    const text = screen.getByText(/Unterhalt danach/).textContent!;
+    expect(text).toContain(formatEuro(upkeepFor(stage + 1, 2)));
+    expect(text).toContain(formatEuro(upkeepFor(stage, 2)));
   });
 
   it("Esc führt zurück ins Hauptmenü", async () => {

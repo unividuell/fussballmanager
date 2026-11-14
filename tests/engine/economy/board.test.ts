@@ -197,3 +197,16 @@ describe("Vertrauen ausgewogen", () => {
     expect(ai.board.seasons).toEqual([]);
   });
 });
+
+describe("Erwartungen in drei Ligen", () => {
+  it("verteilt 2/4/6/6 in allen drei Ligen, Titel-Ziel der 3. Liga heißt Aufstieg", () => {
+    const s = game();
+    for (const league of [COMP.first, COMP.second, COMP.third]) {
+      const counts = { title: 0, upper: 0, mid: 0, survival: 0 };
+      for (const id of s.competitions[league].clubs) counts[s.clubs[id].board.expectation]++;
+      expect(counts).toEqual({ title: 2, upper: 4, mid: 6, survival: 6 });
+    }
+    expect(expectationLabel("title", COMP.third)).toBe("Aufstieg");
+    expect(expectationLabel("survival", COMP.third)).toBe("Klassenerhalt");
+  });
+});

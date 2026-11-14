@@ -1,12 +1,12 @@
 import { computeStandings } from "../competition/standings";
-import { COMP, LEAGUE_MATCHDAYS, type ClubId, type CompetitionId, type GameState } from "../model";
+import { LEAGUES, LEAGUE_MATCHDAYS, type ClubId, type CompetitionId, type GameState } from "../model";
 
 export function roundTo(x: number, step: number): number {
   return Math.round(x / step) * step;
 }
 
 export function clubLeague(state: GameState, clubId: ClubId): CompetitionId | null {
-  for (const id of [COMP.first, COMP.second]) {
+  for (const id of LEAGUES) {
     if (state.competitions[id]?.clubs.includes(clubId)) return id;
   }
   return null;

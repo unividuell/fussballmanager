@@ -1,10 +1,10 @@
 import type { GameState } from "../engine/model";
 import { isObject } from "./guards";
-import { DAMAGED, NOT_A_SAVE, TOO_NEW } from "./messages";
+import { DAMAGED, NOT_A_SAVE, TOO_NEW, TOO_OLD } from "./messages";
 import { migrate } from "./migrate";
 import { validateState } from "./validate";
 
-export { DAMAGED, NOT_A_SAVE, TOO_NEW };
+export { DAMAGED, NOT_A_SAVE, TOO_NEW, TOO_OLD };
 
 export const SAVE_FORMAT = "fussballmanager-spielstand";
 

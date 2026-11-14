@@ -1,22 +1,29 @@
 import type { GameState } from "../engine/model";
 import { isObject } from "./guards";
-import { DAMAGED, TOO_NEW } from "./messages";
-import { v1ToV2, v2ToV3 } from "./migrations";
+import { DAMAGED, TOO_NEW, TOO_OLD } from "./messages";
 
 /** Version des Spielstand-Schemas, die dieses Spiel schreibt. */
-export const CURRENT_VERSION = 3;
+export const CURRENT_VERSION = 4;
+/** Ältere Spielstände (erfundene Vereine, zwei Ligen) werden nicht mehr geladen. */
+export const OLDEST_SUPPORTED = 4;
 
 export type Migration = (raw: Record<string, unknown>) => Record<string, unknown>;
 
 /** MIGRATIONS[v] hebt einen Spielstand von Version v auf v + 1. */
-export const MIGRATIONS: Record<number, Migration> = { 1: v1ToV2, 2: v2ToV3 };
+export const MIGRATIONS: Record<number, Migration> = {};
 
 export type MigrateResult = { ok: true; state: GameState } | { ok: false; error: string };
 
-export function migrate(raw: unknown, migrations: Record<number, Migration> = MIGRATIONS, current: number = CURRENT_VERSION): MigrateResult {
+export function migrate(
+  raw: unknown,
+  migrations: Record<number, Migration> = MIGRATIONS,
+  current: number = CURRENT_VERSION,
+  oldest: number = OLDEST_SUPPORTED,
+): MigrateResult {
   if (!isObject(raw) || !Number.isInteger(raw.version) || (raw.version as number) < 1) return { ok: false, error: DAMAGED };
   let s = raw;
   if ((s.version as number) > current) return { ok: false, error: TOO_NEW };
+  if ((s.version as number) < oldest) return { ok: false, error: TOO_OLD };
   while ((s.version as number) < current) {
     const from = s.version as number;
     const step = migrations[from];

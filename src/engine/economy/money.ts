@@ -19,6 +19,9 @@ const SALARY_TOP_RANGE = 0.25;
 
 const rawSalary = (strength: number) => 1700 * Math.pow(1.075, strength - 40) * starBoost(strength, STAR_SALARY);
 
+/** Gehaltsniveau nach Ligastufe (1., 2., 3. Liga): In unteren Ligen verdienen Spieler weniger. */
+export const WAGE_FACTOR = [1, 0.75, 0.55];
+
 export function salaryFor(strength: number): number {
   const raw =
     strength <= SALARY_SOFT_FROM

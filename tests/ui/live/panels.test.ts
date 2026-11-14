@@ -73,7 +73,7 @@ describe("LiveTable", () => {
   it("rechnet Live-Stände ein und hebt Manager-Vereine hervor", () => {
     render(LiveTable, { props: { state, competitionId: live.competitionId, scores: { [live.matchId]: { home: 2, away: 0 } } } });
     const managed = document.querySelector(".managed");
-    expect(managed?.textContent).toContain(state.clubs[state.managers[0].clubId].name);
+    expect(managed?.querySelector(".club")?.textContent).toBe(state.clubs[state.managers[0].clubId].shortName);
     expect(document.querySelectorAll("tbody tr").length).toBe(state.competitions[live.competitionId].clubs.length);
   });
 });

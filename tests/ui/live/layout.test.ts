@@ -51,6 +51,15 @@ describe("liveLayout", () => {
     ]);
   });
 
+  it("Manager in der 2. und 3. Liga: freie Viertel zeigen deren Ligen, zuerst die des ersten Managers", () => {
+    const l3 = (lives: LiveMatch[]) => lives.filter((l) => l.competitionId === COMP.third);
+    const { state, lives } = game((f) => [l3(f)[0].home.club, l2(f)[0].home.club]);
+    expect(liveLayout(state, lives).slots.slice(2)).toEqual([
+      { kind: "table", competitionId: COMP.third },
+      { kind: "table", competitionId: COMP.second },
+    ]);
+  });
+
   it("kein Spiel mit Manager (Relegation ohne Manager-Verein): Tabelle bildschirmfüllend", () => {
     const { state, lives } = game((f) => [l1(f)[0].home.club]);
     const rel = lives.filter((l) => l.matchId !== l1(lives)[0].matchId).slice(0, 1).map((l) => ({ ...l, competitionId: COMP.relegation }));

@@ -102,3 +102,36 @@ Neue Spielstand-Version. Alte Spielstände dürfen ignoriert werden, es gibt nur
 - Die Wirtschaftswerte der 3. Liga
 - Die Gestaltung der Vereinsauswahl und der Live-Tabelle mit drei Ligen
 - Interne Bezeichner, z. B. ob die Wettbewerbe `L1`/`L2`/`L3` und `REL1`/`REL2` heißen
+
+## 10. Ergebnis (2026-11-14)
+
+Gemessen mit `tests/longrun/measure.ts`: 3 Spielwelten (Seeds 11, 2027, 4242) × 5 Saisons, 4 passive Manager (FC Bayern München, Hertha BSC, Fortuna Düsseldorf, TSV Havelse).
+
+| Größe | Ergebnis |
+|---|---|
+| KI-Median am Saisonende | 3,3 → 3,3–4,9 Mio, flach |
+| Reichster KI-Verein am Saisonende | 9,6–15,8 Mio |
+| KI-Vereine über dem Dispo-Limit | 0 (im 10-Saisons-Langzeittest bis zu 3 von 54, meist frische Absteiger) |
+| Auslastung 1. Liga | Top 3 0,95–0,96, letzte 3 0,85–0,88 |
+| Auslastung 3. Liga | Top 3 0,84–0,88, letzte 3 0,33–0,43 |
+| Zeit pro automatisch gespieltem Spieltag | 134–142 ms (vorher 126–136 ms mit 36 Vereinen) |
+
+Ergebnis vor Transfers bei Referenzvereinen mit vernünftigem Manager (Langzeittest, 3 Welten × 4 Saisons): 1. Liga groß Ø 11,2 / mittel 3,1 Mio; 2. Liga groß 5,5 / mittel 2,2 / klein 0,8 Mio; 3. Liga groß 3,4 / mittel 1,0 / klein 0,1 Mio. Ein Aufstieg von der 3. in die 2. Liga bringt im Mittel 37 % mehr Einnahmen. Ein großer Erstligist hat nach 2 Saisons 32–39 Mio.
+
+**Passive Manager:** Ein Verein ohne Eingriffe verliert seine Spieler durch auslaufende Verträge. Der passive FC Bayern steigt in allen drei Welten nach 3 Saisons ab und nach 4 Saisons erneut. Sein Kontostand liegt nach 5 Saisons bei 20–21 Mio, Hertha bei 12–19 Mio, Düsseldorf bei 16–17 Mio, Havelse bei 3 Mio.
+
+**Neue Regeln, die sich beim Abstimmen als nötig erwiesen haben:**
+- Gehaltsniveau nach Liga (1. Liga 100 %, 2. Liga 75 %, 3. Liga 55 %).
+- Abstiegsklausel: Beim Abstieg sinken die Gehälter auf das Niveau der neuen Liga, Manager bekommen dazu eine Nachricht.
+- Dispozins 0,3 % statt 1 % pro Liga-Spieltag (etwa 10 % pro Saison statt 34 %), damit verschuldete Vereine nicht in einer Zinsfalle landen.
+- Stadionunterhalt in unteren Ligen günstiger (85 % bzw. 70 %).
+- Startpreis und Startstadion der 3. Liga passen zur geringeren Nachfrage.
+
+**Weitere Wertänderungen beim Abstimmen** (gegenüber der Wirtschafts-Spec vom 2026-11-12):
+- TV-Geld pro Liga-Spieltag: 1. Liga 50.000 €, 2. Liga 50.000 €, 3. Liga 25.000 €.
+- Platzprämien gesamt: 1. Liga 6 Mio, 2. Liga 1 Mio, 3. Liga 0,3 Mio.
+- Sponsor nach Liga: 100 % / 50 % / 15 % des Erstliga-Niveaus.
+- Grundnachfrage im Stadion nach Liga: 100 % / 50 % / 45 %, Zahlungsbereitschaft 100 % / 65 % / 45 %.
+- Stadionunterhalt: Stufe 1 4.000 € (vorher 8.000 €), Stufe 4 90.000 € (vorher 80.000 €) pro Spieltag.
+- Spielerprämien reicher KI-Vereine: 8 % statt 5 % des Überschusses pro Liga-Spieltag.
+- Ruf angepasst: Bayern 93, Dortmund 91, Schalke 89, Bremen, Köln und Gladbach 82, Elversberg 48.

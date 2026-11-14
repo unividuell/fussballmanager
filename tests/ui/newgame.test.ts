@@ -20,13 +20,26 @@ describe("Neues Spiel", () => {
     expect(controller.snapshot!.state.managers[0].clubId).toBe(firstClub);
   });
 
-  it("bietet 36 Vereine in zwei Ligagruppen an", () => {
+  it("bietet alle 54 Vereine nach Startliga gruppiert an", () => {
     render(App, { controller: new GameController() });
     const select = screen.getByLabelText("Verein Manager 1") as HTMLSelectElement;
     const groups = select.querySelectorAll("optgroup");
-    expect(Array.from(groups).map((g) => g.label)).toEqual(["1. Liga", "2. Liga"]);
-    expect(groups[0].querySelectorAll("option")).toHaveLength(18);
-    expect(groups[1].querySelectorAll("option")).toHaveLength(18);
+    expect(Array.from(groups).map((g) => g.label)).toEqual(["1. Liga", "2. Liga", "3. Liga"]);
+    for (const g of Array.from(groups)) expect(g.querySelectorAll("option")).toHaveLength(18);
+    expect(groups[2].textContent).toContain("TSV Havelse");
+    expect(groups[2].textContent).toContain("Fortuna Düsseldorf");
+    expect(groups[0].textContent).toContain("FC Bayern München");
+  });
+
+  it("ein Spiel mit TSV Havelse startet in der 3. Liga", async () => {
+    const c = new GameController();
+    render(App, { controller: c });
+    const select = screen.getByLabelText("Verein Manager 1") as HTMLSelectElement;
+    const havelse = Array.from(select.querySelectorAll("option")).find((o) => o.textContent?.startsWith("TSV Havelse"))!;
+    await fireEvent.change(select, { target: { value: havelse.value } });
+    await fireEvent.click(screen.getByRole("button", { name: "Anpfiff!" }));
+    const s = c.snapshot!.state;
+    expect(s.competitions.L3.clubs).toContain(havelse.value);
   });
 
   it("zeigt Felder für die gewählte Manager-Anzahl", async () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { CLUBS } from "../../src/engine/clubs";
 import { CLUB_COUNT, generateWorld } from "../../src/engine/generator";
 import { validateLineup } from "../../src/engine/lineup";
 
@@ -11,9 +12,16 @@ describe("generateWorld", () => {
     expect(JSON.stringify(generateWorld(999))).not.toBe(JSON.stringify(w));
   });
 
-  it("erzeugt 36 Vereine mit eindeutigen Namen", () => {
+  it("erzeugt die 54 Vereine aus dem Datensatz mit Name, Kurzname, Farben und Ruf", () => {
+    expect(CLUB_COUNT).toBe(54);
     expect(clubs).toHaveLength(CLUB_COUNT);
-    expect(new Set(clubs.map((c) => c.name)).size).toBe(CLUB_COUNT);
+    for (const seed of CLUBS) {
+      const club = clubs.find((c) => c.name === seed.name)!;
+      expect(club, seed.name).toBeTruthy();
+      expect(club.shortName).toBe(seed.shortName);
+      expect(club.colors).toEqual(seed.colors);
+      expect(club.reputation).toBe(seed.reputation);
+    }
   });
 
   it("jeder Verein hat 25 Spieler: 3 TW, 8 ABW, 8 MF, 6 ST", () => {
@@ -45,12 +53,17 @@ describe("generateWorld", () => {
     }
   });
 
-  it("stärkere Reputation bedeutet im Schnitt stärkere Spieler", () => {
-    const sorted = [...clubs].sort((a, b) => b.reputation - a.reputation);
-    const avg = (c: (typeof clubs)[number]) => c.squad.reduce((s, id) => s + w.players[id].strength, 0) / c.squad.length;
-    const top = sorted.slice(0, 6).reduce((s, c) => s + avg(c), 0) / 6;
-    const bottom = sorted.slice(-6).reduce((s, c) => s + avg(c), 0) / 6;
-    expect(top - bottom).toBeGreaterThan(8);
+  it("Kaderstärke folgt der Kaderstärke aus dem Datensatz, nicht dem Ruf", () => {
+    const starters = (name: string) => {
+      const c = clubs.find((x) => x.name === name)!;
+      return c.lineup.starters.reduce((s, id) => s + w.players[id].strength, 0) / c.lineup.starters.length;
+    };
+    const byLeague = (l: string) => CLUBS.filter((c) => c.league === l).map((c) => starters(c.name));
+    const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
+    const l2 = mean(byLeague("L2"));
+    for (const v of byLeague("L1")) expect(v).toBeGreaterThan(l2);
+    for (const v of byLeague("L3")) expect(v).toBeLessThan(l2);
+    expect(starters("Fortuna Düsseldorf")).toBeLessThan(Math.min(...byLeague("L1")));
   });
 
   it("jeder Verein hat eine gültige Aufstellung", () => {

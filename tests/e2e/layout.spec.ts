@@ -68,6 +68,14 @@ test("kein Bildschirm ragt über den Rand", async ({ page }) => {
     await expect(page.getByText("Mannschaft", { exact: true })).toBeVisible();
   }
 
+  // Tabelle der 3. Liga mit langen Vereinsnamen
+  await page.keyboard.press("8");
+  await page.getByRole("button", { name: "3. Liga" }).click();
+  await expect(page.getByText("TSV Havelse").first()).toBeVisible();
+  await expectNoOverflow(page, "Tabelle 3. Liga");
+  await page.keyboard.press("Escape");
+  await expect(page.getByText("Mannschaft", { exact: true })).toBeVisible();
+
   await page.keyboard.press("0");
   await expect(page.getByText(/1\. Halbzeit · /)).toBeVisible();
   await expectNoOverflow(page, "Live");

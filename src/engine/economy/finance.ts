@@ -1,18 +1,21 @@
 import type { LiveMatch } from "../match/simulate";
-import { COMP, newId, type ClubId, type CompetitionId, type GameState, type Sponsor } from "../model";
+import { COMP, LEAGUES, leagueLevel, newId, type ClubId, type CompetitionId, type GameState, type Sponsor } from "../model";
 import type { Rng } from "../rng";
 import { postToClub } from "./messages";
 import { book, isOverLimit, startBalance, wageBill } from "./money";
-import { STADIUM, attendance } from "./stadium";
+import { STADIUM, attendance, upkeepFor } from "./stadium";
 import { clubLeague, formatEuro, isLeagueMatchday, roundTo } from "./util";
 
-export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 45_000, [COMP.second]: 45_000 };
-export const INTEREST_RATE = 0.01;
+/** Sponsorbeträge nach Ligastufe (1., 2., 3. Liga) relativ zur 1. Liga */
+export const SPONSOR_FACTOR = [1, 0.5, 0.15];
+export const TV_PER_MATCHDAY: Record<string, number> = { [COMP.first]: 50_000, [COMP.second]: 50_000, [COMP.third]: 25_000 };
+/** Dispozins pro Liga-Spieltag (etwa 10 % pro Saison); höher würde verschuldete Vereine in eine Zinsfalle treiben. */
+export const INTEREST_RATE = 0.003;
 /** Reiche KI-Vereine zahlen Spielerprämien: ab diesem Vielfachen des Startkapitals … */
 export const PREMIUM_FROM = 1.3;
 /** … pro Liga-Spieltag diesen Anteil des Überschusses. So horten KI-Vereine kein Geld. */
-export const PREMIUM_RATE = 0.05;
-export const PRIZE_POOL: Record<string, number> = { [COMP.first]: 6_000_000, [COMP.second]: 1_000_000 };
+export const PREMIUM_RATE = 0.08;
+export const PRIZE_POOL: Record<string, number> = { [COMP.first]: 6_000_000, [COMP.second]: 1_000_000, [COMP.third]: 300_000 };
 
 const SPONSOR_NAMES = [
   "Brauerei Hopfenkrone", "Autohaus Kolbenring", "Stadtwerke Lichtblick", "Bäckerei Goldkorn",
@@ -22,7 +25,7 @@ const SPONSOR_NAMES = [
 
 export function sponsorOffers(state: GameState, clubId: ClubId, rng: Rng): Sponsor[] {
   const club = state.clubs[clubId];
-  const factor = clubLeague(state, clubId) === COMP.second ? 0.6 : 1;
+  const factor = SPONSOR_FACTOR[Math.max(0, leagueLevel(clubLeague(state, clubId)))];
   return rng.shuffle(SPONSOR_NAMES).slice(0, 3).map((name) => {
     const perMatchday = roundTo(club.reputation * 1000 * factor * (0.85 + rng.next() * 0.3), 1000);
     return { id: newId(state, "sp"), name, perMatchday, bonus: roundTo(perMatchday * 8 * (0.5 + rng.next()), 10_000) };
@@ -63,7 +66,7 @@ export function processFinances(state: GameState, lives: LiveMatch[]): void {
     const wages = wageBill(state, club.id);
     if (wages > 0) book(state, club.id, "salaries", -wages);
     if (club.managerId === null && excess > 0) book(state, club.id, "premiums", -Math.round(excess * PREMIUM_RATE));
-    book(state, club.id, "upkeep", -STADIUM[f.stadiumStage].upkeep);
+    book(state, club.id, "upkeep", -upkeepFor(f.stadiumStage, leagueLevel(league)));
     if (f.balance < 0) book(state, club.id, "interest", Math.round(f.balance * INTEREST_RATE));
     if (f.building) {
       const left = f.building.matchdaysLeft - 1;
@@ -81,7 +84,7 @@ export function processFinances(state: GameState, lives: LiveMatch[]): void {
 }
 
 export function seasonEndFinances(state: GameState, tables: Record<CompetitionId, ClubId[]>, met: (clubId: ClubId) => boolean): void {
-  for (const league of [COMP.first, COMP.second]) {
+  for (const league of LEAGUES) {
     (tables[league] ?? []).forEach((clubId, i) => {
       book(state, clubId, "prizes", roundTo((PRIZE_POOL[league] * (18 - i)) / 18, 10_000));
     });
@@ -113,7 +116,7 @@ export function expectedIncome(state: GameState, clubId: ClubId): number {
   const club = state.clubs[clubId];
   const league = clubLeague(state, clubId) ?? COMP.second;
   const f = club.finance;
-  const sponsor = f.sponsor?.perMatchday ?? club.reputation * 1000 * (league === COMP.second ? 0.6 : 1);
+  const sponsor = f.sponsor?.perMatchday ?? club.reputation * 1000 * SPONSOR_FACTOR[Math.max(0, leagueLevel(league))];
   const crowd = f.lastAttendance > 0 ? f.lastAttendance : STADIUM[f.stadiumStage].capacity * 0.85;
   return TV_PER_MATCHDAY[league] + sponsor + (crowd * f.ticketPrice) / 2;
 }

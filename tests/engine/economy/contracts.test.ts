@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   aiRenewals,
+  applyRelegationClauses,
   contractEnd,
   desiredYears,
   evaluateOffer,
@@ -15,7 +16,10 @@ import {
   validateYears,
   yearsAdjusted,
 } from "../../../src/engine/economy/contracts";
-import { salaryFor } from "../../../src/engine/economy/money";
+import { WAGE_FACTOR, salaryFor, startBalance } from "../../../src/engine/economy/money";
+import { generateWorld } from "../../../src/engine/generator";
+import { COMP } from "../../../src/engine/model";
+import { startNewGame } from "../../../src/engine/season";
 import { autoLineup } from "../../../src/engine/lineup";
 import { makePlayer, makeState } from "../fixtures";
 
@@ -159,6 +163,19 @@ describe("Verträge", () => {
     expect(s.players["c2-MF1"].contract!.endsSeason).toBe(1);
   });
 
+  it("eine KI ohne Polster (unter einem Startkapital) verlängert nur im Gehaltsbudget, mit Polster frei", () => {
+    const s = withManager();
+    s.calendarIndex = 25;
+    Object.assign(s.players["c2-MF1"], { contract: { salary: 1, endsSeason: 1 }, strength: 65 });
+    for (const id of s.clubs.c2.squad) if (id !== "c2-MF1") s.players[id].contract = { salary: 10_000_000, endsSeason: 9 };
+    s.clubs.c2.finance.balance = startBalance(s.clubs.c2.reputation) - 1;
+    aiRenewals(s);
+    expect(s.players["c2-MF1"].contract!.endsSeason).toBe(1);
+    s.clubs.c2.finance.balance = startBalance(s.clubs.c2.reputation);
+    aiRenewals(s);
+    expect(s.players["c2-MF1"].contract!.endsSeason).toBeGreaterThan(1);
+  });
+
   it("Sperrzeiten für Verhandlungen laufen ab", () => {
     const s = withManager();
     s.players["c1-MF1"].talkCooldown = 2;
@@ -183,5 +200,56 @@ describe("signContract räumt Konkurrenz um einen Vereinslosen ab", () => {
     expect(s.negotiations[0].note).toBe(`${s.players["c2-MF1"].firstName} ${s.players["c2-MF1"].lastName} ist nicht mehr verfügbar.`);
     expect(s.negotiations[1].status).toBe("accepted");
     expect(s.transferOffers[0].status).toBe("withdrawn");
+  });
+});
+
+describe("Gehälter nach Liga", () => {
+  it("ein Spieler fordert bei einem Drittligisten weniger als bei einem gleich großen Zweitligisten", () => {
+    const world = generateWorld(9);
+    const r = startNewGame(world, [{ name: "A", clubId: Object.keys(world.clubs)[0] }]);
+    if (!r.ok) throw new Error(r.error);
+    const s = r.state;
+    const l2 = s.competitions[COMP.second].clubs[5];
+    const l3 = s.competitions[COMP.third].clubs[5];
+    s.clubs[l3].reputation = s.clubs[l2].reputation;
+    const p = s.players[s.clubs[l3].squad[0]];
+    expect(salaryDemand(s, p, l3)).toBeLessThan(salaryDemand(s, p, l2));
+    expect(WAGE_FACTOR[2]).toBeLessThan(WAGE_FACTOR[1]);
+  });
+
+  it("Drittligisten starten mit niedrigeren Gehältern als dem Grundgehalt", () => {
+    const world = generateWorld(9);
+    const club = Object.values(world.clubs).find((c) => c.name === "TSV Havelse")!;
+    for (const id of club.squad) {
+      const p = world.players[id];
+      expect(p.contract!.salary).toBeLessThan(salaryFor(p.strength));
+    }
+  });
+});
+
+describe("Abstiegsklausel", () => {
+  it("beim Abstieg sinken alle Gehälter auf das Niveau der neuen Liga, beim Aufstieg ändert sich nichts", () => {
+    const world = generateWorld(9);
+    const r = startNewGame(world, [{ name: "A", clubId: Object.keys(world.clubs)[0] }]);
+    if (!r.ok) throw new Error(r.error);
+    const s = r.state;
+    const down = s.competitions[COMP.first].clubs[5];
+    const up = s.competitions[COMP.second].clubs[5];
+    const before = (id: string) => s.clubs[id].squad.map((p) => s.players[p].contract!.salary);
+    const [downBefore, upBefore] = [before(down), before(up)];
+    applyRelegationClauses(s, [{ upper: COMP.first, lower: COMP.second, promoted: [up], relegated: [down] }]);
+    const factor = WAGE_FACTOR[1] / WAGE_FACTOR[0];
+    s.clubs[down].squad.forEach((p, i) => expect(s.players[p].contract!.salary).toBe(Math.round((downBefore[i] * factor) / 100) * 100));
+    expect(before(up)).toEqual(upBefore);
+  });
+
+  it("der Manager eines Absteigers bekommt eine Nachricht", () => {
+    const world = generateWorld(9);
+    const own = Object.values(world.clubs).find((c) => c.name === "FC Augsburg")!.id;
+    const r = startNewGame(world, [{ name: "A", clubId: own }]);
+    if (!r.ok) throw new Error(r.error);
+    const s = r.state;
+    applyRelegationClauses(s, [{ upper: COMP.first, lower: COMP.second, promoted: [], relegated: [own] }]);
+    expect(s.messages.some((m) => m.managerId === s.managers[0].id && m.text.startsWith("Abstiegsklausel"))).toBe(true);
   });
 });

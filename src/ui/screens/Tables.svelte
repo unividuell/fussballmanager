@@ -12,6 +12,7 @@
   const LEAGUES: { id: CompetitionId; label: string }[] = [
     { id: COMP.first, label: "1. Liga" },
     { id: COMP.second, label: "2. Liga" },
+    { id: COMP.third, label: "3. Liga" },
   ];
 
   /** Startwerte beim Öffnen: eigene Liga (sonst 1. Liga) und zuletzt gespielter Spieltag. */

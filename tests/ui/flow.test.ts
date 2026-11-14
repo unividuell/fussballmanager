@@ -47,7 +47,7 @@ describe("kompletter Ablauf über die Oberfläche", () => {
     await key("Enter");
 
     expect(screen.getByText("ERGEBNISSE · 1. Spieltag")).toBeTruthy();
-    expect(document.querySelectorAll(".result")).toHaveLength(18);
+    expect(document.querySelectorAll(".result")).toHaveLength(27);
     await fireEvent.click(screen.getByRole("button", { name: "Tabelle" }));
     await tick();
     expect(screen.getByRole("table", { name: "Tabelle" })).toBeTruthy();
@@ -75,9 +75,14 @@ describe("kompletter Ablauf über die Oberfläche", () => {
     render(App, { controller });
     await tick();
     expect(screen.getByText("SAISON 1 BEENDET")).toBeTruthy();
-    expect(screen.getByText(/Meister 1\. Liga/)).toBeTruthy();
-    expect(screen.getByText(/Aufsteiger/)).toBeTruthy();
-    expect(screen.getByText(/Absteiger/)).toBeTruthy();
+    for (const liga of ["1", "2", "3"]) {
+      expect(screen.getByText(new RegExp(`Meister ${liga}\\. Liga`))).toBeTruthy();
+      expect(screen.getByText(new RegExp(`Torschützenkönig ${liga}\\. Liga`))).toBeTruthy();
+    }
+    expect(screen.getByText(/Aufsteiger in die 1\. Liga/)).toBeTruthy();
+    expect(screen.getByText(/Aufsteiger in die 2\. Liga/)).toBeTruthy();
+    expect(screen.getByText(/Absteiger in die 2\. Liga/)).toBeTruthy();
+    expect(screen.getByText(/Absteiger in die 3\. Liga/)).toBeTruthy();
     await key("Enter");
     expect(controller.view.kind).toBe("turnStart");
     expect(screen.getByText(/Saison 2 · 1\. Spieltag/)).toBeTruthy();

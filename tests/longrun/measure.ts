@@ -2,7 +2,7 @@ import { computeStandings } from "../../src/engine/competition/standings";
 import { isOverLimit, marketValue } from "../../src/engine/economy/money";
 import { STADIUM } from "../../src/engine/economy/stadium";
 import { generateWorld } from "../../src/engine/generator";
-import { COMP, type ClubId, type GameState } from "../../src/engine/model";
+import { LEAGUES, type ClubId, type GameState } from "../../src/engine/model";
 import { aiHalftimeAll, finishMatchday, finishSeason, isSeasonOver, kickOff, playHalf, prepareMatchday, startNewGame } from "../../src/engine/season";
 
 export interface SeasonMetrics {
@@ -12,6 +12,8 @@ export interface SeasonMetrics {
   aiOverLimit: number;
   /** Kassenbuch der Saison ohne Transfers, Stadionbau und Spielerprämien (Platzprämien am Saisonende nicht enthalten) */
   resultBeforeTransfers: Record<ClubId, number>;
+  /** Einnahmen der Saison aus Tickets, TV-Geld und Sponsor */
+  income: Record<ClubId, number>;
   /** Ø Zuschauer / Kapazität der Heimspiele */
   utilization: Record<ClubId, number>;
   /** Abschlusstabellen der Saison */
@@ -59,13 +61,12 @@ export function runSeasons(
       }
     }
     const resultBeforeTransfers: Record<ClubId, number> = {};
+    const income: Record<ClubId, number> = {};
     for (const c of Object.values(s.clubs)) {
+      income[c.id] = c.finance.ledger.filter((e) => e.category === "tickets" || e.category === "tv" || e.category === "sponsor").reduce((a, e) => a + e.amount, 0);
       resultBeforeTransfers[c.id] = c.finance.ledger.filter((e) => e.category !== "transfers" && e.category !== "stadium" && e.category !== "premiums").reduce((a, e) => a + e.amount, 0);
     }
-    const tables = {
-      [COMP.first]: computeStandings(s.competitions[COMP.first]).map((x) => x.club),
-      [COMP.second]: computeStandings(s.competitions[COMP.second]).map((x) => x.club),
-    };
+    const tables: Record<string, ClubId[]> = Object.fromEntries(LEAGUES.map((l) => [l, computeStandings(s.competitions[l]).map((x) => x.club)]));
     const utilization: Record<ClubId, number> = {};
     for (const [id, xs] of Object.entries(load)) utilization[id] = xs.reduce((a, b) => a + b, 0) / xs.length;
     const topMarketValues = Object.values(s.players)
@@ -73,16 +74,22 @@ export function runSeasons(
       .map((p) => marketValue(p, s.season))
       .sort((a, b) => b - a)
       .slice(0, 10);
-    s = finishSeason(s).state;
+    // KI-Kontostände am Saisonende, vor Saisonabschluss und Sommer-Transfermarkt: Ein Verkauf im Sommer erzeugt sonst
+    // eine kurze Spitze, die die Spielerprämien in der Saison wieder abbauen.
     const ai = Object.values(s.clubs).filter((c) => c.managerId === null);
+    const aiMedianBalance = median(ai.map((c) => c.finance.balance));
+    const aiMaxBalance = Math.max(...ai.map((c) => c.finance.balance));
+    const aiOverLimit = ai.filter(isOverLimit).length;
+    s = finishSeason(s).state;
     const balances: Record<ClubId, number> = {};
     for (const c of Object.values(s.clubs)) balances[c.id] = c.finance.balance;
     metrics.push({
       season,
-      aiMedianBalance: median(ai.map((c) => c.finance.balance)),
-      aiMaxBalance: Math.max(...ai.map((c) => c.finance.balance)),
-      aiOverLimit: ai.filter(isOverLimit).length,
+      aiMedianBalance,
+      aiMaxBalance,
+      aiOverLimit,
       resultBeforeTransfers,
+      income,
       utilization,
       tables,
       topMarketValues,

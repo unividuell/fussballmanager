@@ -1,9 +1,9 @@
-import { LEAGUE_MATCHDAYS, type ClubId, type GameState, type Player, type PlayerId } from "../model";
+import { LEAGUE_MATCHDAYS, leagueLevel, type ClubId, type Movement, type GameState, type Player, type PlayerId } from "../model";
 import { postToClub } from "./messages";
 import { wageRoom } from "./finance";
-import { book, salaryFor } from "./money";
+import { WAGE_FACTOR, book, salaryFor, startBalance } from "./money";
 import { removeFromClub } from "./roster";
-import { roundTo } from "./util";
+import { clubLeague, roundTo } from "./util";
 
 export const MIN_YEARS = 1;
 export const MAX_YEARS = 5;
@@ -23,7 +23,7 @@ export function desiredYears(p: Player): number {
 
 export function salaryDemand(state: GameState, p: Player, clubId: ClubId): number {
   const club = state.clubs[clubId];
-  let d = salaryFor(p.strength);
+  let d = salaryFor(p.strength) * WAGE_FACTOR[Math.max(0, leagueLevel(clubLeague(state, clubId)))];
   if (p.age >= 31) d *= 0.9;
   d *= 0.8 + (0.4 * club.reputation) / 100;
   d *= 1.15 - (0.3 * p.morale) / 100;
@@ -130,8 +130,8 @@ export function aiRenewals(state: GameState): void {
       if (!p.contract || p.contract.endsSeason > state.season) continue;
       if (p.age > 31 || p.strength < avg - 5) continue;
       const salary = salaryDemand(state, p, club.id);
-      // nur wer im Minus steht, achtet beim Verlängern aufs Gehaltsbudget; sonst bleibt die Mannschaft zusammen
-      if (club.finance.balance <= 0 && !wageRoom(state, club.id, salary - p.contract.salary)) continue;
+      // ohne Polster (weniger als ein Startkapital) zählt beim Verlängern das Gehaltsbudget; mit Polster bleibt die Mannschaft zusammen
+      if (club.finance.balance < startBalance(club.reputation) && !wageRoom(state, club.id, salary - p.contract.salary)) continue;
       signContract(state, pid, club.id, salary, desiredYears(p));
     }
   }
@@ -139,4 +139,20 @@ export function aiRenewals(state: GameState): void {
 
 export function tickCooldowns(state: GameState): void {
   for (const p of Object.values(state.players)) if (p.talkCooldown > 0) p.talkCooldown--;
+}
+
+/** Abstiegsklausel: Beim Abstieg sinken alle Gehälter auf das Gehaltsniveau der neuen Liga. Beim Aufstieg bleibt alles, bis neu verhandelt wird. */
+export function applyRelegationClauses(state: GameState, movements: readonly Movement[]): void {
+  for (const m of movements) {
+    const factor = WAGE_FACTOR[leagueLevel(m.lower)] / WAGE_FACTOR[leagueLevel(m.upper)];
+    for (const clubId of m.relegated) {
+      for (const pid of state.clubs[clubId].squad) {
+        const c = state.players[pid].contract;
+        if (c) c.salary = roundTo(c.salary * factor, 100);
+      }
+      if (state.clubs[clubId].managerId) {
+        postToClub(state, clubId, `Abstiegsklausel: Die Gehälter sinken um ${Math.round((1 - factor) * 100)} %.`);
+      }
+    }
+  }
 }

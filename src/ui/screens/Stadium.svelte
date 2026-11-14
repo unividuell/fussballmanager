@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { STADIUM } from "../../engine/economy/stadium";
+  import { STADIUM, upkeepFor } from "../../engine/economy/stadium";
+  import { leagueOf } from "../../engine/season";
   import { formatEuro } from "../../engine/economy/util";
-  import { clubOf, type ManagerId } from "../../engine/model";
+  import { clubOf, leagueLevel, type ManagerId } from "../../engine/model";
   import type { GameController } from "../controller.svelte";
   import { INVALID_AMOUNT, parseEuro } from "../logic/economy";
   import { hasPlayedHome, priceHint } from "../logic/stadium";
@@ -14,6 +15,7 @@
   const club = $derived(clubOf(gs, managerId)!);
   const f = $derived(club.finance);
   const capacity = $derived(STADIUM[f.stadiumStage].capacity);
+  const level = $derived(leagueLevel(leagueOf(gs, club.id)));
   const next = $derived(STADIUM[f.stadiumStage + 1] ?? null);
   const playedHome = $derived(hasPlayedHome(gs, club.id));
   const hint = $derived(priceHint(f.lastAttendance, capacity, playedHome));
@@ -61,7 +63,7 @@
         <button class="btn" disabled={f.building !== null} onclick={() => void controller.send({ type: "buildStadium", managerId })}>
           Ausbauen: {seats(next.capacity)} Plätze für {formatEuro(next.cost)} ({next.buildMatchdays} Spieltage)
         </button>
-        <p class="small">Unterhalt danach: {formatEuro(next.upkeep)} pro Spieltag statt {formatEuro(STADIUM[f.stadiumStage].upkeep)}</p>
+        <p class="small">Unterhalt danach: {formatEuro(upkeepFor(f.stadiumStage + 1, level))} pro Spieltag statt {formatEuro(upkeepFor(f.stadiumStage, level))}</p>
       {:else}
         <p>Höchste Ausbaustufe erreicht.</p>
       {/if}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { MatchEvent } from "../../src/engine/model";
+import { COMP, type MatchEvent } from "../../src/engine/model";
 import { playMatchdayAuto } from "../../src/engine/season";
 import { eventText, fitnessText, formText, matchdayLabel, playerName, statusText } from "../../src/ui/logic/format";
 import { newTestGame } from "./game";
@@ -45,5 +45,8 @@ describe("format", () => {
     expect(matchdayLabel(t)).toBe("Relegation – Hinspiel");
     t = playMatchdayAuto(t);
     expect(matchdayLabel(t)).toBe("Relegation – Rückspiel");
+    // auch ein Kalendertag nur mit der unteren Relegation heißt so
+    const onlyLower = { ...t, calendar: t.calendar.map((e, i) => (i === t.calendarIndex ? { fixtures: e.fixtures.filter((f) => f.competitionId === COMP.relegation2) } : e)) };
+    expect(matchdayLabel(onlyLower)).toBe("Relegation – Rückspiel");
   });
 });

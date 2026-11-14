@@ -271,16 +271,23 @@ export interface CalendarEntry {
   fixtures: { competitionId: CompetitionId; round: number }[];
 }
 
+/** Auf- und Abstieg an einer Grenze zwischen zwei Ligen. */
+export interface Movement {
+  upper: CompetitionId;
+  lower: CompetitionId;
+  promoted: ClubId[];
+  relegated: ClubId[];
+}
+
 export interface SeasonRecord {
   season: number;
   champions: Record<CompetitionId, ClubId>;
-  promoted: ClubId[];
-  relegated: ClubId[];
+  movements: Movement[];
   topScorers: Record<CompetitionId, { player: PlayerId; goals: number } | null>;
 }
 
 export interface GameState {
-  version: 3;
+  version: 4;
   rngState: RngState;
   season: number;
   calendar: CalendarEntry[];
@@ -298,7 +305,29 @@ export interface GameState {
 }
 
 export const LEAGUE_SIZE = 18;
-export const COMP = { first: "L1", second: "L2", relegation: "REL" } as const;
+export const COMP = { first: "L1", second: "L2", third: "L3", relegation: "REL", relegation2: "REL2" } as const;
+/** Ligen von oben nach unten */
+export const LEAGUES: readonly CompetitionId[] = [COMP.first, COMP.second, COMP.third];
+
+export interface Boundary {
+  upper: CompetitionId;
+  lower: CompetitionId;
+  relegation: CompetitionId;
+}
+/** Grenzen mit Auf- und Abstieg, von oben nach unten */
+export const BOUNDARIES: readonly Boundary[] = [
+  { upper: COMP.first, lower: COMP.second, relegation: COMP.relegation },
+  { upper: COMP.second, lower: COMP.third, relegation: COMP.relegation2 },
+];
+
+export function isRelegation(id: CompetitionId): boolean {
+  return BOUNDARIES.some((b) => b.relegation === id);
+}
+
+/** 0 für die 1. Liga, 1 für die 2., 2 für die 3.; -1 für alles andere */
+export function leagueLevel(id: CompetitionId | null): number {
+  return id === null ? -1 : LEAGUES.indexOf(id);
+}
 
 export function newId(state: GameState, prefix: string): string {
   return `${prefix}${state.nextId++}`;
