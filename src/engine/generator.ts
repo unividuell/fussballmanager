@@ -70,6 +70,15 @@ export function generatePlayer(
   return p;
 }
 
+/** Erzeugt den Kader eines Vereins nach SQUAD_PLAN und stellt die beste Elf auf. */
+export function generateSquad(state: GameState, rng: Rng, clubId: ClubId, baseStrength: number, wageFactor: number): void {
+  const club = state.clubs[clubId];
+  for (const [pos, n] of SQUAD_PLAN) {
+    for (let k = 0; k < n; k++) club.squad.push(generatePlayer(state, rng, clubId, pos, baseStrength, rng.int(17, 34), wageFactor).id);
+  }
+  club.lineup = autoLineup(state, clubId, club.tactics.formation);
+}
+
 export function generateWorld(seed: number): GameState {
   const rng = Rng.fromSeed(seed);
   const state: GameState = {
@@ -120,10 +129,7 @@ export function generateWorld(seed: number): GameState {
     // Kaderstärke kommt aus dem Datensatz, unabhängig vom Ruf (Spec 2026-11-13, Abschnitt 3)
     const base = baseStrengthFor(seed.strength);
     const wage = WAGE_FACTOR[LEAGUES.indexOf(seed.league)];
-    for (const [pos, n] of SQUAD_PLAN) {
-      for (let k = 0; k < n; k++) club.squad.push(generatePlayer(state, rng, club.id, pos, base, rng.int(17, 34), wage).id);
-    }
-    club.lineup = autoLineup(state, club.id, club.tactics.formation);
+    generateSquad(state, rng, club.id, base, wage);
   }
   for (let i = 0; i < FREE_AGENTS_START; i++) {
     generatePlayer(state, rng, null, rng.pick(FREE_AGENT_POSITIONS), rng.int(45, 65), rng.int(22, 32));

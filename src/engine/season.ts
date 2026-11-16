@@ -4,6 +4,7 @@ import { computeStandings } from "./competition/standings";
 import { repairLineup, validateLineup } from "./lineup";
 import { finalScore, penaltyShootout, simulateHalf, startMatch, type LiveMatch, type LiveSide } from "./match/simulate";
 import { CLUBS } from "./clubs";
+import { applyStartLeagues } from "./startLeague";
 import {
   BOUNDARIES,
   LEAGUES,
@@ -55,12 +56,13 @@ export function startSeason(state: GameState, leagues: Record<CompetitionId, Clu
   withRng(state, (rng) => startSeasonEconomy(state, rng));
 }
 
-export function startNewGame(world: GameState, managers: { name: string; clubId: ClubId }[]): Result {
+export function startNewGame(world: GameState, managers: { name: string; clubId: ClubId; league?: CompetitionId }[]): Result {
   if (managers.length < 1 || managers.length > 4) return { ok: false, error: "Es können 1 bis 4 Manager mitspielen." };
   if (managers.some((m) => m.name.trim() === "")) return { ok: false, error: "Jeder Manager braucht einen Namen." };
   if (managers.some((m) => !Object.hasOwn(world.clubs, m.clubId))) return { ok: false, error: "Diesen Verein gibt es nicht." };
   if (new Set(managers.map((m) => m.clubId)).size !== managers.length)
     return { ok: false, error: "Zwei Manager können nicht denselben Verein übernehmen." };
+  if (managers.some((m) => m.league !== undefined && !LEAGUES.includes(m.league))) return { ok: false, error: "Diese Liga gibt es nicht." };
 
   const state = structuredClone(world);
   for (const m of managers) {
@@ -68,7 +70,15 @@ export function startNewGame(world: GameState, managers: { name: string; clubId:
     state.managers.push({ id, name: m.name.trim(), clubId: m.clubId });
     state.clubs[m.clubId].managerId = id;
   }
-  startSeason(state, startingLeagues(state));
+  let leagues = startingLeagues(state);
+  const real = (id: ClubId) => LEAGUES.find((l) => leagues[l].includes(id))!;
+  const choices = managers.map((m) => ({ clubId: m.clubId, league: m.league ?? real(m.clubId) }));
+  if (choices.some((c) => c.league !== real(c.clubId))) {
+    withRng(state, (rng) => {
+      leagues = applyStartLeagues(state, leagues, choices, rng);
+    });
+  }
+  startSeason(state, leagues);
   return { ok: true, state };
 }
 

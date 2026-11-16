@@ -1,4 +1,4 @@
-import type { ClubId, GameState, ManagerId } from "../engine/model";
+import type { ClubId, CompetitionId, GameState, ManagerId } from "../engine/model";
 import { startNewGame } from "../engine/season";
 import { Session, type SessionCommand, type Snapshot } from "../session/session";
 import { decodeSave, encodeSave, makeMeta, type Decoded } from "../storage/savefile";
@@ -98,7 +98,7 @@ export class GameController {
     return this.store !== null;
   }
 
-  startGame(world: GameState, managers: { name: string; clubId: ClubId }[]): string | null {
+  startGame(world: GameState, managers: { name: string; clubId: ClubId; league?: CompetitionId }[]): string | null {
     const r = startNewGame(world, managers);
     if (!r.ok) return r.error;
     this.begin(r.state);
