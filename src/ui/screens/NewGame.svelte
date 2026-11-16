@@ -105,7 +105,7 @@
             </optgroup>
           {/each}
         </select>
-        <select aria-label="Startliga Manager {i + 1}" bind:value={startLeagues[i]}>
+        <select class="league" aria-label="Startliga Manager {i + 1}" bind:value={startLeagues[i]}>
           {#each LEAGUES as l, k (l)}<option value={l}>{k + 1}. Liga</option>{/each}
         </select>
         {#if picks[i]}
@@ -165,4 +165,6 @@
   .spacer { flex: 1; }
   .row { display: flex; gap: 16px; justify-content: flex-end; }
   p { margin: 0 0 16px; }
+  /* die Startliga braucht nur Platz für „3. Liga“; der Rest bleibt für lange Vereinsnamen */
+  select.league { flex: 0 0 auto; }
 </style>
