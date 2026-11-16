@@ -42,6 +42,40 @@ describe("Neues Spiel", () => {
     expect(s.competitions.L3.clubs).toContain(havelse.value);
   });
 
+  it("jede Manager-Zeile hat eine Startliga-Auswahl mit drei Ligen", async () => {
+    render(App, { controller: new GameController() });
+    await fireEvent.click(screen.getByRole("button", { name: "2" }));
+    for (const i of [1, 2]) {
+      const league = screen.getByLabelText(`Startliga Manager ${i}`) as HTMLSelectElement;
+      expect(Array.from(league.options).map((o) => o.textContent)).toEqual(["1. Liga", "2. Liga", "3. Liga"]);
+    }
+  });
+
+  it("die Startliga springt auf die echte Liga des gewählten Vereins", async () => {
+    render(App, { controller: new GameController() });
+    const club = screen.getByLabelText("Verein Manager 1") as HTMLSelectElement;
+    const league = screen.getByLabelText("Startliga Manager 1") as HTMLSelectElement;
+    const value = (name: string) => Array.from(club.options).find((o) => o.textContent?.startsWith(name))!.value;
+    await fireEvent.change(club, { target: { value: value("FC Bayern München") } });
+    expect(league.value).toBe("L1");
+    await fireEvent.change(league, { target: { value: "L3" } });
+    await fireEvent.change(club, { target: { value: value("TSV Havelse") } });
+    expect(league.value).toBe("L3");
+    await fireEvent.change(club, { target: { value: value("Hertha BSC") } });
+    expect(league.value).toBe("L2");
+  });
+
+  it("Bayern in der 3. Liga startet dort", async () => {
+    const c = new GameController();
+    render(App, { controller: c });
+    const club = screen.getByLabelText("Verein Manager 1") as HTMLSelectElement;
+    const bayern = Array.from(club.options).find((o) => o.textContent?.startsWith("FC Bayern München"))!.value;
+    await fireEvent.change(club, { target: { value: bayern } });
+    await fireEvent.change(screen.getByLabelText("Startliga Manager 1"), { target: { value: "L3" } });
+    await fireEvent.click(screen.getByRole("button", { name: "Anpfiff!" }));
+    expect(c.snapshot!.state.competitions.L3.clubs).toContain(bayern);
+  });
+
   it("zeigt Felder für die gewählte Manager-Anzahl", async () => {
     render(App, { controller: new GameController() });
     await fireEvent.click(screen.getByRole("button", { name: "3" }));

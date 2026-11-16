@@ -1,6 +1,6 @@
 <script lang="ts">
   import { generateWorld } from "../../engine/generator";
-  import { LEAGUES, type ClubId, type GameState } from "../../engine/model";
+  import { COMP, LEAGUES, type ClubId, type CompetitionId, type GameState } from "../../engine/model";
   import { startingLeagues } from "../../engine/season";
   import type { GameController } from "../controller.svelte";
   import { clubRating } from "../logic/tables";
@@ -16,9 +16,21 @@
   let count = $state(1);
   let names = $state(["Manager 1", "Manager 2", "Manager 3", "Manager 4"]);
   let picks = $state<(ClubId | "")[]>(["", "", "", ""]);
+  let startLeagues = $state<CompetitionId[]>([COMP.first, COMP.first, COMP.first, COMP.first]);
   let error = $state<string | null>(null);
   let confirmOverwrite = $state(false);
   const canContinue = $derived(controller.slots.some((s) => s.slot === "auto" && s.meta !== null));
+
+  /** echte Liga jedes Vereins */
+  const realLeague = $derived.by(() => {
+    const leagues = startingLeagues(world);
+    return Object.fromEntries(LEAGUES.flatMap((l) => leagues[l].map((c) => [c, l]))) as Record<ClubId, CompetitionId>;
+  });
+
+  function pickClub(i: number, clubId: string): void {
+    picks[i] = clubId;
+    if (clubId) startLeagues[i] = realLeague[clubId];
+  }
 
   /** Vereine nach Startliga, innerhalb der Liga nach Ruf */
   const groups = $derived.by(() => {
@@ -33,6 +45,7 @@
     const seed = Number.parseInt(seedText, 10);
     world = generateWorld(Number.isFinite(seed) ? seed : 0);
     picks = ["", "", "", ""];
+    startLeagues = [COMP.first, COMP.first, COMP.first, COMP.first];
     error = null;
   }
 
@@ -49,7 +62,7 @@
     confirmOverwrite = false;
     error = controller.startGame(
       world,
-      chosen.map((clubId, i) => ({ name: names[i], clubId: clubId as ClubId })),
+      chosen.map((clubId, i) => ({ name: names[i], clubId: clubId as ClubId, league: startLeagues[i] })),
     );
   }
 
@@ -84,13 +97,16 @@
       <div class="row">
         <span class="no">{i + 1}</span>
         <input aria-label="Name Manager {i + 1}" bind:value={names[i]} maxlength="16" />
-        <select aria-label="Verein Manager {i + 1}" bind:value={picks[i]}>
+        <select aria-label="Verein Manager {i + 1}" value={picks[i]} onchange={(e) => pickClub(i, e.currentTarget.value)}>
           <option value="">– Verein wählen –</option>
           {#each groups as g (g.label)}
             <optgroup label={g.label}>
               {#each g.clubs as club (club.id)}<option value={club.id}>{club.name} ({clubRating(world, club.id)})</option>{/each}
             </optgroup>
           {/each}
+        </select>
+        <select aria-label="Startliga Manager {i + 1}" bind:value={startLeagues[i]}>
+          {#each LEAGUES as l, k (l)}<option value={l}>{k + 1}. Liga</option>{/each}
         </select>
         {#if picks[i]}
           {@const club = world.clubs[picks[i]]}
