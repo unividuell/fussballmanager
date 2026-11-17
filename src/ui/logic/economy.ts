@@ -1,4 +1,5 @@
 import { salaryDemand } from "../../engine/economy/contracts";
+import { isRegionalliga } from "../../engine/regionalliga";
 import { marketValue } from "../../engine/economy/money";
 import { askingFee } from "../../engine/economy/transfers";
 import type {
@@ -106,7 +107,7 @@ export interface MarketRow {
 
 export function marketRows(state: GameState, buyerClubId: ClubId, f: MarketFilter): MarketRow[] {
   return Object.values(state.players)
-    .filter((p) => !p.retired && p.clubId !== buyerClubId && (p.clubId === null || state.clubs[p.clubId].managerId === null))
+    .filter((p) => !p.retired && p.clubId !== buyerClubId && (p.clubId === null || (state.clubs[p.clubId].managerId === null && !isRegionalliga(state, p.clubId))))
     .filter((p) => f.position === "all" || p.position === f.position)
     .filter((p) => !f.freeOnly || p.clubId === null)
     .filter((p) => !f.listedOnly || p.transferListed !== null)

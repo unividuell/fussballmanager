@@ -1,4 +1,5 @@
 import { MAX_SQUAD, leagueLevel, newId, type ClubId, type GameState, type ManagerId, type Negotiation, type Player, type PlayerId } from "../model";
+import { isRegionalliga } from "../regionalliga";
 import {
   TALK_COOLDOWN,
   desiredYears,
@@ -176,6 +177,7 @@ export function startTransferTalk(state: GameState, managerId: ManagerId, player
   if (p && !p.retired && p.clubId === null) return "Der Spieler ist vereinslos – biete ihm direkt einen Vertrag an.";
   if (p && p.clubId === clubId) return "Der Spieler gehört schon zu deinem Verein.";
   if (p && p.clubId && state.clubs[p.clubId].managerId !== null) return "Mit Vereinen anderer Manager wird nicht verhandelt.";
+  if (p && p.clubId && isRegionalliga(state, p.clubId)) return "Dieser Verein spielt in der Regionalliga und gibt keine Spieler ab.";
   const common = commonChecks(state, p);
   if (common) return common;
   const buyer = state.clubs[clubId];

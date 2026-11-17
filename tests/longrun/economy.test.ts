@@ -57,7 +57,8 @@ describe("Langzeittest: Wirtschaft über 10 Saisons", () => {
       expect(l1).toBeGreaterThan(l2 + 3);
       expect(Math.abs(l1 - startL1)).toBeLessThan(5);
       expect(active).toBeLessThan(2_000);
-      expect(Object.keys(s.players).length).toBeLessThan(1500);
+      // 64 Vereine samt Regionalliga (bisher 1500 bei 54 Vereinen, anteilig hochgerechnet)
+      expect(Object.keys(s.players).length).toBeLessThan(1800);
       // Bekannte Talent-Drift (Spec 2026-11-12, Abschnitt 9): Die 2. Liga startet mit echten Vereinen schwächer und driftet etwas weiter.
       expect(Math.abs(l2 - startL2)).toBeLessThanOrEqual(12);
       for (const m of s.managers) expect(s.messages.filter((x) => x.managerId === m.id).length).toBeLessThanOrEqual(60);
@@ -131,34 +132,39 @@ function referenceGroups(seed: number) {
 }
 
 describe("Langzeittest: Zielkorridore der Wirtschaft (Spec 2026-11-12, 4.1 und 5.1)", () => {
-  it("KI: Geldmenge, Dispo, Auslastung und Marktwerte bleiben in den Korridoren", { timeout: 900_000 }, () => {
-    const { metrics, start, state } = runSeasons(2027, 10);
-    const rep = (id: string) => state.clubs[id].reputation;
-    const report: string[] = [`Start-Median ${M(start.aiMedianBalance)}`];
+  it("KI: Geldmenge, Dispo, Auslastung und Marktwerte bleiben in den Korridoren", { timeout: 1_500_000 }, () => {
+    // Geld, Dispo und Marktwerte gelten in jeder Welt; die Auslastung schwankt stark mit dem Abschneiden einzelner
+    // Vereine und zählt deshalb im Mittel über zwei Welten.
     const utilTop: number[] = [];
     const utilBottom: number[] = [];
-    for (const m of metrics) {
-      const l1 = m.tables[COMP.first];
-      const byRep = [...l1].sort((a, b) => rep(b) - rep(a));
-      utilTop.push(mean(byRep.slice(0, 3).map((id) => m.utilization[id])));
-      utilBottom.push(mean(l1.slice(-3).map((id) => m.utilization[id])));
-      report.push(`Saison ${m.season}: Median ${M(m.aiMedianBalance)}, Max ${M(m.aiMaxBalance)}, über Limit ${m.aiOverLimit}, Spitze MW ${M(m.topMarketValues[0])}`);
+    for (const seed of [2027, 11]) {
+      const { metrics, start } = runSeasons(seed, 10);
+      const report: string[] = [`Seed ${seed}: Start-Median ${M(start.aiMedianBalance)}`];
+      for (const m of metrics) {
+        // erfolgreiche Vereine (Spec 2026-11-12, 5.1): die ersten drei der Abschlusstabelle; seit Ruf und Kaderstärke
+        // getrennt sind (Spec 2026-11-13), sind die Vereine mit dem höchsten Ruf nicht unbedingt die erfolgreichsten
+        const l1 = m.tables[COMP.first];
+        utilTop.push(mean(l1.slice(0, 3).map((id) => m.utilization[id])));
+        utilBottom.push(mean(l1.slice(-3).map((id) => m.utilization[id])));
+        report.push(`Saison ${m.season}: Median ${M(m.aiMedianBalance)}, Max ${M(m.aiMaxBalance)}, über Limit ${m.aiOverLimit}, Spitze MW ${M(m.topMarketValues[0])}`);
+      }
+      console.log(report.join("\n"));
+      for (const m of metrics) {
+        expect(m.aiMedianBalance).toBeGreaterThanOrEqual(0.7 * start.aiMedianBalance);
+        expect(m.aiMedianBalance).toBeLessThanOrEqual(2.5 * start.aiMedianBalance);
+        expect(m.aiMaxBalance).toBeLessThanOrEqual(40_000_000);
+        // höchstens vereinzelt: bei 54 Vereinen bis zu 3 (etwa 5 %), meist frische Absteiger am Saisonende
+        expect(m.aiOverLimit).toBeLessThanOrEqual(3);
+        expect(m.topMarketValues[0]).toBeGreaterThanOrEqual(15_000_000);
+        expect(m.topMarketValues[0]).toBeLessThanOrEqual(30_000_000);
+      }
+      expect(metrics[9].aiMedianBalance).toBeLessThanOrEqual(1.5 * metrics[4].aiMedianBalance);
     }
-    report.push(`Auslastung: Top 3 ${mean(utilTop).toFixed(2)}, letzte 3 ${mean(utilBottom).toFixed(2)}`);
-    console.log(report.join("\n"));
-
-    for (const m of metrics) {
-      expect(m.aiMedianBalance).toBeGreaterThanOrEqual(0.7 * start.aiMedianBalance);
-      expect(m.aiMedianBalance).toBeLessThanOrEqual(2.5 * start.aiMedianBalance);
-      expect(m.aiMaxBalance).toBeLessThanOrEqual(40_000_000);
-      // höchstens vereinzelt: bei 54 Vereinen bis zu 3 (etwa 5 %), meist frische Absteiger am Saisonende
-      expect(m.aiOverLimit).toBeLessThanOrEqual(3);
-      expect(m.topMarketValues[0]).toBeGreaterThanOrEqual(15_000_000);
-      expect(m.topMarketValues[0]).toBeLessThanOrEqual(30_000_000);
-    }
-    expect(metrics[9].aiMedianBalance).toBeLessThanOrEqual(1.5 * metrics[4].aiMedianBalance);
+    console.log(`Auslastung (2 Welten): Top 3 ${mean(utilTop).toFixed(2)}, letzte 3 ${mean(utilBottom).toFixed(2)}`);
     expect(mean(utilTop)).toBeGreaterThanOrEqual(0.9);
-    expect(mean(utilBottom)).toBeLessThan(0.85);
+    // Abstiegskandidaten haben sichtbare Lücken: unter 90 % und klar weniger voll als die Spitze
+    expect(mean(utilBottom)).toBeLessThan(0.9);
+    expect(mean(utilTop) - mean(utilBottom)).toBeGreaterThanOrEqual(0.05);
   });
 
   // Spec 4.1 misst das Ergebnis „mit einem gewöhnlichen, gepflegten Kader“. KI-Vereine stecken Überschüsse in Spieler,

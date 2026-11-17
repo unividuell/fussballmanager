@@ -1,5 +1,7 @@
 import { generatePlayer } from "./generator";
-import { isAvailable, type ClubId, type GameState, type Player, type Position } from "./model";
+import { WAGE_FACTOR } from "./economy/money";
+import { clubLeague } from "./economy/util";
+import { isAvailable, leagueLevel, type ClubId, type GameState, type Player, type Position } from "./model";
 import type { Rng } from "./rng";
 
 /** 11 Startspieler + 2 Ersatz – darunter muss ein Torwart sein. */
@@ -10,9 +12,10 @@ export function ensureMinimumSquad(state: GameState, clubId: ClubId, rng: Rng): 
   const squad = () => club.squad.map((id) => state.players[id]);
   const avg = squad().reduce((s, p) => s + p.strength, 0) / Math.max(1, club.squad.length);
   const base = Math.max(25, avg - 15);
+  const wage = WAGE_FACTOR[Math.max(0, leagueLevel(clubLeague(state, clubId)))];
   const added: Player[] = [];
   const add = (pos: Position) => {
-    const p = generatePlayer(state, rng, clubId, pos, base, rng.int(19, 30));
+    const p = generatePlayer(state, rng, clubId, pos, base, rng.int(19, 30), wage);
     club.squad.push(p.id);
     added.push(p);
   };

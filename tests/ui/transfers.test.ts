@@ -2,6 +2,7 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { describe, expect, it } from "vitest";
+import { isRegionalliga } from "../../src/engine/regionalliga";
 import App from "../../src/App.svelte";
 import { generateWorld } from "../../src/engine/generator";
 import { GameController } from "../../src/ui/controller.svelte";
@@ -42,7 +43,10 @@ describe("Transfermarkt", () => {
   it("Sortieren nach Alter aufsteigend zeigt die jüngsten Spieler des ganzen Marktes; Kopfzeile nennt die Anzahl", async () => {
     const { gs, clubId } = await transfersScreen();
     const humanClubs = new Set<string | null>(gs().managers.map((m) => m.clubId));
-    const eligible = Object.values(gs().players).filter((p) => !p.retired && p.clubId !== clubId && !humanClubs.has(p.clubId));
+    // Spieler der Regionalliga sind nicht im Markt (Spec 2026-11-17)
+    const eligible = Object.values(gs().players).filter(
+      (p) => !p.retired && p.clubId !== clubId && !humanClubs.has(p.clubId) && !(p.clubId && isRegionalliga(gs(), p.clubId)),
+    );
     expect(eligible.length).toBeGreaterThan(150);
     expect(screen.getByText(`150 von ${eligible.length}`)).toBeTruthy();
     await fireEvent.click(screen.getByRole("button", { name: "Sortieren nach Alter" }));

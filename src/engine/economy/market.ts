@@ -5,6 +5,7 @@ import { wageRoom } from "./finance";
 import { postMessage } from "./messages";
 import { canAfford, marketValue, wageBill } from "./money";
 import { removeFromClub } from "./roster";
+import { isRegionalliga } from "../regionalliga";
 import { askingFee, executeTransfer, isTransferWindow } from "./transfers";
 import { clubLeague, formatEuro, roundTo } from "./util";
 
@@ -16,6 +17,8 @@ const MAX_AI_BUYS = 2;
 const AI_SQUAD_MIN = 22;
 const AI_SQUAD_MAX = 28;
 const EMERGENCY_SQUAD = 18;
+/** In der Not darf ein günstiger Neuzugang höchstens so viel schwächer sein als die Stammelf. */
+const EMERGENCY_GAP = 8;
 const SELLER_MIN_SQUAD = 22;
 
 export type OfferResponse = "accept" | "reject" | { counter: number };
@@ -28,6 +31,7 @@ function makeOffer(state: GameState, rng: Rng, seller: Club, p: Player, fee: num
   const buyers = Object.values(state.clubs).filter(
     (c) =>
       c.managerId === null &&
+      !isRegionalliga(state, c.id) &&
       c.id !== seller.id &&
       c.squad.length < MAX_SQUAD &&
       c.reputation >= seller.reputation - 20 &&
@@ -159,12 +163,13 @@ function candidates(state: GameState, buyerId: ClubId): Player[] {
     if (p.retired || negotiating.has(p.id) || p.clubId === buyerId) return false;
     if (p.clubId === null) return true;
     const club = state.clubs[p.clubId];
+    if (isRegionalliga(state, club.id)) return false;
     return club.managerId === null && club.squad.length > SELLER_MIN_SQUAD && !club.lineup.starters.includes(p.id);
   });
 }
 
 export function aiTransferRound(state: GameState, rng: Rng): void {
-  const ai = rng.shuffle(Object.values(state.clubs).filter((c) => c.managerId === null).map((c) => c.id));
+  const ai = rng.shuffle(Object.values(state.clubs).filter((c) => c.managerId === null && !isRegionalliga(state, c.id)).map((c) => c.id));
   for (const id of ai) {
     const club = state.clubs[id];
     while (club.squad.length > AI_SQUAD_MAX) {
@@ -193,11 +198,20 @@ export function aiTransferRound(state: GameState, rng: Rng): void {
     while (club.squad.length < AI_SQUAD_MIN) {
       const needPos = needs(state, club)[0];
       const negotiating = new Set(state.negotiations.filter((n) => n.status === "open").map((n) => n.playerId));
-      const free = Object.values(state.players)
+      const pool = Object.values(state.players)
         .filter((p) => p.clubId === null && !p.retired && !negotiating.has(p.id))
-        .map((p) => ({ p, wage: salaryDemand(state, p, id) }))
-        .filter((x) => club.squad.length < EMERGENCY_SQUAD || wageRoom(state, id, x.wage))
-        .sort((a, b) => Number(b.p.position === needPos) - Number(a.p.position === needPos) || b.p.strength - a.p.strength)[0];
+        .map((p) => ({ p, wage: salaryDemand(state, p, id) }));
+      const needFirst = (a: { p: Player }, b: { p: Player }) => Number(b.p.position === needPos) - Number(a.p.position === needPos);
+      // im Budget: der stärkste passende Spieler; in der Not ohne Budget: der günstigste, der sportlich noch passt
+      // (höchstens EMERGENCY_GAP unter der Stammelf), sonst der günstigste überhaupt – so laufen die Gehälter nicht davon
+      const starters = club.lineup.starters.map((pid) => state.players[pid]?.strength ?? 0);
+      const level = starters.length > 0 ? starters.reduce((x, y) => x + y, 0) / starters.length : 0;
+      const cheapest = (xs: typeof pool) => [...xs].sort((a, b) => needFirst(a, b) || a.wage - b.wage)[0];
+      const free =
+        pool.filter((x) => wageRoom(state, id, x.wage)).sort((a, b) => needFirst(a, b) || b.p.strength - a.p.strength)[0] ??
+        (club.squad.length < EMERGENCY_SQUAD
+          ? (cheapest(pool.filter((x) => x.p.strength >= level - EMERGENCY_GAP)) ?? cheapest(pool))
+          : undefined);
       if (!free) break;
       signContract(state, free.p.id, id, free.wage, desiredYears(free.p));
     }

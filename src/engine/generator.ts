@@ -18,7 +18,7 @@ import { FIRST_NAMES, LAST_NAMES } from "./names";
 import { Rng } from "./rng";
 
 export const CLUB_COUNT = CLUBS.length;
-const SQUAD_PLAN: [Position, number][] = [["GK", 3], ["DF", 8], ["MF", 8], ["FW", 6]];
+export const SQUAD_PLAN: [Position, number][] = [["GK", 3], ["DF", 8], ["MF", 8], ["FW", 6]];
 
 const FREE_AGENTS_START = 30;
 const FREE_AGENT_POSITIONS: Position[] = ["GK", "DF", "DF", "MF", "MF", "FW"];
