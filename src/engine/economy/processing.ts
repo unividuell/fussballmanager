@@ -16,6 +16,7 @@ import { postToClub } from "./messages";
 import { cleanupNegotiations } from "./negotiations";
 import { addFreeAgents, addYouth, aiTrainingPlan, applyTraining, pruneRetired, seasonAging, trimFreeAgents } from "./training";
 import { isTransferWindow } from "./transfers";
+import { refillRegionalliga } from "../regionalliga";
 import { clubLeague, isLeagueMatchday } from "./util";
 
 const WINTER_MARKET_AT = 17;
@@ -67,6 +68,7 @@ export function seasonEndEconomy(state: GameState, tables: Record<CompetitionId,
 }
 
 export function startSeasonEconomy(state: GameState, rng: Rng): void {
+  refillRegionalliga(state, rng);
   assignExpectations(state);
   startSeasonFinances(state, rng);
   state.negotiations = [];

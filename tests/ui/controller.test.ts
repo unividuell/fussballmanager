@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
+import { leagueClubIds } from "./game";
 import { generateWorld } from "../../src/engine/generator";
 import { GameController } from "../../src/ui/controller.svelte";
 
 function started(names = ["Anna", "Ben"]) {
   const c = new GameController();
   const world = generateWorld(7);
-  const ids = Object.keys(world.clubs);
+  const ids = leagueClubIds(world);
   const error = c.startGame(world, names.map((name, i) => ({ name, clubId: ids[i * 20] })));
   if (error) throw new Error(error);
   return c;

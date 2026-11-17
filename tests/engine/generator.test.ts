@@ -12,8 +12,8 @@ describe("generateWorld", () => {
     expect(JSON.stringify(generateWorld(999))).not.toBe(JSON.stringify(w));
   });
 
-  it("erzeugt die 54 Vereine aus dem Datensatz mit Name, Kurzname, Farben und Ruf", () => {
-    expect(CLUB_COUNT).toBe(54);
+  it("erzeugt die 64 Vereine aus dem Datensatz mit Name, Kurzname, Farben und Ruf", () => {
+    expect(CLUB_COUNT).toBe(64);
     expect(clubs).toHaveLength(CLUB_COUNT);
     for (const seed of CLUBS) {
       const club = clubs.find((c) => c.name === seed.name)!;

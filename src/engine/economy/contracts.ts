@@ -3,6 +3,7 @@ import { postToClub } from "./messages";
 import { wageRoom } from "./finance";
 import { WAGE_FACTOR, book, salaryFor, startBalance } from "./money";
 import { removeFromClub } from "./roster";
+import { isRegionalliga } from "../regionalliga";
 import { clubLeague, roundTo } from "./util";
 
 export const MIN_YEARS = 1;
@@ -100,6 +101,11 @@ export function expireContracts(state: GameState): PlayerId[] {
   const gone: PlayerId[] = [];
   for (const p of Object.values(state.players)) {
     if (!p.clubId || !p.contract || p.contract.endsSeason > state.season) continue;
+    // Verträge in der Regionalliga laufen nicht aus, sie verlängern sich still um eine Saison (Spec 2026-11-17, Abschnitt 4)
+    if (isRegionalliga(state, p.clubId)) {
+      p.contract = { ...p.contract, endsSeason: state.season + 1 };
+      continue;
+    }
     postToClub(state, p.clubId, `${p.firstName} ${p.lastName} verlässt den Verein, sein Vertrag ist ausgelaufen.`);
     removeFromClub(state, p.id);
     gone.push(p.id);
@@ -122,7 +128,7 @@ export function expiringNotices(state: GameState): void {
 export function aiRenewals(state: GameState): void {
   if (state.calendarIndex < RENEWAL_FROM || state.calendarIndex >= LEAGUE_MATCHDAYS) return;
   for (const club of Object.values(state.clubs)) {
-    if (club.managerId) continue;
+    if (club.managerId || isRegionalliga(state, club.id)) continue;
     const starters = club.lineup.starters.map((id) => state.players[id]).filter(Boolean);
     const avg = starters.reduce((s, p) => s + p.strength, 0) / Math.max(1, starters.length);
     for (const pid of [...club.squad]) {

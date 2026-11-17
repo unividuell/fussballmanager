@@ -5,6 +5,7 @@ import { initialStage } from "../../src/engine/economy/stadium";
 import { generateWorld } from "../../src/engine/generator";
 import { LEAGUES, type ClubId, type GameState } from "../../src/engine/model";
 import { leagueOf, startNewGame } from "../../src/engine/season";
+import { isRegionalliga } from "../../src/engine/regionalliga";
 import { leagueProfile } from "../../src/engine/startLeague";
 import { validateState } from "../../src/storage/validate";
 
@@ -115,5 +116,65 @@ describe("Startliga", () => {
   it("lehnt eine unbekannte Liga ab", () => {
     const r = startNewGame(world, [{ name: "A", clubId: idOf("FC Bayern München"), league: "L9" }]);
     expect(r).toEqual({ ok: false, error: "Diese Liga gibt es nicht." });
+  });
+
+  it("1860 in die 3. Liga: der schwächste Drittligist rutscht in die Regionalliga", () => {
+    const l60 = idOf("TSV 1860 München");
+    const out = weakest("L3");
+    const s = start([{ name: "A", clubId: l60, league: "L3" }]);
+    eighteenEach(s);
+    expect(leagueOf(s, l60)).toBe("L3");
+    expect(isRegionalliga(s, out)).toBe(true);
+    expect(s.clubs[out].reputation).toBe(leagueProfile("RL", "highest").reputation);
+    expect(s.clubs[l60].reputation).toBe(leagueProfile("L3", "median").reputation);
+    expect(Object.keys(s.clubs)).toHaveLength(64);
+    expect(Object.values(s.clubs).filter((c) => isRegionalliga(s, c.id))).toHaveLength(10);
+  });
+
+  it("1860 in die 1. Liga: Kette über alle Stufen bis in die Regionalliga", () => {
+    const l60 = idOf("TSV 1860 München");
+    const [d1, d2, d3] = [weakest("L1"), weakest("L2"), weakest("L3")];
+    const s = start([{ name: "A", clubId: l60, league: "L1" }]);
+    eighteenEach(s);
+    expect(leagueOf(s, l60)).toBe("L1");
+    expect(leagueOf(s, d1)).toBe("L2");
+    expect(leagueOf(s, d2)).toBe("L3");
+    expect(isRegionalliga(s, d3)).toBe(true);
+  });
+
+  it("1860 in die 1. Liga und Bayern in die 3. Liga: kein Verein wechselt zweimal", () => {
+    const l60 = idOf("TSV 1860 München");
+    const bayern = idOf("FC Bayern München");
+    const before = start([{ name: "X", clubId: bayern }]);
+    const s = start([
+      { name: "A", clubId: l60, league: "L1" },
+      { name: "B", clubId: bayern, league: "L3" },
+    ]);
+    eighteenEach(s);
+    expect(Object.values(s.clubs).filter((c) => isRegionalliga(s, c.id))).toHaveLength(10);
+    const tier = (st: GameState, id: ClubId) => (isRegionalliga(st, id) ? 3 : LEAGUES.indexOf(leagueOf(st, id)!));
+    for (const id of Object.keys(s.clubs)) {
+      if (id === l60 || id === bayern) continue;
+      expect(Math.abs(tier(s, id) - tier(before, id)), s.clubs[id].name).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("ein Traditionsverein ohne Startliga wird abgelehnt", () => {
+    const r = startNewGame(world, [{ name: "A", clubId: idOf("TSV 1860 München") }]);
+    expect(r).toEqual({ ok: false, error: "Bitte wähle für den Traditionsverein eine Startliga." });
+    const rl = startNewGame(world, [{ name: "A", clubId: idOf("TSV 1860 München"), league: "RL" }]);
+    expect(rl).toEqual({ ok: false, error: "Diese Liga gibt es nicht." });
+  });
+
+  it("ein Manager-Verein rutscht nie in die Regionalliga", () => {
+    const l60 = idOf("TSV 1860 München");
+    const w3 = weakest("L3");
+    const next3 = idOf(byStrength("L3").at(-2)!.name);
+    const s = start([
+      { name: "A", clubId: l60, league: "L3" },
+      { name: "B", clubId: w3 },
+    ]);
+    expect(leagueOf(s, w3)).toBe("L3");
+    expect(isRegionalliga(s, next3)).toBe(true);
   });
 });

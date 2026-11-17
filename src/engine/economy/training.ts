@@ -1,11 +1,12 @@
 import { baseStrengthFor, generatePlayer } from "../generator";
+import { clubLeague, roundTo } from "./util";
+import { isRegionalliga } from "../regionalliga";
 import type { ClubId, GameState, Intensity, PlayerId, Position, TrainingFocus, TrainingPlan } from "../model";
 import type { Rng } from "../rng";
-import { MAX_SQUAD } from "../model";
+import { MAX_SQUAD, leagueLevel } from "../model";
 import { postToClub } from "./messages";
-import { salaryFor } from "./money";
+import { WAGE_FACTOR, salaryFor } from "./money";
 import { removeFromClub } from "./roster";
-import { roundTo } from "./util";
 
 export const INTENSITY: Record<Intensity, { growth: number; fitnessCost: number; injuryRisk: number }> = {
   light: { growth: 0.6, fitnessCost: 0, injuryRisk: 0 },
@@ -109,11 +110,13 @@ export function seasonAging(state: GameState, rng: Rng): PlayerId[] {
 export function addYouth(state: GameState, rng: Rng): PlayerId[] {
   const ids: PlayerId[] = [];
   for (const club of Object.values(state.clubs)) {
+    if (isRegionalliga(state, club.id)) continue;
     const n = Math.min(rng.int(2, 3), Math.max(0, MAX_SQUAD - club.squad.length));
     for (let i = 0; i < n; i++) {
       const p = generatePlayer(state, rng, club.id, rng.pick(YOUTH_POSITIONS), baseStrengthFor(club.reputation) - 18, rng.int(16, 18));
       p.potential = Math.min(99, Math.max(p.strength, p.strength + rng.int(10, 35)));
-      p.contract = { salary: roundTo(salaryFor(p.strength) * 0.5, 100), endsSeason: state.season + 2 };
+      const level = Math.max(0, leagueLevel(clubLeague(state, club.id)));
+      p.contract = { salary: roundTo(salaryFor(p.strength) * 0.5 * WAGE_FACTOR[level], 100), endsSeason: state.season + 2 };
       club.squad.push(p.id);
       ids.push(p.id);
     }

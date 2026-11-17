@@ -2,6 +2,7 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { describe, expect, it } from "vitest";
+import { leagueClubIds } from "./game";
 import App from "../../src/App.svelte";
 import { findLiveFor } from "../../src/engine/commands";
 import { generateWorld } from "../../src/engine/generator";
@@ -11,7 +12,7 @@ import { playerName } from "../../src/ui/logic/format";
 async function atHalftime(names = ["Anna"]) {
   const controller = new GameController();
   const world = generateWorld(9);
-  const ids = Object.keys(world.clubs);
+  const ids = leagueClubIds(world);
   controller.startGame(world, names.map((name, i) => ({ name, clubId: ids[i * 20] })));
   for (const m of controller.snapshot!.state.managers) await controller.endTurn(m.id);
   controller.advance();

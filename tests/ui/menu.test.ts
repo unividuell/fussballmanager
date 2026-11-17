@@ -2,6 +2,7 @@
 import { fireEvent, render, screen } from "@testing-library/svelte";
 import { tick } from "svelte";
 import { describe, expect, it } from "vitest";
+import { leagueClubIds } from "./game";
 import App from "../../src/App.svelte";
 import { expectationLabel } from "../../src/engine/economy/board";
 import { generateWorld } from "../../src/engine/generator";
@@ -10,7 +11,7 @@ import { GameController } from "../../src/ui/controller.svelte";
 function game(names = ["Anna"]) {
   const controller = new GameController();
   const world = generateWorld(11);
-  const ids = Object.keys(world.clubs);
+  const ids = leagueClubIds(world);
   controller.startGame(world, names.map((name, i) => ({ name, clubId: ids[i * 20] })));
   render(App, { controller });
   return controller;

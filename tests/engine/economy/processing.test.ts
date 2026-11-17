@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { isRegionalliga } from "../../../src/engine/regionalliga";
 import { startMatch } from "../../../src/engine/match/simulate";
 import { generateWorld } from "../../../src/engine/generator";
 import { COMP, type GameState } from "../../../src/engine/model";
@@ -28,7 +29,7 @@ describe("ein Spieltag mit Wirtschaft", () => {
     const before = JSON.stringify(s);
     const after = playMatchdayAuto(s);
     expect(JSON.stringify(s)).toBe(before);
-    for (const c of Object.values(after.clubs)) {
+    for (const c of Object.values(after.clubs).filter((x) => !isRegionalliga(after, x.id))) {
       const cats = new Set(c.finance.ledger.map((e) => e.category));
       expect(cats.has("tv")).toBe(true);
       expect(cats.has("salaries")).toBe(true);

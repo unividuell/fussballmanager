@@ -287,7 +287,7 @@ export interface SeasonRecord {
 }
 
 export interface GameState {
-  version: 4;
+  version: 5;
   rngState: RngState;
   season: number;
   calendar: CalendarEntry[];

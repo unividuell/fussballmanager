@@ -1,6 +1,7 @@
 import type { CrestPattern } from "./model";
 
-export type StartLeague = "L1" | "L2" | "L3";
+/** Liga zum Spielstart; "RL" = Regionalliga (Traditionsvereine ohne Ligaspiele) */
+export type StartLeague = "L1" | "L2" | "L3" | "RL";
 
 export interface ClubSeed {
   name: string;
@@ -90,4 +91,15 @@ export const CLUBS: readonly ClubSeed[] = [
   c("SG Sonnenhof Großaspach", "Großaspach", [RED, B], "hoops", 24, 20, "L3"),
   c("SC Fortuna Köln", "Fortuna Köln", [RED, W], "sash", 32, 22, "L3"),
   c("TSV Havelse", "Havelse", [BLUE, W], "stripes", 20, 18, "L3"),
+  // Traditionsvereine der Regionalliga 2026/27 (Spec 2026-11-17): schwächer als jeder Drittligist
+  c("TSV 1860 München", "1860", ["#6cace4", W], "hoops", 72, 17, "RL"),
+  c("SSV Ulm 1846", "Ulm", [B, W], "split", 58, 16, "RL"),
+  c("FC Erzgebirge Aue", "Aue", ["#5b2c83", W], "plain", 56, 16, "RL"),
+  c("Kickers Offenbach", "Offenbach", [RED, W], "stripes", 58, 14, "RL"),
+  c("Stuttgarter Kickers", "Stgt. Kickers", ["#00478a", W], "sash", 52, 12, "RL"),
+  c("Rot-Weiß Oberhausen", "Oberhausen", [RED, W], "hoops", 54, 13, "RL"),
+  c("SG Wattenscheid 09", "Wattenscheid", [B, W], "plain", 48, 10, "RL"),
+  c("FC Carl Zeiss Jena", "Jena", ["#004a99", "#ffd700"], "split", 54, 13, "RL"),
+  c("1. FC Lokomotive Leipzig", "Lok Leipzig", ["#0057a8", "#ffd700"], "sash", 50, 11, "RL"),
+  c("Chemnitzer FC", "Chemnitz", ["#73b1e1", W], "stripes", 52, 12, "RL"),
 ];

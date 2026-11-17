@@ -12,6 +12,9 @@ import {
   validateTraining,
 } from "../../../src/engine/economy/training";
 import { Rng } from "../../../src/engine/rng";
+import { salaryFor } from "../../../src/engine/economy/money";
+import { generateWorld } from "../../../src/engine/generator";
+import { startNewGame } from "../../../src/engine/season";
 import { makePlayer, makeState } from "../fixtures";
 
 const none = new Set<string>();
@@ -228,5 +231,23 @@ describe("Saisonwechsel", () => {
       expect(s.negotiations[0].status).toBe("aborted");
       expect(s.transferOffers[0].status).toBe("withdrawn");
     });
+  });
+});
+
+describe("Gehälter von Jugend und Notkader nach Liga", () => {
+  it("Jugendspieler eines Drittligisten verdienen weniger als die eines Erstligisten gleicher Stärke", () => {
+    const world = generateWorld(9);
+    const r = startNewGame(world, [{ name: "A", clubId: Object.keys(world.clubs)[0] }]);
+    if (!r.ok) throw new Error(r.error);
+    const s = r.state;
+    const l1 = s.competitions.L1.clubs[5];
+    const l3 = s.competitions.L3.clubs[5];
+    const ids = addYouth(s, Rng.fromSeed(1));
+    const ratio = (club: string) => {
+      const ps = ids.map((id) => s.players[id]).filter((p) => p.clubId === club);
+      return ps.map((p) => p.contract!.salary / salaryFor(p.strength));
+    };
+    for (const x of ratio(l3)) expect(x).toBeLessThan(0.5 * 0.9);
+    for (const x of ratio(l1)) expect(x).toBeGreaterThan(0.45);
   });
 });

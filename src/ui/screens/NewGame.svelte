@@ -21,10 +21,18 @@
   let confirmOverwrite = $state(false);
   const canContinue = $derived(controller.slots.some((s) => s.slot === "auto" && s.meta !== null));
 
-  /** echte Liga jedes Vereins */
+  /** Traditionsvereine der Regionalliga (in keiner Startliga des Datensatzes) */
+  const traditional = $derived.by(() => {
+    const inLeague = new Set(Object.values(startingLeagues(world)).flat());
+    return Object.values(world.clubs).filter((c) => !inLeague.has(c.id)).sort((a, b) => b.reputation - a.reputation || (a.id < b.id ? -1 : 1));
+  });
+
+  /** echte Liga jedes Vereins; Traditionsvereine starten voreingestellt in der 3. Liga */
   const realLeague = $derived.by(() => {
     const leagues = startingLeagues(world);
-    return Object.fromEntries(LEAGUES.flatMap((l) => leagues[l].map((c) => [c, l]))) as Record<ClubId, CompetitionId>;
+    const map = Object.fromEntries(LEAGUES.flatMap((l) => leagues[l].map((c) => [c, l]))) as Record<ClubId, CompetitionId>;
+    for (const c of traditional) map[c.id] = COMP.third;
+    return map;
   });
 
   function pickClub(i: number, clubId: string): void {
@@ -104,6 +112,9 @@
               {#each g.clubs as club (club.id)}<option value={club.id}>{club.name} ({clubRating(world, club.id)})</option>{/each}
             </optgroup>
           {/each}
+          <optgroup label="Traditionsvereine (Regionalliga)">
+            {#each traditional as club (club.id)}<option value={club.id}>{club.name} ({clubRating(world, club.id)})</option>{/each}
+          </optgroup>
         </select>
         <select class="league" aria-label="Startliga Manager {i + 1}" bind:value={startLeagues[i]}>
           {#each LEAGUES as l, k (l)}<option value={l}>{k + 1}. Liga</option>{/each}

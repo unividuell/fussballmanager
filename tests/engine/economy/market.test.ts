@@ -196,3 +196,27 @@ describe("Auffüllen der KI-Kader und offene Verhandlungen", () => {
     expect(target.clubId === null || target.clubId === own(s).id).toBe(true);
   });
 });
+
+describe("Notverpflichtungen", () => {
+  it("eine KI ohne Gehaltsbudget holt in der Not den günstigsten passenden Vereinslosen, nicht den stärksten", () => {
+    const s = game();
+    const ai = Object.values(s.clubs).find((c) => c.managerId === null && s.competitions.L3?.clubs.includes(c.id))!;
+    for (const pid of ai.squad.slice(16)) removeFromClub(s, pid);
+    for (const pid of ai.squad) s.players[pid].contract = { salary: 10_000_000, endsSeason: 9 }; // Testaufbau: Budget erschöpft
+    const free = Object.values(s.players).filter((p) => p.clubId === null && !p.retired);
+    const demand = new Map(free.map((p) => [p.id, salaryDemand(s, p, ai.id)]));
+    const cheapest = Math.min(...demand.values());
+    const before = new Set(ai.squad);
+    aiTransferRound(s, Rng.fromSeed(7));
+    const signed = ai.squad.filter((id) => !before.has(id)).map((id) => s.players[id]);
+    expect(signed.length).toBeGreaterThan(0);
+    const strongest = Math.max(...free.map((p) => p.strength));
+    expect(signed.some((p) => p.strength === strongest && demand.get(p.id)! > cheapest)).toBe(false);
+    // der erste Neuzugang ist der günstigste Vereinslose seiner Position, der höchstens 8 Punkte unter der Stammelf liegt
+    const first = signed[0];
+    const level = ai.lineup.starters.reduce((a, pid) => a + s.players[pid].strength, 0) / ai.lineup.starters.length;
+    const fitting = free.filter((p) => p.position === first.position && p.strength >= level - 8);
+    const options = fitting.length > 0 ? fitting : free.filter((p) => p.position === first.position);
+    expect(demand.get(first.id)).toBe(Math.min(...options.map((p) => demand.get(p.id)!)));
+  });
+});

@@ -15,6 +15,7 @@ import {
   startNewGame,
 } from "../../src/engine/season";
 import { validateState } from "../../src/storage/validate";
+import { isRegionalliga } from "../../src/engine/regionalliga";
 
 describe("Langzeittest: 10 Saisons", () => {
   it("bleibt stabil", { timeout: 300_000 }, () => {
@@ -66,6 +67,11 @@ describe("Langzeittest: 10 Saisons", () => {
       }
       for (const l of LEAGUES) expect(next.competitions[l].clubs).toHaveLength(18);
       expect(new Set(LEAGUES.flatMap((l) => next.competitions[l].clubs)).size).toBe(54);
+      // Regionalliga: immer 10 Vereine, jeder zum Saisonbeginn mit mindestens 22 Spielern (Spec 2026-11-17)
+      expect(Object.keys(next.clubs)).toHaveLength(64);
+      const rl = Object.keys(next.clubs).filter((id) => isRegionalliga(next, id));
+      expect(rl).toHaveLength(10);
+      for (const id of rl) expect(next.clubs[id].squad.length).toBeGreaterThanOrEqual(22);
       expect(validateState(next)).toBeNull();
       expect(next.managers[0].clubId).toBe(start);
       s = next;

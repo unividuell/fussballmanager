@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { leagueClubIds } from "./game";
 import { generateWorld } from "../../src/engine/generator";
 import type { GameState } from "../../src/engine/model";
 import { playMatchdayAuto, startNewGame } from "../../src/engine/season";
@@ -17,7 +18,7 @@ import { makePlayer } from "../engine/fixtures";
 
 function game(names = ["Anna", "Ben"]): GameState {
   const world = generateWorld(81);
-  const ids = Object.keys(world.clubs);
+  const ids = leagueClubIds(world);
   const r = startNewGame(world, names.map((name, i) => ({ name, clubId: ids[i * 20] })));
   if (!r.ok) throw new Error(r.error);
   return r.state;

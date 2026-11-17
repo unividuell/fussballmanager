@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { IDBFactory } from "fake-indexeddb";
 import { describe, expect, it, vi } from "vitest";
+import { leagueClubIds } from "./game";
 import { generateWorld } from "../../src/engine/generator";
 import { SaveStore } from "../../src/storage/store";
 import { GameController, NO_STORE, SAVE_ONLY_BEFORE } from "../../src/ui/controller.svelte";
@@ -8,7 +9,7 @@ import { GameController, NO_STORE, SAVE_ONLY_BEFORE } from "../../src/ui/control
 function setup(names = ["Anna", "Ben"], store: SaveStore | null = new SaveStore(new IDBFactory())) {
   const c = new GameController({ store });
   const world = generateWorld(7);
-  const ids = Object.keys(world.clubs);
+  const ids = leagueClubIds(world);
   const error = c.startGame(world, names.map((name, i) => ({ name, clubId: ids[i * 20] })));
   if (error) throw new Error(error);
   return { c, store: store! };
