@@ -20,12 +20,14 @@ describe("Neues Spiel", () => {
     expect(controller.snapshot!.state.managers[0].clubId).toBe(firstClub);
   });
 
-  it("bietet alle 54 Vereine nach Startliga gruppiert an", () => {
+  it("bietet alle 64 Vereine gruppiert an: drei Ligen und die Traditionsvereine", () => {
     render(App, { controller: new GameController() });
     const select = screen.getByLabelText("Verein Manager 1") as HTMLSelectElement;
     const groups = select.querySelectorAll("optgroup");
-    expect(Array.from(groups).map((g) => g.label)).toEqual(["1. Liga", "2. Liga", "3. Liga"]);
-    for (const g of Array.from(groups)) expect(g.querySelectorAll("option")).toHaveLength(18);
+    expect(Array.from(groups).map((g) => g.label)).toEqual(["1. Liga", "2. Liga", "3. Liga", "Traditionsvereine (Regionalliga)"]);
+    for (const g of Array.from(groups).slice(0, 3)) expect(g.querySelectorAll("option")).toHaveLength(18);
+    expect(groups[3].querySelectorAll("option")).toHaveLength(10);
+    expect(groups[3].textContent).toContain("TSV 1860 München");
     expect(groups[2].textContent).toContain("TSV Havelse");
     expect(groups[2].textContent).toContain("Fortuna Düsseldorf");
     expect(groups[0].textContent).toContain("FC Bayern München");
@@ -74,6 +76,26 @@ describe("Neues Spiel", () => {
     await fireEvent.change(screen.getByLabelText("Startliga Manager 1"), { target: { value: "L3" } });
     await fireEvent.click(screen.getByRole("button", { name: "Anpfiff!" }));
     expect(c.snapshot!.state.competitions.L3.clubs).toContain(bayern);
+  });
+
+  it("bei einem Traditionsverein springt die Startliga auf die 3. Liga; wählbar bleiben nur die drei Ligen", async () => {
+    render(App, { controller: new GameController() });
+    const club = screen.getByLabelText("Verein Manager 1") as HTMLSelectElement;
+    const league = screen.getByLabelText("Startliga Manager 1") as HTMLSelectElement;
+    const l60 = Array.from(club.options).find((o) => o.textContent?.startsWith("TSV 1860 München"))!.value;
+    await fireEvent.change(club, { target: { value: l60 } });
+    expect(league.value).toBe("L3");
+    expect(Array.from(league.options).map((o) => o.value)).toEqual(["L1", "L2", "L3"]);
+  });
+
+  it("ein Spiel mit 1860 München in der 3. Liga startet dort", async () => {
+    const c = new GameController();
+    render(App, { controller: c });
+    const club = screen.getByLabelText("Verein Manager 1") as HTMLSelectElement;
+    const l60 = Array.from(club.options).find((o) => o.textContent?.startsWith("TSV 1860 München"))!.value;
+    await fireEvent.change(club, { target: { value: l60 } });
+    await fireEvent.click(screen.getByRole("button", { name: "Anpfiff!" }));
+    expect(c.snapshot!.state.competitions.L3.clubs).toContain(l60);
   });
 
   it("zeigt Felder für die gewählte Manager-Anzahl", async () => {
