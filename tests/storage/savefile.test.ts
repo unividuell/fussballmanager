@@ -54,7 +54,7 @@ describe("Spielstand-Datei", () => {
   });
 
   it("lehnt Spielstände aus einer neueren Version ab", () => {
-    const s = { ...newTestGame(), version: 5 } as unknown as GameState;
+    const s = { ...newTestGame(), version: 6 } as unknown as GameState;
     expect(decodeSave(encodeSave(s, META))).toEqual({ ok: false, error: TOO_NEW });
   });
 
@@ -128,10 +128,10 @@ describe("alte Spielstände", () => {
     expect(decodeSave(savedV1)).toEqual({ ok: false, error: TOO_OLD });
   });
 
-  it("ein v3-Spielstand wird abgelehnt, ein frisches Spiel speichert und lädt als Version 4", () => {
+  it("ein v4-Spielstand (54 Vereine) wird abgelehnt, ein frisches Spiel speichert und lädt als Version 5", () => {
     const fresh = newTestGame();
-    expect(fresh.version).toBe(4);
-    const old = { ...fresh, version: 3 } as unknown as GameState;
+    expect(fresh.version).toBe(5);
+    const old = { ...fresh, version: 4 } as unknown as GameState;
     expect(decodeSave(encodeSave(old, META))).toEqual({ ok: false, error: TOO_OLD });
     const r = decodeSave(encodeSave(fresh, META));
     expect(r.ok).toBe(true);

@@ -87,7 +87,7 @@ export function startingLeagues(state: GameState): Record<CompetitionId, ClubId[
   const out: Record<CompetitionId, ClubId[]> = Object.fromEntries(LEAGUES.map((l) => [l, []]));
   for (const club of Object.values(state.clubs)) {
     const seed = CLUBS.find((c) => c.name === club.name);
-    if (seed) out[seed.league].push(club.id);
+    if (seed && seed.league !== "RL") out[seed.league].push(club.id);
   }
   return out;
 }

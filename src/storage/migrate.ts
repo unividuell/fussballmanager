@@ -3,9 +3,9 @@ import { isObject } from "./guards";
 import { DAMAGED, TOO_NEW, TOO_OLD } from "./messages";
 
 /** Version des Spielstand-Schemas, die dieses Spiel schreibt. */
-export const CURRENT_VERSION = 4;
-/** Ältere Spielstände (erfundene Vereine, zwei Ligen) werden nicht mehr geladen. */
-export const OLDEST_SUPPORTED = 4;
+export const CURRENT_VERSION = 5;
+/** Ältere Spielstände (erfundene Vereine bzw. ohne Traditionsvereine) werden nicht mehr geladen. */
+export const OLDEST_SUPPORTED = 5;
 
 export type Migration = (raw: Record<string, unknown>) => Record<string, unknown>;
 

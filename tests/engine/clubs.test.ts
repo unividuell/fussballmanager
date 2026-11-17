@@ -10,14 +10,25 @@ const median = (xs: number[]) => {
 const club = (name: string) => CLUBS.find((c) => c.name === name)!;
 
 describe("Vereinsdatensatz", () => {
-  it("54 Vereine, je 18 pro Liga", () => {
-    expect(CLUBS).toHaveLength(54);
+  it("64 Vereine: je 18 pro Liga und 10 Traditionsvereine in der Regionalliga", () => {
+    expect(CLUBS).toHaveLength(64);
     for (const l of ["L1", "L2", "L3"] as const) expect(inLeague(l)).toHaveLength(18);
+    expect(inLeague("RL").map((c) => c.name).sort()).toEqual(
+      [
+        "TSV 1860 München", "SSV Ulm 1846", "FC Erzgebirge Aue", "Kickers Offenbach", "Stuttgarter Kickers",
+        "Rot-Weiß Oberhausen", "SG Wattenscheid 09", "FC Carl Zeiss Jena", "1. FC Lokomotive Leipzig", "Chemnitzer FC",
+      ].sort(),
+    );
+  });
+
+  it("Traditionsvereine sind schwächer als der schwächste Drittligist", () => {
+    const min3 = Math.min(...inLeague("L3").map((c) => c.strength));
+    for (const c of inLeague("RL")) expect(c.strength, c.name).toBeLessThan(min3);
   });
 
   it("Namen und Kurznamen sind eindeutig, Kurznamen höchstens 13 Zeichen", () => {
-    expect(new Set(CLUBS.map((c) => c.name)).size).toBe(54);
-    expect(new Set(CLUBS.map((c) => c.shortName)).size).toBe(54);
+    expect(new Set(CLUBS.map((c) => c.name)).size).toBe(64);
+    expect(new Set(CLUBS.map((c) => c.shortName)).size).toBe(64);
     for (const c of CLUBS) expect(c.shortName.length, c.shortName).toBeLessThanOrEqual(13);
   });
 

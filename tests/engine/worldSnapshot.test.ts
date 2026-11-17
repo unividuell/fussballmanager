@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
+import { CLUBS } from "../../src/engine/clubs";
 import { generateWorld } from "../../src/engine/generator";
 
-const LEAGUE_NAMES = new Set([
-  // die 54 Ligavereine aus dem Datensatz; Traditionsvereine der Regionalliga gehören nicht dazu
-]);
+/** die 54 Ligavereine aus dem Datensatz; Traditionsvereine der Regionalliga gehören nicht dazu */
+const LEAGUE_NAMES = new Set(CLUBS.filter((c) => (c.league as string) !== "RL").map((c) => c.name));
 
 /** Startwelt der Ligavereine und der Vereinslosen: muss bei gleichem Seed gleich bleiben. */
 function leagueWorld(seed: number) {
   const w = generateWorld(seed);
   const clubs = Object.values(w.clubs)
-    .filter((c) => LEAGUE_NAMES.size === 0 || LEAGUE_NAMES.has(c.name))
+    .filter((c) => LEAGUE_NAMES.has(c.name))
     .map((c) => ({ name: c.name, reputation: c.reputation, squad: c.squad }));
   const inClubs = new Set(clubs.flatMap((c) => c.squad));
   const players = Object.values(w.players)

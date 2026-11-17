@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CLUBS } from "../../src/engine/clubs";
 import { generateWorld } from "../../src/engine/generator";
+import { isRegionalliga } from "../../src/engine/regionalliga";
 import { COMP, LEAGUE_SIZE } from "../../src/engine/model";
 import { currentFixtures, leagueOf, startNewGame } from "../../src/engine/season";
 
@@ -13,7 +14,12 @@ describe("startNewGame", () => {
     if (!r.ok) throw new Error(r.error);
     const s = r.state;
     for (const l of [COMP.first, COMP.second, COMP.third]) expect(s.competitions[l].clubs).toHaveLength(LEAGUE_SIZE);
-    for (const c of Object.values(s.clubs)) expect(leagueOf(s, c.id), c.name).toBe(CLUBS.find((x) => x.name === c.name)!.league);
+    for (const c of Object.values(s.clubs)) {
+      const seed = CLUBS.find((x) => x.name === c.name)!;
+      if ((seed.league as string) === "RL") expect(isRegionalliga(s, c.id), c.name).toBe(true);
+      else expect(leagueOf(s, c.id), c.name).toBe(seed.league);
+    }
+    expect(Object.values(s.clubs).filter((c) => isRegionalliga(s, c.id))).toHaveLength(10);
     const fortuna = Object.values(s.clubs).find((c) => c.name === "Fortuna Düsseldorf")!;
     expect(leagueOf(s, fortuna.id)).toBe(COMP.third);
     const minL2 = Math.min(...s.competitions[COMP.second].clubs.map((id) => s.clubs[id].reputation));

@@ -12,7 +12,8 @@ import {
   type Player,
   type Position,
 } from "./model";
-import { CLUBS } from "./clubs";
+import { CLUBS, type ClubSeed } from "./clubs";
+import { RL_WAGE_FACTOR } from "./regionalliga";
 import { FIRST_NAMES, LAST_NAMES } from "./names";
 import { Rng } from "./rng";
 
@@ -82,7 +83,7 @@ export function generateSquad(state: GameState, rng: Rng, clubId: ClubId, baseSt
 export function generateWorld(seed: number): GameState {
   const rng = Rng.fromSeed(seed);
   const state: GameState = {
-    version: 4,
+    version: 5,
     rngState: rng.state(),
     season: 1,
     calendar: [],
@@ -97,8 +98,11 @@ export function generateWorld(seed: number): GameState {
     messages: [],
     nextId: 1,
   };
-  for (const seed of CLUBS) {
+  // Ligavereine zuerst, dann Vereinslose, dann die Traditionsvereine: so bleibt die Startwelt der Ligen gleich (Spec 2026-11-17)
+  const createClub = (seed: ClubSeed) => {
     const reputation = seed.reputation;
+    // die Regionalliga rechnet mit den Werten der 3. Liga; Finanzen werden dort nicht gebucht
+    const level = seed.league === "RL" ? 2 : LEAGUES.indexOf(seed.league);
     const club: Club = {
       id: newId(state, "c"),
       name: seed.name,
@@ -112,8 +116,8 @@ export function generateWorld(seed: number): GameState {
       tactics: { formation: "4-4-2", style: "normal", hardness: "normal" },
       finance: {
         balance: startBalance(reputation),
-        ticketPrice: startPrice(reputation, LEAGUES.indexOf(seed.league)),
-        stadiumStage: initialStage(reputation, LEAGUES.indexOf(seed.league)),
+        ticketPrice: startPrice(reputation, level),
+        stadiumStage: initialStage(reputation, level),
         building: null,
         sponsor: null,
         sponsorOffers: [],
@@ -128,12 +132,14 @@ export function generateWorld(seed: number): GameState {
     state.clubs[club.id] = club;
     // Kaderstärke kommt aus dem Datensatz, unabhängig vom Ruf (Spec 2026-11-13, Abschnitt 3)
     const base = baseStrengthFor(seed.strength);
-    const wage = WAGE_FACTOR[LEAGUES.indexOf(seed.league)];
+    const wage = seed.league === "RL" ? RL_WAGE_FACTOR : WAGE_FACTOR[level];
     generateSquad(state, rng, club.id, base, wage);
-  }
+  };
+  for (const seed of CLUBS) if (seed.league !== "RL") createClub(seed);
   for (let i = 0; i < FREE_AGENTS_START; i++) {
     generatePlayer(state, rng, null, rng.pick(FREE_AGENT_POSITIONS), rng.int(45, 65), rng.int(22, 32));
   }
+  for (const seed of CLUBS) if (seed.league === "RL") createClub(seed);
   state.rngState = rng.state();
   return state;
 }
