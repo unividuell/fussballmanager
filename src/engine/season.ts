@@ -71,7 +71,9 @@ export function startNewGame(world: GameState, managers: { name: string; clubId:
     state.clubs[m.clubId].managerId = id;
   }
   let leagues = startingLeagues(state);
-  const real = (id: ClubId) => LEAGUES.find((l) => leagues[l].includes(id))!;
+  const real = (id: ClubId): CompetitionId => LEAGUES.find((l) => leagues[l].includes(id)) ?? "RL";
+  if (managers.some((m) => m.league === undefined && real(m.clubId) === "RL"))
+    return { ok: false, error: "Bitte wähle für den Traditionsverein eine Startliga." };
   const choices = managers.map((m) => ({ clubId: m.clubId, league: m.league ?? real(m.clubId) }));
   if (choices.some((c) => c.league !== real(c.clubId))) {
     withRng(state, (rng) => {
